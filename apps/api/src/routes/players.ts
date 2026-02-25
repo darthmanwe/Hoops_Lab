@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Env } from "../db";
-import { dbAll, dbGet } from "../db";
+import { dbAll, dbGet, resolveEntityId, resolveSeasonForEntity } from "../db";
 import { cacheGetJson, cacheKey, cachePutJson } from "../cache";
 import { cosineSimilarity, parseVector } from "../services/similarity";
 
@@ -37,11 +37,11 @@ playersRoute.get("/players/search", async (c) => {
     `
       SELECT player_id, league_id, name, position, nationality
       FROM players
-      WHERE lower(name) LIKE ?
+      WHERE lower(name) LIKE ? OR lower(player_id) LIKE ?
       ORDER BY name ASC
       LIMIT 25
     `,
-    [`%${q}%`]
+    [`%${q}%`, `%${q}%`]
   );
 
   await cachePutJson(c.env.CACHE, key, rows, 60 * 30);
@@ -49,8 +49,19 @@ playersRoute.get("/players/search", async (c) => {
 });
 
 playersRoute.get("/players/:id", async (c) => {
-  const playerId = c.req.param("id");
-  const season = c.req.query("season");
+  const requestedPlayerId = c.req.param("id");
+  const requestedSeason = c.req.query("season");
+  const playerId = await resolveEntityId(c.env.DB, "players", "player_id", requestedPlayerId);
+  if (!playerId) {
+    return c.json({ error: "Player not found" }, 404);
+  }
+  const season = await resolveSeasonForEntity(
+    c.env.DB,
+    "player_season_features",
+    "player_id",
+    playerId,
+    requestedSeason
+  );
 
   const key = cacheKey(["players", playerId, season ?? ""]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
@@ -68,10 +79,6 @@ playersRoute.get("/players/:id", async (c) => {
     [playerId]
   );
 
-  if (!player) {
-    return c.json({ error: "Player not found" }, 404);
-  }
-
   const features = season
     ? await dbGet<Record<string, unknown>>(
         c.env.DB,
@@ -84,18 +91,28 @@ playersRoute.get("/players/:id", async (c) => {
       )
     : null;
 
-  const payload = { player, features };
+  const payload = { player, features, resolved: { player_id: playerId, season_id: season ?? null } };
   await cachePutJson(c.env.CACHE, key, payload);
   return c.json(payload);
 });
 
 playersRoute.get("/players/:id/comps", async (c) => {
-  const playerId = c.req.param("id");
-  const season = c.req.query("season");
+  const requestedPlayerId = c.req.param("id");
+  const requestedSeason = c.req.query("season");
   const k = Number(c.req.query("k") ?? "10");
-  if (!season) {
+  if (!requestedSeason) {
     return c.json({ error: "season is required" }, 400);
   }
+  const playerId = await resolveEntityId(c.env.DB, "players", "player_id", requestedPlayerId);
+  if (!playerId) return c.json({ error: "Player not found" }, 404);
+  const season = await resolveSeasonForEntity(
+    c.env.DB,
+    "player_season_features",
+    "player_id",
+    playerId,
+    requestedSeason
+  );
+  if (!season) return c.json({ error: "Target player features not found" }, 404);
   const limit = Number.isFinite(k) && k > 0 ? Math.min(k, 50) : 10;
 
   const key = cacheKey(["players", playerId, "comps", season, limit]);
@@ -149,6 +166,7 @@ playersRoute.get("/players/:id/comps", async (c) => {
       league_id: target.league_id,
     },
     comps,
+    resolved: { player_id: playerId, season_id: season },
   };
   await cachePutJson(c.env.CACHE, key, payload, 60 * 30);
   return c.json(payload);

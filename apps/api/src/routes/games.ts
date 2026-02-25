@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Env } from "../db";
-import { dbAll, dbGet } from "../db";
+import { dbAll, dbGet, resolveEntityId } from "../db";
 import { cacheGetJson, cacheKey, cachePutJson } from "../cache";
 
 export const gamesRoute = new Hono<{ Bindings: Env }>();
@@ -60,7 +60,11 @@ gamesRoute.get("/games", async (c) => {
 });
 
 gamesRoute.get("/games/:id", async (c) => {
-  const gameId = c.req.param("id");
+  const requestedGameId = c.req.param("id");
+  const gameId = await resolveEntityId(c.env.DB, "games", "game_id", requestedGameId);
+  if (!gameId) {
+    return c.json({ error: "Game not found" }, 404);
+  }
   const key = cacheKey(["game", gameId]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
   if (cached) return c.json(cached);
@@ -75,10 +79,6 @@ gamesRoute.get("/games/:id", async (c) => {
     [gameId]
   );
 
-  if (!game) {
-    return c.json({ error: "Game not found" }, 404);
-  }
-
   const boxscore = await dbAll<Record<string, unknown>>(
     c.env.DB,
     `
@@ -90,7 +90,7 @@ gamesRoute.get("/games/:id", async (c) => {
     [gameId]
   );
 
-  const payload = { game, boxscore };
+  const payload = { game, boxscore, resolved: { game_id: gameId } };
   await cachePutJson(c.env.CACHE, key, payload);
   return c.json(payload);
 });

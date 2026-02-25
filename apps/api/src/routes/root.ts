@@ -10,6 +10,7 @@ rootRoute.get("/", (c) => {
     routes: [
       "/health",
       "/players/search?q=<name>",
+      "/teams/search?q=<name>",
       "/players/:id?season=<season_id>",
       "/players/:id/comps?season=<season_id>&k=10",
       "/players/:id/shot-profile?season=<season_id>",

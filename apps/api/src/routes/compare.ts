@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Env } from "../db";
-import { dbGet } from "../db";
+import { dbGet, resolveEntityId } from "../db";
 import { cacheGetJson, cacheKey, cachePutJson } from "../cache";
 
 export const compareRoute = new Hono<{ Bindings: Env }>();
@@ -24,7 +24,13 @@ compareRoute.get("/compare", async (c) => {
   }
 
   const { playerA, playerB, season } = parsed.data;
-  const key = cacheKey(["compare", playerA, playerB, season]);
+  const resolvedA = await resolveEntityId(c.env.DB, "players", "player_id", playerA);
+  const resolvedB = await resolveEntityId(c.env.DB, "players", "player_id", playerB);
+  if (!resolvedA || !resolvedB) {
+    return c.json({ error: "One or both players not found" }, 404);
+  }
+
+  const key = cacheKey(["compare", resolvedA, resolvedB, season]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
   if (cached) return c.json(cached);
 
@@ -36,7 +42,7 @@ compareRoute.get("/compare", async (c) => {
       LEFT JOIN player_season_features f ON f.player_id = p.player_id AND f.season_id = ?
       WHERE p.player_id = ?
     `,
-    [season, playerA]
+    [season, resolvedA]
   );
 
   const rowB = await dbGet<Record<string, unknown>>(
@@ -47,14 +53,19 @@ compareRoute.get("/compare", async (c) => {
       LEFT JOIN player_season_features f ON f.player_id = p.player_id AND f.season_id = ?
       WHERE p.player_id = ?
     `,
-    [season, playerB]
+    [season, resolvedB]
   );
 
   if (!rowA || !rowB) {
     return c.json({ error: "One or both players not found" }, 404);
   }
 
-  const payload = { season, playerA: rowA, playerB: rowB };
+  const payload = {
+    season,
+    playerA: rowA,
+    playerB: rowB,
+    resolved: { playerA_id: resolvedA, playerB_id: resolvedB },
+  };
   await cachePutJson(c.env.CACHE, key, payload, 60 * 20);
   return c.json(payload);
 });

@@ -1,12 +1,14 @@
 import { Hono } from "hono";
 import type { Env } from "../db";
-import { dbGet } from "../db";
+import { dbGet, resolveEntityId } from "../db";
 import { cacheGetJson, cacheKey, cachePutJson } from "../cache";
 
 export const momentumRoute = new Hono<{ Bindings: Env }>();
 
 momentumRoute.get("/games/:id/momentum", async (c) => {
-  const gameId = c.req.param("id");
+  const requestedGameId = c.req.param("id");
+  const gameId = await resolveEntityId(c.env.DB, "games", "game_id", requestedGameId);
+  if (!gameId) return c.json({ error: "momentum record not found" }, 404);
   const key = cacheKey(["game", gameId, "momentum"]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
   if (cached) return c.json(cached);
@@ -22,6 +24,7 @@ momentumRoute.get("/games/:id/momentum", async (c) => {
   );
   if (!row) return c.json({ error: "momentum record not found" }, 404);
 
-  await cachePutJson(c.env.CACHE, key, row, 60 * 30);
-  return c.json(row);
+  const payload = { ...row, resolved: { game_id: gameId } };
+  await cachePutJson(c.env.CACHE, key, payload, 60 * 30);
+  return c.json(payload);
 });

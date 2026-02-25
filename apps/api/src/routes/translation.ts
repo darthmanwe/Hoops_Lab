@@ -1,14 +1,24 @@
 import { Hono } from "hono";
 import type { Env } from "../db";
-import { dbAll, dbGet } from "../db";
+import { dbAll, dbGet, resolveEntityId, resolveSeasonForEntity } from "../db";
 import { cacheGetJson, cacheKey, cachePutJson } from "../cache";
 
 export const translationRoute = new Hono<{ Bindings: Env }>();
 
 translationRoute.get("/players/:id/translation", async (c) => {
-  const playerId = c.req.param("id");
-  const season = c.req.query("season");
-  if (!season) return c.json({ error: "season is required" }, 400);
+  const requestedPlayerId = c.req.param("id");
+  const requestedSeason = c.req.query("season");
+  if (!requestedSeason) return c.json({ error: "season is required" }, 400);
+  const playerId = await resolveEntityId(c.env.DB, "players", "player_id", requestedPlayerId);
+  if (!playerId) return c.json({ error: "translation record not found" }, 404);
+  const season = await resolveSeasonForEntity(
+    c.env.DB,
+    "player_translation_metrics",
+    "player_id",
+    playerId,
+    requestedSeason
+  );
+  if (!season) return c.json({ error: "translation record not found" }, 404);
 
   const key = cacheKey(["player", playerId, "translation", season]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
@@ -27,8 +37,9 @@ translationRoute.get("/players/:id/translation", async (c) => {
   );
   if (!row) return c.json({ error: "translation record not found" }, 404);
 
-  await cachePutJson(c.env.CACHE, key, row, 60 * 30);
-  return c.json(row);
+  const payload = { ...row, resolved: { player_id: playerId, season_id: season } };
+  await cachePutJson(c.env.CACHE, key, payload, 60 * 30);
+  return c.json(payload);
 });
 
 translationRoute.get("/leaderboards/translation", async (c) => {

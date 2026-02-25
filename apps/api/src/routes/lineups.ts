@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "../db";
-import { dbAll, dbGet } from "../db";
+import { dbAll, dbGet, resolveEntityId, resolveSeasonForEntity } from "../db";
 import { cacheGetJson, cacheKey, cachePutJson } from "../cache";
 
 function avg(values: number[]): number {
@@ -11,9 +11,19 @@ function avg(values: number[]): number {
 export const lineupsRoute = new Hono<{ Bindings: Env }>();
 
 lineupsRoute.get("/teams/:id/play-style", async (c) => {
-  const teamId = c.req.param("id");
-  const season = c.req.query("season");
-  if (!season) return c.json({ error: "season is required" }, 400);
+  const requestedTeamId = c.req.param("id");
+  const requestedSeason = c.req.query("season");
+  if (!requestedSeason) return c.json({ error: "season is required" }, 400);
+  const teamId = await resolveEntityId(c.env.DB, "teams", "team_id", requestedTeamId);
+  if (!teamId) return c.json({ error: "play style record not found" }, 404);
+  const season = await resolveSeasonForEntity(
+    c.env.DB,
+    "team_play_style_metrics",
+    "team_id",
+    teamId,
+    requestedSeason
+  );
+  if (!season) return c.json({ error: "play style record not found" }, 404);
 
   const key = cacheKey(["team", teamId, "play-style", season]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
@@ -30,33 +40,50 @@ lineupsRoute.get("/teams/:id/play-style", async (c) => {
   );
   if (!row) return c.json({ error: "play style record not found" }, 404);
 
-  await cachePutJson(c.env.CACHE, key, row, 60 * 30);
-  return c.json(row);
+  const payload = { ...row, resolved: { team_id: teamId, season_id: season } };
+  await cachePutJson(c.env.CACHE, key, payload, 60 * 30);
+  return c.json(payload);
 });
 
 lineupsRoute.get("/teams/:id/lineup-impact", async (c) => {
-  const teamId = c.req.param("id");
-  const season = c.req.query("season");
+  const requestedTeamId = c.req.param("id");
+  const requestedSeason = c.req.query("season");
   const playersRaw = c.req.query("players");
 
-  if (!season || !playersRaw) {
+  if (!requestedSeason || !playersRaw) {
     return c.json({ error: "season and players query params are required" }, 400);
   }
+  const teamId = await resolveEntityId(c.env.DB, "teams", "team_id", requestedTeamId);
+  if (!teamId) return c.json({ error: "team not found" }, 404);
+  const season =
+    (await resolveSeasonForEntity(
+      c.env.DB,
+      "team_play_style_metrics",
+      "team_id",
+      teamId,
+      requestedSeason
+    )) ?? requestedSeason;
 
-  const players = playersRaw
+  const requestedPlayers = playersRaw
     .split(",")
     .map((x) => x.trim())
     .filter((x) => x.length > 0);
 
-  if (players.length !== 5) {
+  if (requestedPlayers.length !== 5) {
     return c.json({ error: "exactly five players are required" }, 400);
   }
+  const resolvedPlayers: string[] = [];
+  for (const rawPlayer of requestedPlayers) {
+    const playerId = await resolveEntityId(c.env.DB, "players", "player_id", rawPlayer);
+    if (!playerId) return c.json({ error: `player not found: ${rawPlayer}` }, 404);
+    resolvedPlayers.push(playerId);
+  }
 
-  const key = cacheKey(["team", teamId, "lineup-impact", season, ...players]);
+  const key = cacheKey(["team", teamId, "lineup-impact", season, ...resolvedPlayers]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
   if (cached) return c.json(cached);
 
-  const placeholders = players.map(() => "?").join(",");
+  const placeholders = resolvedPlayers.map(() => "?").join(",");
 
   const features = await dbAll<Record<string, unknown>>(
     c.env.DB,
@@ -65,13 +92,13 @@ lineupsRoute.get("/teams/:id/lineup-impact", async (c) => {
       FROM player_season_features
       WHERE season_id = ? AND player_id IN (${placeholders})
     `,
-    [season, ...players]
+    [season, ...resolvedPlayers]
   );
 
   const featureMap = new Map<string, Record<string, unknown>>(
     features.map((f) => [String(f.player_id), f])
   );
-  const missing = players.filter((playerId) => !featureMap.has(playerId));
+  const missing = resolvedPlayers.filter((playerId) => !featureMap.has(playerId));
   if (missing.length > 0) {
     const fallbackPlaceholders = missing.map(() => "?").join(",");
     const fallbackRows = await dbAll<Record<string, unknown>>(
@@ -90,7 +117,7 @@ lineupsRoute.get("/teams/:id/lineup-impact", async (c) => {
       }
     }
   }
-  for (const playerId of players) {
+  for (const playerId of resolvedPlayers) {
     if (!featureMap.has(playerId)) {
       return c.json({ error: `missing player features for ${playerId}` }, 404);
     }
@@ -103,18 +130,18 @@ lineupsRoute.get("/teams/:id/lineup-impact", async (c) => {
       FROM nba_gravity
       WHERE season_id = ? AND player_id IN (${placeholders})
     `,
-    [season, ...players]
+    [season, ...resolvedPlayers]
   );
 
   const gravityMap = new Map<string, number>(
     gravities.map((g) => [String(g.player_id), Number(g.gravity_overall ?? 0)])
   );
 
-  const avgGravity = avg(players.map((p) => gravityMap.get(p) ?? 0));
-  const avgUsage = avg(players.map((p) => Number(featureMap.get(p)?.usage_proxy ?? 0)));
-  const avgTs = avg(players.map((p) => Number(featureMap.get(p)?.ts_proxy ?? 0)));
-  const avgAst = avg(players.map((p) => Number(featureMap.get(p)?.ast_rate_proxy ?? 0)));
-  const avgTov = avg(players.map((p) => Number(featureMap.get(p)?.tov_rate_proxy ?? 0)));
+  const avgGravity = avg(resolvedPlayers.map((p) => gravityMap.get(p) ?? 0));
+  const avgUsage = avg(resolvedPlayers.map((p) => Number(featureMap.get(p)?.usage_proxy ?? 0)));
+  const avgTs = avg(resolvedPlayers.map((p) => Number(featureMap.get(p)?.ts_proxy ?? 0)));
+  const avgAst = avg(resolvedPlayers.map((p) => Number(featureMap.get(p)?.ast_rate_proxy ?? 0)));
+  const avgTov = avg(resolvedPlayers.map((p) => Number(featureMap.get(p)?.tov_rate_proxy ?? 0)));
 
   const offenseProjection = Number((102 + avgGravity * 0.12 + avgTs * 25 + avgUsage * 12 - avgTov * 10).toFixed(2));
   const spacingIndex = Number((avgTs * 100 + avgGravity * 0.2).toFixed(2));
@@ -136,7 +163,7 @@ lineupsRoute.get("/teams/:id/lineup-impact", async (c) => {
   const payload = {
     season,
     team_id: teamId,
-    players,
+    players: resolvedPlayers,
     metrics: {
       avg_gravity: Number(avgGravity.toFixed(2)),
       offense_projection: offenseProjection,
@@ -146,15 +173,26 @@ lineupsRoute.get("/teams/:id/lineup-impact", async (c) => {
       gravity_delta_vs_team: gravityDeltaVsTeam,
       baseline_team_offense: baselineOffense,
     },
+    resolved: { team_id: teamId, season_id: season },
   };
   await cachePutJson(c.env.CACHE, key, payload, 60 * 20);
   return c.json(payload);
 });
 
 lineupsRoute.get("/teams/:id/lineup-impact/snapshots", async (c) => {
-  const teamId = c.req.param("id");
-  const season = c.req.query("season");
-  if (!season) return c.json({ error: "season is required" }, 400);
+  const requestedTeamId = c.req.param("id");
+  const requestedSeason = c.req.query("season");
+  if (!requestedSeason) return c.json({ error: "season is required" }, 400);
+  const teamId = await resolveEntityId(c.env.DB, "teams", "team_id", requestedTeamId);
+  if (!teamId) return c.json({ error: "team not found" }, 404);
+  const season = await resolveSeasonForEntity(
+    c.env.DB,
+    "lineup_impact_snapshots",
+    "team_id",
+    teamId,
+    requestedSeason
+  );
+  if (!season) return c.json({ season: requestedSeason, team_id: teamId, results: [] });
 
   const key = cacheKey(["team", teamId, "lineup-snapshots", season]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
@@ -172,7 +210,7 @@ lineupsRoute.get("/teams/:id/lineup-impact/snapshots", async (c) => {
     [season, teamId]
   );
 
-  const payload = { season, team_id: teamId, results: rows };
+  const payload = { season, team_id: teamId, results: rows, resolved: { team_id: teamId, season_id: season } };
   await cachePutJson(c.env.CACHE, key, payload, 60 * 30);
   return c.json(payload);
 });

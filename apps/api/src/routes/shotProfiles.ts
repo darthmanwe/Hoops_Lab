@@ -1,14 +1,24 @@
 import { Hono } from "hono";
 import type { Env } from "../db";
-import { dbGet } from "../db";
+import { dbGet, resolveEntityId, resolveSeasonForEntity } from "../db";
 import { cacheGetJson, cacheKey, cachePutJson } from "../cache";
 
 export const shotProfilesRoute = new Hono<{ Bindings: Env }>();
 
 shotProfilesRoute.get("/players/:id/shot-profile", async (c) => {
-  const playerId = c.req.param("id");
-  const season = c.req.query("season");
-  if (!season) return c.json({ error: "season is required" }, 400);
+  const requestedPlayerId = c.req.param("id");
+  const requestedSeason = c.req.query("season");
+  if (!requestedSeason) return c.json({ error: "season is required" }, 400);
+  const playerId = await resolveEntityId(c.env.DB, "players", "player_id", requestedPlayerId);
+  if (!playerId) return c.json({ error: "player shot profile not found" }, 404);
+  const season = await resolveSeasonForEntity(
+    c.env.DB,
+    "player_shot_profiles",
+    "player_id",
+    playerId,
+    requestedSeason
+  );
+  if (!season) return c.json({ error: "player shot profile not found" }, 404);
 
   const key = cacheKey(["player", playerId, "shot-profile", season]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
@@ -25,14 +35,25 @@ shotProfilesRoute.get("/players/:id/shot-profile", async (c) => {
   );
 
   if (!row) return c.json({ error: "player shot profile not found" }, 404);
-  await cachePutJson(c.env.CACHE, key, row, 60 * 30);
-  return c.json(row);
+  const payload = { ...row, resolved: { player_id: playerId, season_id: season } };
+  await cachePutJson(c.env.CACHE, key, payload, 60 * 30);
+  return c.json(payload);
 });
 
 shotProfilesRoute.get("/teams/:id/shot-profile", async (c) => {
-  const teamId = c.req.param("id");
-  const season = c.req.query("season");
-  if (!season) return c.json({ error: "season is required" }, 400);
+  const requestedTeamId = c.req.param("id");
+  const requestedSeason = c.req.query("season");
+  if (!requestedSeason) return c.json({ error: "season is required" }, 400);
+  const teamId = await resolveEntityId(c.env.DB, "teams", "team_id", requestedTeamId);
+  if (!teamId) return c.json({ error: "team shot profile not found" }, 404);
+  const season = await resolveSeasonForEntity(
+    c.env.DB,
+    "team_shot_profiles",
+    "team_id",
+    teamId,
+    requestedSeason
+  );
+  if (!season) return c.json({ error: "team shot profile not found" }, 404);
 
   const key = cacheKey(["team", teamId, "shot-profile", season]);
   const cached = await cacheGetJson<unknown>(c.env.CACHE, key);
@@ -49,6 +70,7 @@ shotProfilesRoute.get("/teams/:id/shot-profile", async (c) => {
   );
 
   if (!row) return c.json({ error: "team shot profile not found" }, 404);
-  await cachePutJson(c.env.CACHE, key, row, 60 * 30);
-  return c.json(row);
+  const payload = { ...row, resolved: { team_id: teamId, season_id: season } };
+  await cachePutJson(c.env.CACHE, key, payload, 60 * 30);
+  return c.json(payload);
 });
