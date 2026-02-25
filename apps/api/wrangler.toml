@@ -5,8 +5,8 @@ compatibility_date = "2026-02-25"
 [[d1_databases]]
 binding = "DB"
 database_name = "hoopslab-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "f942bd6f-366d-4173-9589-fe521d007334"
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "932a10558aa04f7d96b218fe3d49de20"

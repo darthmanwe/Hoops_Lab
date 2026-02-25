@@ -1,12 +1,44 @@
 name: ETL Nightly
 
 on:
+  schedule:
+    - cron: "0 9 * * *"
   workflow_dispatch:
 
 jobs:
-  placeholder:
+  etl:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: ETL scaffold check
-        run: echo "ETL workflow scaffold is ready."
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry + deps
+        working-directory: data/etl
+        run: |
+          pip install poetry
+          poetry install --no-interaction
+
+      - name: Build ETL artifacts
+        working-directory: data/etl
+        run: |
+          poetry run nightly --out ../../data/etl_out
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Apply schema and upload ETL SQL
+        working-directory: apps/api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          wrangler d1 execute hoopslab-db --file ../../data/schema/schema.sql
+          wrangler d1 execute hoopslab-db --file ../../data/etl_out/d1_upload.sql

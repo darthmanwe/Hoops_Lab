@@ -10,9 +10,15 @@ python = "^3.11"
 requests = "*"
 pandas = "*"
 python-dotenv = "*"
+httpx = "*"
+tenacity = "*"
+nba_api = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
+
+[tool.poetry.scripts]
+nightly = "hoopslab.jobs.run_nightly:main"
 
 [build-system]
 requires = ["poetry-core"]

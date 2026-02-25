@@ -1,0 +1,4 @@
+# Local-only vars for wrangler dev
+# Copy to apps/api/.dev.vars and fill as needed.
+
+BALLDONTLIE_API_KEY=
