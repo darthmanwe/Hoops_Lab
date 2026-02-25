@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { Card, CardHeader } from "../../../components/ui/card";
 import { MetricTile } from "../../../components/ui/metric-tile";
 import { MetricSwitch } from "../../../components/ui/metric-switch";
@@ -10,6 +10,8 @@ import { MetricBarChart } from "../../../components/charts/metric-bar-chart";
 import { SearchInput } from "../../../components/filters/search-input";
 import { Button } from "../../../components/ui/button";
 
+export const runtime = "edge";
+
 const modes = [
   { value: "comps", label: "Comps" },
   { value: "shot", label: "Shot Profile" },
@@ -17,10 +19,12 @@ const modes = [
 ];
 
 export default function PlayerPage({ params, searchParams }) {
+  const resolvedParams = use(params);
+  const resolvedSearchParams = use(searchParams);
   const [mode, setMode] = useState("comps");
-  const playerId = decodeURIComponent(params.id);
-  const [season, setSeason] = useState(searchParams?.season ?? "NBA_2025");
-  const [seasonInput, setSeasonInput] = useState(searchParams?.season ?? "NBA_2025");
+  const playerId = decodeURIComponent(resolvedParams.id);
+  const [season, setSeason] = useState(resolvedSearchParams?.season ?? "NBA_2025");
+  const [seasonInput, setSeasonInput] = useState(resolvedSearchParams?.season ?? "NBA_2025");
 
   const playerData = useApi(`/players/${encodeURIComponent(playerId)}?season=${encodeURIComponent(season)}`);
   const compsData = useApi(`/players/${encodeURIComponent(playerId)}/comps?season=${encodeURIComponent(season)}&k=10`);

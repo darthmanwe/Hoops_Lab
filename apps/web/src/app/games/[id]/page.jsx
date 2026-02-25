@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { Card, CardHeader } from "../../../components/ui/card";
 import { MetricTile } from "../../../components/ui/metric-tile";
 import { MetricSwitch } from "../../../components/ui/metric-switch";
 import { LoadingPanel, ErrorPanel, EmptyPanel } from "../../../components/ui/state-panels";
 import { useApi } from "../../../lib/use-api";
 import { MetricBarChart } from "../../../components/charts/metric-bar-chart";
+
+export const runtime = "edge";
 
 const modes = [
   { value: "box", label: "Boxscore" },
@@ -15,8 +17,9 @@ const modes = [
 ];
 
 export default function GameDetailPage({ params }) {
+  const resolvedParams = use(params);
   const [mode, setMode] = useState("box");
-  const gameId = decodeURIComponent(params.id);
+  const gameId = decodeURIComponent(resolvedParams.id);
   const gameData = useApi(`/games/${encodeURIComponent(gameId)}`);
   const fatigueData = useApi(`/games/${encodeURIComponent(gameId)}/fatigue-flags`);
   const momentumData = useApi(`/games/${encodeURIComponent(gameId)}/momentum`);

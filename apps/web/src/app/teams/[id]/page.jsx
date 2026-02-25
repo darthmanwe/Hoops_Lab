@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { Card, CardHeader } from "../../../components/ui/card";
 import { MetricTile } from "../../../components/ui/metric-tile";
 import { MetricSwitch } from "../../../components/ui/metric-switch";
@@ -9,6 +9,8 @@ import { useApi } from "../../../lib/use-api";
 import { MetricLineChart } from "../../../components/charts/metric-line-chart";
 import { SearchInput } from "../../../components/filters/search-input";
 import { Button } from "../../../components/ui/button";
+
+export const runtime = "edge";
 
 const modes = [
   { value: "gravity", label: "Gravity" },
@@ -19,10 +21,12 @@ const modes = [
 ];
 
 export default function TeamPage({ params, searchParams }) {
+  const resolvedParams = use(params);
+  const resolvedSearchParams = use(searchParams);
   const [mode, setMode] = useState("gravity");
-  const teamId = decodeURIComponent(params.id);
-  const [season, setSeason] = useState(searchParams?.season ?? "NBA_2025");
-  const [seasonInput, setSeasonInput] = useState(searchParams?.season ?? "NBA_2025");
+  const teamId = decodeURIComponent(resolvedParams.id);
+  const [season, setSeason] = useState(resolvedSearchParams?.season ?? "NBA_2025");
+  const [seasonInput, setSeasonInput] = useState(resolvedSearchParams?.season ?? "NBA_2025");
 
   const teamData = useApi(`/teams/${encodeURIComponent(teamId)}?season=${encodeURIComponent(season)}`);
   const fatigueData = useApi(`/teams/${encodeURIComponent(teamId)}/fatigue?season=${encodeURIComponent(season)}`);
