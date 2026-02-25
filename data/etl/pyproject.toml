@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "hoopslab-etl"
+version = "0.1.0"
+description = "ETL pipeline for HoopsLab"
+authors = ["Kutlu Mizrak"]
+packages = [{ include = "hoopslab", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "*"
+pandas = "*"
+python-dotenv = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

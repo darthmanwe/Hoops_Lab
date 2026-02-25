@@ -1,0 +1,12 @@
+name: ETL Nightly
+
+on:
+  workflow_dispatch:
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ETL scaffold check
+        run: echo "ETL workflow scaffold is ready."
