@@ -4,6 +4,7 @@ export default async function GameDetailPage({ params }) {
   const { id } = await params;
   let data = null;
   let fatigue = null;
+  let momentum = null;
   try {
     data = await apiGet(`/games/${encodeURIComponent(id)}`);
   } catch {
@@ -13,6 +14,11 @@ export default async function GameDetailPage({ params }) {
     fatigue = await apiGet(`/games/${encodeURIComponent(id)}/fatigue-flags`);
   } catch {
     fatigue = null;
+  }
+  try {
+    momentum = await apiGet(`/games/${encodeURIComponent(id)}/momentum`);
+  } catch {
+    momentum = null;
   }
 
   if (!data) {
@@ -51,6 +57,9 @@ export default async function GameDetailPage({ params }) {
       ) : (
         <p>No fatigue flags available.</p>
       )}
+
+      <h2>Momentum and Clutch</h2>
+      {momentum ? <pre>{JSON.stringify(momentum, null, 2)}</pre> : <p>No momentum data available.</p>}
     </main>
   );
 }

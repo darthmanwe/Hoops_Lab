@@ -168,6 +168,96 @@ CREATE TABLE IF NOT EXISTS game_fatigue_flags (
   FOREIGN KEY (game_id) REFERENCES games(game_id)
 );
 
+CREATE TABLE IF NOT EXISTS player_shot_profiles (
+  season_id TEXT NOT NULL,
+  player_id TEXT NOT NULL,
+  rim_rate REAL,
+  mid_rate REAL,
+  corner3_rate REAL,
+  abv3_rate REAL,
+  rim_fg_pct REAL,
+  mid_fg_pct REAL,
+  three_fg_pct REAL,
+  computed_at TEXT NOT NULL,
+  PRIMARY KEY (season_id, player_id),
+  FOREIGN KEY (season_id) REFERENCES seasons(season_id),
+  FOREIGN KEY (player_id) REFERENCES players(player_id)
+);
+
+CREATE TABLE IF NOT EXISTS team_shot_profiles (
+  season_id TEXT NOT NULL,
+  team_id TEXT NOT NULL,
+  rim_rate REAL,
+  mid_rate REAL,
+  corner3_rate REAL,
+  abv3_rate REAL,
+  rim_fg_pct REAL,
+  mid_fg_pct REAL,
+  three_fg_pct REAL,
+  computed_at TEXT NOT NULL,
+  PRIMARY KEY (season_id, team_id),
+  FOREIGN KEY (season_id) REFERENCES seasons(season_id),
+  FOREIGN KEY (team_id) REFERENCES teams(team_id)
+);
+
+CREATE TABLE IF NOT EXISTS game_momentum (
+  game_id TEXT PRIMARY KEY,
+  best_run_team_id TEXT,
+  best_run_points INTEGER,
+  swing_index REAL,
+  clutch_possessions INTEGER,
+  clutch_net_rating_home REAL,
+  clutch_net_rating_away REAL,
+  computed_at TEXT NOT NULL,
+  FOREIGN KEY (game_id) REFERENCES games(game_id)
+);
+
+CREATE TABLE IF NOT EXISTS player_translation_metrics (
+  season_id TEXT NOT NULL,
+  player_id TEXT NOT NULL,
+  standardized_usage REAL,
+  standardized_ts REAL,
+  standardized_creation REAL,
+  translation_score REAL,
+  nba_equivalent_rating REAL,
+  computed_at TEXT NOT NULL,
+  PRIMARY KEY (season_id, player_id),
+  FOREIGN KEY (season_id) REFERENCES seasons(season_id),
+  FOREIGN KEY (player_id) REFERENCES players(player_id)
+);
+
+CREATE TABLE IF NOT EXISTS team_play_style_metrics (
+  season_id TEXT NOT NULL,
+  team_id TEXT NOT NULL,
+  transition_poss_rate REAL,
+  set_play_poss_rate REAL,
+  transition_off_rating REAL,
+  set_play_off_rating REAL,
+  pace_proxy REAL,
+  early_offense_rate REAL,
+  computed_at TEXT NOT NULL,
+  PRIMARY KEY (season_id, team_id),
+  FOREIGN KEY (season_id) REFERENCES seasons(season_id),
+  FOREIGN KEY (team_id) REFERENCES teams(team_id)
+);
+
+CREATE TABLE IF NOT EXISTS lineup_impact_snapshots (
+  season_id TEXT NOT NULL,
+  lineup_key TEXT NOT NULL,
+  team_id TEXT NOT NULL,
+  player_ids_json TEXT NOT NULL,
+  avg_gravity REAL,
+  offense_projection REAL,
+  spacing_index REAL,
+  transition_fit REAL,
+  set_play_fit REAL,
+  gravity_delta_vs_team REAL,
+  computed_at TEXT NOT NULL,
+  PRIMARY KEY (season_id, lineup_key),
+  FOREIGN KEY (season_id) REFERENCES seasons(season_id),
+  FOREIGN KEY (team_id) REFERENCES teams(team_id)
+);
+
 CREATE TABLE IF NOT EXISTS etl_runs (
   run_id TEXT PRIMARY KEY,
   started_at TEXT NOT NULL,
@@ -184,3 +274,7 @@ CREATE INDEX IF NOT EXISTS idx_teams_season ON teams(season_id);
 CREATE INDEX IF NOT EXISTS idx_boxscore_team ON boxscore_lines(team_id);
 CREATE INDEX IF NOT EXISTS idx_player_features_team ON player_season_features(team_id);
 CREATE INDEX IF NOT EXISTS idx_team_fatigue_season ON team_fatigue_effect(season_id);
+CREATE INDEX IF NOT EXISTS idx_player_shot_season ON player_shot_profiles(season_id);
+CREATE INDEX IF NOT EXISTS idx_team_shot_season ON team_shot_profiles(season_id);
+CREATE INDEX IF NOT EXISTS idx_translation_season ON player_translation_metrics(season_id);
+CREATE INDEX IF NOT EXISTS idx_team_style_season ON team_play_style_metrics(season_id);

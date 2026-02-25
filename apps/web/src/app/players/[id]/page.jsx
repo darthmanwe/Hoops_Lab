@@ -7,6 +7,8 @@ export default async function PlayerPage({ params, searchParams }) {
 
   let player = null;
   let comps = null;
+  let shotProfile = null;
+  let translation = null;
   try {
     player = await apiGet(`/players/${encodeURIComponent(id)}?season=${encodeURIComponent(season)}`);
   } catch {
@@ -16,6 +18,16 @@ export default async function PlayerPage({ params, searchParams }) {
     comps = await apiGet(`/players/${encodeURIComponent(id)}/comps?season=${encodeURIComponent(season)}&k=10`);
   } catch {
     comps = null;
+  }
+  try {
+    shotProfile = await apiGet(`/players/${encodeURIComponent(id)}/shot-profile?season=${encodeURIComponent(season)}`);
+  } catch {
+    shotProfile = null;
+  }
+  try {
+    translation = await apiGet(`/players/${encodeURIComponent(id)}/translation?season=${encodeURIComponent(season)}`);
+  } catch {
+    translation = null;
   }
 
   if (!player) {
@@ -48,6 +60,12 @@ export default async function PlayerPage({ params, searchParams }) {
       ) : (
         <p>No comps available for this season.</p>
       )}
+
+      <h2>Shot Profile</h2>
+      {shotProfile ? <pre>{JSON.stringify(shotProfile, null, 2)}</pre> : <p>No shot profile available.</p>}
+
+      <h2>Translation Metrics</h2>
+      {translation ? <pre>{JSON.stringify(translation, null, 2)}</pre> : <p>No translation metrics available.</p>}
     </main>
   );
 }

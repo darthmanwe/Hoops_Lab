@@ -8,6 +8,10 @@ import { gamesRoute } from "./routes/games";
 import { leaderboardsRoute } from "./routes/leaderboards";
 import { compareRoute } from "./routes/compare";
 import { fatigueRoute } from "./routes/fatigue";
+import { shotProfilesRoute } from "./routes/shotProfiles";
+import { momentumRoute } from "./routes/momentum";
+import { translationRoute } from "./routes/translation";
+import { lineupsRoute } from "./routes/lineups";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -27,6 +31,10 @@ app.route("/", gamesRoute);
 app.route("/", leaderboardsRoute);
 app.route("/", compareRoute);
 app.route("/", fatigueRoute);
+app.route("/", shotProfilesRoute);
+app.route("/", momentumRoute);
+app.route("/", translationRoute);
+app.route("/", lineupsRoute);
 
 app.notFound((c) => c.json({ error: "Not found" }, 404));
 

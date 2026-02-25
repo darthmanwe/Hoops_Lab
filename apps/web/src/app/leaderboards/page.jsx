@@ -6,6 +6,7 @@ export default async function LeaderboardsPage({ searchParams }) {
 
   let gravity = { results: [] };
   let clutch = { results: [] };
+  let translation = { results: [] };
 
   try {
     gravity = await apiGet(`/leaderboards/gravity?season=${encodeURIComponent(season)}`);
@@ -17,6 +18,11 @@ export default async function LeaderboardsPage({ searchParams }) {
     clutch = await apiGet(`/leaderboards/clutch?season=${encodeURIComponent(season)}`);
   } catch {
     clutch = { results: [] };
+  }
+  try {
+    translation = await apiGet(`/leaderboards/translation?season=${encodeURIComponent(season)}`);
+  } catch {
+    translation = { results: [] };
   }
 
   return (
@@ -40,6 +46,15 @@ export default async function LeaderboardsPage({ searchParams }) {
         {clutch.results.slice(0, 10).map((row) => (
           <li key={row.player_id}>
             {row.name} ({row.player_id}) - {row.clutch_impact ?? "n/a"}
+          </li>
+        ))}
+      </ul>
+
+      <h2>Translation</h2>
+      <ul>
+        {translation.results.slice(0, 10).map((row) => (
+          <li key={row.player_id}>
+            {row.name} ({row.league_id}) - score {row.translation_score ?? "n/a"}
           </li>
         ))}
       </ul>

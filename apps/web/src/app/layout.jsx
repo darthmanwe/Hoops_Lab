@@ -17,7 +17,10 @@ export default function RootLayout({ children }) {
           <a href="/leaderboards" style={{ marginRight: 12 }}>
             Leaderboards
           </a>
-          <a href="/compare">Compare</a>
+          <a href="/compare" style={{ marginRight: 12 }}>
+            Compare
+          </a>
+          <a href="/lineup-lab">Lineup Lab</a>
         </nav>
         {children}
       </body>

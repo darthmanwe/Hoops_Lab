@@ -8,18 +8,31 @@ Implemented backbone:
   - `/health`
   - `/players/search`
   - `/players/:id`
+  - `/players/:id/comps`
+  - `/players/:id/shot-profile`
+  - `/players/:id/translation`
   - `/teams/:id`
+  - `/teams/:id/shot-profile`
+  - `/teams/:id/fatigue`
+  - `/teams/:id/play-style`
+  - `/teams/:id/lineup-impact`
   - `/games`
   - `/games/:id`
+  - `/games/:id/momentum`
+  - `/games/:id/fatigue-flags`
   - `/leaderboards/gravity`
   - `/leaderboards/clutch`
+  - `/leaderboards/translation`
   - `/compare`
 - `apps/web`: Next.js app pages:
   - `/`
+  - `/players/[id]`
+  - `/teams/[id]`
   - `/games`
   - `/games/[id]`
   - `/leaderboards`
   - `/compare`
+  - `/lineup-lab`
 - `data/schema/schema.sql`: canonical database schema + indexes
 - `data/etl`: ETL job that generates a D1 upload SQL artifact with bootstrap data
 - `.github/workflows`: CI + nightly ETL pipelines
