@@ -16,6 +16,13 @@ const modes = [
   { value: "momentum", label: "Momentum" },
 ];
 
+function formatGameDate(gameDate) {
+  if (!gameDate) return "-";
+  const date = new Date(gameDate);
+  if (Number.isNaN(date.getTime())) return String(gameDate);
+  return date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+}
+
 export default function GameDetailPage({ params }) {
   const resolvedParams = use(params);
   const [mode, setMode] = useState("box");
@@ -34,7 +41,7 @@ export default function GameDetailPage({ params }) {
   const boxChartData = useMemo(
     () =>
       boxscore.map((line) => ({
-        player: line.player_id,
+        player: line.player_name ?? line.player_id,
         pts: Number(line.pts ?? 0),
         ast: Number(line.ast ?? 0),
         reb: Number(line.reb ?? 0),
@@ -46,16 +53,16 @@ export default function GameDetailPage({ params }) {
     <section className="space-y-6">
       <Card>
         <CardHeader
-          title={`Game ${game.game_id}`}
-          subtitle={`${game.game_date} • ${game.home_team_id} vs ${game.away_team_id}`}
+          title={`${game.home_team_name ?? game.home_team_id} vs ${game.away_team_name ?? game.away_team_id}`}
+          subtitle={`${formatGameDate(game.game_date)} • ${game.game_id}`}
           right={<MetricSwitch options={modes} value={mode} onChange={setMode} />}
         />
         <p className="mb-3 text-sm text-slate-300">
           Follow this matchup with three views: traditional production, fatigue pressure, and momentum swings.
         </p>
         <div className="grid gap-3 md:grid-cols-4">
-          <MetricTile label="Home" value={game.home_team_id} hint={`Score ${game.home_score ?? "-"}`} />
-          <MetricTile label="Away" value={game.away_team_id} hint={`Score ${game.away_score ?? "-"}`} />
+          <MetricTile label="Home" value={game.home_team_name ?? game.home_team_id} hint={`Score ${game.home_score ?? "-"}`} />
+          <MetricTile label="Away" value={game.away_team_name ?? game.away_team_id} hint={`Score ${game.away_score ?? "-"}`} />
           <MetricTile label="Venue" value={game.venue ?? "Unknown"} />
           <MetricTile label="Mode" value={mode.toUpperCase()} />
         </div>
@@ -102,7 +109,7 @@ export default function GameDetailPage({ params }) {
             <Card>
               <CardHeader title="Momentum and Clutch" subtitle="Run strength and clutch net swings." />
               <div className="grid gap-3 md:grid-cols-4">
-                <MetricTile label="Best Run Team" value={momentumData.data.best_run_team_id ?? "-"} />
+                <MetricTile label="Best Run Team" value={momentumData.data.best_run_team_name ?? momentumData.data.best_run_team_abbrev ?? momentumData.data.best_run_team_id ?? "-"} />
                 <MetricTile label="Best Run Points" value={momentumData.data.best_run_points ?? 0} />
                 <MetricTile label="Swing Index" value={Number(momentumData.data.swing_index ?? 0).toFixed(2)} />
                 <MetricTile label="Clutch Possessions" value={momentumData.data.clutch_possessions ?? 0} />

@@ -1,16 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardHeader } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { MetricSwitch } from "../../components/ui/metric-switch";
-import { SearchInput } from "../../components/filters/search-input";
 import { EntitySearchInput } from "../../components/filters/entity-search-input";
 import { LoadingPanel, ErrorPanel, EmptyPanel } from "../../components/ui/state-panels";
 import { MetricTile } from "../../components/ui/metric-tile";
 import { useApi } from "../../lib/use-api";
 import { MetricRadarChart } from "../../components/charts/metric-radar-chart";
 import { MetricBarChart } from "../../components/charts/metric-bar-chart";
+import { SEASON_OPTIONS } from "../../lib/seasons";
 
 const displayModes = [
   { value: "overview", label: "Overview" },
@@ -23,7 +24,7 @@ const quickLineups = [
     label: "Demo Hybrid Five",
     team: "NBA_1610612738",
     season: "NBA_2025",
-    players: ["NBA_201939", "NBA_2544", "EL_9001", "EL_9002", "NBA_1629029"],
+    players: ["NBA_201939", "NBA_2544", "EL_9001", "EL_9002", "NBA_201939"],
   },
   {
     label: "Spacing Heavy Five",
@@ -33,22 +34,66 @@ const quickLineups = [
   },
 ];
 
-export default function LineupLabPage() {
-  const [teamInput, setTeamInput] = useState("NBA_1610612738");
-  const [seasonInput, setSeasonInput] = useState("NBA_2025");
-  const [slot1, setSlot1] = useState("NBA_201939");
-  const [slot2, setSlot2] = useState("NBA_2544");
-  const [slot3, setSlot3] = useState("EL_9001");
-  const [slot4, setSlot4] = useState("EL_9002");
-  const [slot5, setSlot5] = useState("NBA_2544");
-  const [team, setTeam] = useState("NBA_1610612738");
-  const [season, setSeason] = useState("NBA_2025");
-  const [players, setPlayers] = useState("NBA_201939,NBA_2544,EL_9001,EL_9002,NBA_2544");
-  const [mode, setMode] = useState("overview");
+function LineupLabPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTeam = searchParams.get("team") ?? "NBA_1610612738";
+  const initialSeason = searchParams.get("season") ?? "NBA_2025";
+  const initialPlayers = (searchParams.get("players") ?? "NBA_201939,NBA_2544,EL_9001,EL_9002,NBA_2544").split(",");
+  const [teamInput, setTeamInput] = useState(initialTeam);
+  const [seasonInput, setSeasonInput] = useState(initialSeason);
+  const [slot1, setSlot1] = useState(initialPlayers[0] ?? "NBA_201939");
+  const [slot2, setSlot2] = useState(initialPlayers[1] ?? "NBA_2544");
+  const [slot3, setSlot3] = useState(initialPlayers[2] ?? "EL_9001");
+  const [slot4, setSlot4] = useState(initialPlayers[3] ?? "EL_9002");
+  const [slot5, setSlot5] = useState(initialPlayers[4] ?? "NBA_2544");
+  const [team, setTeam] = useState(initialTeam);
+  const [season, setSeason] = useState(initialSeason);
+  const [players, setPlayers] = useState(initialPlayers.join(","));
+  const [mode, setMode] = useState(searchParams.get("mode") ?? "overview");
 
   const { data, loading, error } = useApi(
     `/teams/${encodeURIComponent(team)}/lineup-impact?season=${encodeURIComponent(season)}&players=${encodeURIComponent(players)}`
   );
+  const teamLookup = useApi(
+    teamInput.trim()
+      ? `/teams/${encodeURIComponent(teamInput.trim())}?season=${encodeURIComponent(seasonInput)}`
+      : null
+  );
+  const slot1Lookup = useApi(
+    slot1.trim()
+      ? `/players/${encodeURIComponent(slot1.trim())}?season=${encodeURIComponent(seasonInput)}`
+      : null
+  );
+  const slot2Lookup = useApi(
+    slot2.trim()
+      ? `/players/${encodeURIComponent(slot2.trim())}?season=${encodeURIComponent(seasonInput)}`
+      : null
+  );
+  const slot3Lookup = useApi(
+    slot3.trim()
+      ? `/players/${encodeURIComponent(slot3.trim())}?season=${encodeURIComponent(seasonInput)}`
+      : null
+  );
+  const slot4Lookup = useApi(
+    slot4.trim()
+      ? `/players/${encodeURIComponent(slot4.trim())}?season=${encodeURIComponent(seasonInput)}`
+      : null
+  );
+  const slot5Lookup = useApi(
+    slot5.trim()
+      ? `/players/${encodeURIComponent(slot5.trim())}?season=${encodeURIComponent(seasonInput)}`
+      : null
+  );
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    next.set("team", team);
+    next.set("season", season);
+    next.set("players", players);
+    next.set("mode", mode);
+    router.replace(`/lineup-lab?${next.toString()}`);
+  }, [team, season, players, mode, router]);
 
   const metrics = data?.metrics ?? {};
   const radarData = useMemo(
@@ -105,21 +150,73 @@ export default function LineupLabPage() {
           ))}
         </div>
         <div className="grid gap-3 md:grid-cols-3">
-          <EntitySearchInput
-            value={teamInput}
-            onChange={setTeamInput}
-            placeholder="Team (type name or ID)"
-            type="team"
-          />
-          <SearchInput value={seasonInput} onChange={setSeasonInput} placeholder="Season (e.g. NBA_2025)" />
+          <div>
+            <EntitySearchInput
+              value={teamInput}
+              onChange={setTeamInput}
+              placeholder="Team (type name or ID)"
+              type="team"
+            />
+            <p className="mt-1 text-xs text-slate-300">
+              {teamLookup.data?.team?.name
+                ? `${teamLookup.data.team.name} (${teamLookup.data.team.team_id})`
+                : "Choose a team"}
+            </p>
+          </div>
+          <select
+            value={seasonInput}
+            onChange={(e) => setSeasonInput(e.target.value)}
+            className="w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 text-sm text-slate-100 outline-none focus:border-neon-400"
+          >
+            {SEASON_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value} className="bg-ink-900 text-slate-100">
+                {option.label}
+              </option>
+            ))}
+          </select>
           <Button variant="court" onClick={runLineup}>
             Evaluate Lineup
           </Button>
-          <EntitySearchInput value={slot1} onChange={setSlot1} placeholder="Player 1 (name or ID)" type="player" />
-          <EntitySearchInput value={slot2} onChange={setSlot2} placeholder="Player 2 (name or ID)" type="player" />
-          <EntitySearchInput value={slot3} onChange={setSlot3} placeholder="Player 3 (name or ID)" type="player" />
-          <EntitySearchInput value={slot4} onChange={setSlot4} placeholder="Player 4 (name or ID)" type="player" />
-          <EntitySearchInput value={slot5} onChange={setSlot5} placeholder="Player 5 (name or ID)" type="player" />
+          <div>
+            <EntitySearchInput value={slot1} onChange={setSlot1} placeholder="Player 1 (name or ID)" type="player" />
+            <p className="mt-1 text-xs text-slate-300">
+              {slot1Lookup.data?.player?.name
+                ? `${slot1Lookup.data.player.name} (${slot1Lookup.data.player.player_id})`
+                : "Choose player 1"}
+            </p>
+          </div>
+          <div>
+            <EntitySearchInput value={slot2} onChange={setSlot2} placeholder="Player 2 (name or ID)" type="player" />
+            <p className="mt-1 text-xs text-slate-300">
+              {slot2Lookup.data?.player?.name
+                ? `${slot2Lookup.data.player.name} (${slot2Lookup.data.player.player_id})`
+                : "Choose player 2"}
+            </p>
+          </div>
+          <div>
+            <EntitySearchInput value={slot3} onChange={setSlot3} placeholder="Player 3 (name or ID)" type="player" />
+            <p className="mt-1 text-xs text-slate-300">
+              {slot3Lookup.data?.player?.name
+                ? `${slot3Lookup.data.player.name} (${slot3Lookup.data.player.player_id})`
+                : "Choose player 3"}
+            </p>
+          </div>
+          <div>
+            <EntitySearchInput value={slot4} onChange={setSlot4} placeholder="Player 4 (name or ID)" type="player" />
+            <p className="mt-1 text-xs text-slate-300">
+              {slot4Lookup.data?.player?.name
+                ? `${slot4Lookup.data.player.name} (${slot4Lookup.data.player.player_id})`
+                : "Choose player 4"}
+            </p>
+          </div>
+          <div>
+            <EntitySearchInput value={slot5} onChange={setSlot5} placeholder="Player 5 (name or ID)" type="player" />
+            <p className="mt-1 text-xs text-slate-300">
+              {slot5Lookup.data?.player?.name
+                ? `${slot5Lookup.data.player.name} (${slot5Lookup.data.player.player_id})`
+                : "Choose player 5"}
+            </p>
+          </div>
         </div>
       </Card>
 
@@ -159,5 +256,13 @@ export default function LineupLabPage() {
         </>
       ) : null}
     </section>
+  );
+}
+
+export default function LineupLabPage() {
+  return (
+    <Suspense fallback={<LoadingPanel text="Loading lineup lab..." />}>
+      <LineupLabPageContent />
+    </Suspense>
   );
 }

@@ -23,7 +23,7 @@ leaderboardsRoute.get("/leaderboards/gravity", async (c) => {
   const rows = await dbAll<Record<string, unknown>>(
     c.env.DB,
     `
-      SELECT p.player_id, p.name, g.gravity_overall, g.gravity_on_ball, g.gravity_off_ball
+      SELECT p.player_id, p.name, p.league_id, g.gravity_overall, g.gravity_on_ball, g.gravity_off_ball
       FROM nba_gravity g
       JOIN players p ON p.player_id = g.player_id
       WHERE g.season_id = ?
@@ -51,7 +51,7 @@ leaderboardsRoute.get("/leaderboards/clutch", async (c) => {
   const rows = await dbAll<Record<string, unknown>>(
     c.env.DB,
     `
-      SELECT p.player_id, p.name, f.clutch_impact
+      SELECT p.player_id, p.name, p.league_id, f.clutch_impact
       FROM player_season_features f
       JOIN players p ON p.player_id = f.player_id
       WHERE f.season_id = ?

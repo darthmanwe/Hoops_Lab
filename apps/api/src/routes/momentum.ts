@@ -16,9 +16,19 @@ momentumRoute.get("/games/:id/momentum", async (c) => {
   const row = await dbGet<Record<string, unknown>>(
     c.env.DB,
     `
-      SELECT game_id, best_run_team_id, best_run_points, swing_index, clutch_possessions, clutch_net_rating_home, clutch_net_rating_away
-      FROM game_momentum
-      WHERE game_id = ?
+      SELECT
+        m.game_id,
+        m.best_run_team_id,
+        m.best_run_points,
+        m.swing_index,
+        m.clutch_possessions,
+        m.clutch_net_rating_home,
+        m.clutch_net_rating_away,
+        t.name AS best_run_team_name,
+        t.abbrev AS best_run_team_abbrev
+      FROM game_momentum m
+      LEFT JOIN teams t ON t.team_id = m.best_run_team_id
+      WHERE m.game_id = ?
     `,
     [gameId]
   );

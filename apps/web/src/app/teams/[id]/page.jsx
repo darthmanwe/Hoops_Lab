@@ -1,14 +1,16 @@
 "use client";
 
 import { use, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader } from "../../../components/ui/card";
 import { MetricTile } from "../../../components/ui/metric-tile";
 import { MetricSwitch } from "../../../components/ui/metric-switch";
 import { LoadingPanel, ErrorPanel, EmptyPanel } from "../../../components/ui/state-panels";
 import { useApi } from "../../../lib/use-api";
 import { MetricLineChart } from "../../../components/charts/metric-line-chart";
-import { SearchInput } from "../../../components/filters/search-input";
+import { EntitySearchInput } from "../../../components/filters/entity-search-input";
 import { Button } from "../../../components/ui/button";
+import { SEASON_OPTIONS, seasonLabel } from "../../../lib/seasons";
 
 export const runtime = "edge";
 
@@ -21,12 +23,14 @@ const modes = [
 ];
 
 export default function TeamPage({ params, searchParams }) {
+  const router = useRouter();
   const resolvedParams = use(params);
   const resolvedSearchParams = use(searchParams);
   const [mode, setMode] = useState("gravity");
   const teamId = decodeURIComponent(resolvedParams.id);
   const [season, setSeason] = useState(resolvedSearchParams?.season ?? "NBA_2025");
   const [seasonInput, setSeasonInput] = useState(resolvedSearchParams?.season ?? "NBA_2025");
+  const [teamInput, setTeamInput] = useState(teamId);
 
   const teamData = useApi(`/teams/${encodeURIComponent(teamId)}?season=${encodeURIComponent(season)}`);
   const fatigueData = useApi(`/teams/${encodeURIComponent(teamId)}/fatigue?season=${encodeURIComponent(season)}`);
@@ -58,16 +62,39 @@ export default function TeamPage({ params, searchParams }) {
       <Card>
         <CardHeader
           title={team.name}
-          subtitle={`${team.team_id} • ${team.league_id} • ${season}`}
+          subtitle={`${team.team_id} • ${team.league_id} • ${seasonLabel(season)}`}
           right={<MetricSwitch options={modes} value={mode} onChange={setMode} />}
         />
         <p className="mb-3 text-sm text-slate-300">
           Switch tabs to understand how this team creates offense, handles travel fatigue, and what lineup combinations project best.
         </p>
-        <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center">
-          <SearchInput value={seasonInput} onChange={setSeasonInput} placeholder="Season (e.g. NBA_2025)" className="md:w-64" />
-          <Button variant="secondary" onClick={() => setSeason(seasonInput.trim())}>
-            Apply Season
+        <div className="mt-2 grid gap-2 md:grid-cols-3">
+          <EntitySearchInput
+            value={teamInput}
+            onChange={setTeamInput}
+            placeholder="Search team by name or ID"
+            type="team"
+          />
+          <select
+            value={seasonInput}
+            onChange={(e) => setSeasonInput(e.target.value)}
+            className="w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 text-sm text-slate-100 outline-none focus:border-neon-400"
+          >
+            {SEASON_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value} className="bg-ink-900 text-slate-100">
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              const nextSeason = seasonInput.trim();
+              setSeason(nextSeason);
+              router.replace(`/teams/${encodeURIComponent(teamInput.trim() || teamId)}?season=${encodeURIComponent(nextSeason)}`);
+            }}
+          >
+            Open Team
           </Button>
         </div>
       </Card>

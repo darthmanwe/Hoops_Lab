@@ -1,14 +1,16 @@
 "use client";
 
 import { use, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader } from "../../../components/ui/card";
 import { MetricTile } from "../../../components/ui/metric-tile";
 import { MetricSwitch } from "../../../components/ui/metric-switch";
 import { LoadingPanel, ErrorPanel, EmptyPanel } from "../../../components/ui/state-panels";
 import { useApi } from "../../../lib/use-api";
 import { MetricBarChart } from "../../../components/charts/metric-bar-chart";
-import { SearchInput } from "../../../components/filters/search-input";
+import { EntitySearchInput } from "../../../components/filters/entity-search-input";
 import { Button } from "../../../components/ui/button";
+import { SEASON_OPTIONS, seasonLabel } from "../../../lib/seasons";
 
 export const runtime = "edge";
 
@@ -19,12 +21,14 @@ const modes = [
 ];
 
 export default function PlayerPage({ params, searchParams }) {
+  const router = useRouter();
   const resolvedParams = use(params);
   const resolvedSearchParams = use(searchParams);
   const [mode, setMode] = useState("comps");
   const playerId = decodeURIComponent(resolvedParams.id);
   const [season, setSeason] = useState(resolvedSearchParams?.season ?? "NBA_2025");
   const [seasonInput, setSeasonInput] = useState(resolvedSearchParams?.season ?? "NBA_2025");
+  const [playerInput, setPlayerInput] = useState(playerId);
 
   const playerData = useApi(`/players/${encodeURIComponent(playerId)}?season=${encodeURIComponent(season)}`);
   const compsData = useApi(`/players/${encodeURIComponent(playerId)}/comps?season=${encodeURIComponent(season)}&k=10`);
@@ -53,16 +57,39 @@ export default function PlayerPage({ params, searchParams }) {
       <Card>
         <CardHeader
           title={player.name}
-          subtitle={`${player.player_id} • ${player.league_id}`}
+          subtitle={`${player.player_id} • ${player.league_id} • ${seasonLabel(season)}`}
           right={<MetricSwitch options={modes} value={mode} onChange={setMode} />}
         />
         <p className="mb-3 text-sm text-slate-300">
           Use this page to understand player style: who they resemble, where they shoot from, and how well production translates across leagues.
         </p>
-        <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center">
-          <SearchInput value={seasonInput} onChange={setSeasonInput} placeholder="Season (NBA_2025 / EL_2025)" className="md:w-64" />
-          <Button variant="secondary" onClick={() => setSeason(seasonInput.trim())}>
-            Apply Season
+        <div className="mb-3 grid gap-2 md:grid-cols-3">
+          <EntitySearchInput
+            value={playerInput}
+            onChange={setPlayerInput}
+            placeholder="Search player by name or ID"
+            type="player"
+          />
+          <select
+            value={seasonInput}
+            onChange={(e) => setSeasonInput(e.target.value)}
+            className="w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 text-sm text-slate-100 outline-none focus:border-neon-400"
+          >
+            {SEASON_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value} className="bg-ink-900 text-slate-100">
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              const nextSeason = seasonInput.trim();
+              setSeason(nextSeason);
+              router.replace(`/players/${encodeURIComponent(playerInput.trim() || playerId)}?season=${encodeURIComponent(nextSeason)}`);
+            }}
+          >
+            Open Player
           </Button>
         </div>
         <div className="grid gap-3 md:grid-cols-4">

@@ -33,24 +33,38 @@ gamesRoute.get("/games", async (c) => {
   if (cached) return c.json(cached);
 
   let sql = `
-    SELECT game_id, league_id, season_id, game_date, home_team_id, away_team_id, home_score, away_score
-    FROM games
+    SELECT
+      g.game_id,
+      g.league_id,
+      g.season_id,
+      g.game_date,
+      g.home_team_id,
+      g.away_team_id,
+      g.home_score,
+      g.away_score,
+      ht.name AS home_team_name,
+      ht.abbrev AS home_team_abbrev,
+      at.name AS away_team_name,
+      at.abbrev AS away_team_abbrev
+    FROM games g
+    LEFT JOIN teams ht ON ht.team_id = g.home_team_id AND ht.season_id = g.season_id
+    LEFT JOIN teams at ON at.team_id = g.away_team_id AND at.season_id = g.season_id
   `;
   const args: unknown[] = [];
   const where: string[] = [];
 
   if (season) {
-    where.push("season_id = ?");
+    where.push("g.season_id = ?");
     args.push(season);
   }
   if (league) {
-    where.push("league_id = ?");
+    where.push("g.league_id = ?");
     args.push(league.toUpperCase());
   }
   if (where.length > 0) {
     sql += ` WHERE ${where.join(" AND ")}`;
   }
-  sql += " ORDER BY game_date DESC LIMIT ?";
+  sql += " ORDER BY g.game_date DESC LIMIT ?";
   args.push(limit);
 
   const games = await dbAll<Record<string, unknown>>(c.env.DB, sql, args);
@@ -72,9 +86,24 @@ gamesRoute.get("/games/:id", async (c) => {
   const game = await dbGet<Record<string, unknown>>(
     c.env.DB,
     `
-      SELECT game_id, league_id, season_id, game_date, home_team_id, away_team_id, home_score, away_score, venue
-      FROM games
-      WHERE game_id = ?
+      SELECT
+        g.game_id,
+        g.league_id,
+        g.season_id,
+        g.game_date,
+        g.home_team_id,
+        g.away_team_id,
+        g.home_score,
+        g.away_score,
+        g.venue,
+        ht.name AS home_team_name,
+        ht.abbrev AS home_team_abbrev,
+        at.name AS away_team_name,
+        at.abbrev AS away_team_abbrev
+      FROM games g
+      LEFT JOIN teams ht ON ht.team_id = g.home_team_id AND ht.season_id = g.season_id
+      LEFT JOIN teams at ON at.team_id = g.away_team_id AND at.season_id = g.season_id
+      WHERE g.game_id = ?
     `,
     [gameId]
   );
@@ -90,7 +119,31 @@ gamesRoute.get("/games/:id", async (c) => {
     [gameId]
   );
 
-  const payload = { game, boxscore, resolved: { game_id: gameId } };
+  const boxscoreWithNames = await dbAll<Record<string, unknown>>(
+    c.env.DB,
+    `
+      SELECT
+        b.player_id,
+        b.team_id,
+        b.minutes,
+        b.pts,
+        b.ast,
+        b.reb,
+        b.fg3m,
+        b.fg3a,
+        p.name AS player_name,
+        t.name AS team_name,
+        t.abbrev AS team_abbrev
+      FROM boxscore_lines b
+      LEFT JOIN players p ON p.player_id = b.player_id
+      LEFT JOIN teams t ON t.team_id = b.team_id
+      WHERE b.game_id = ?
+      ORDER BY b.team_id ASC, b.pts DESC
+    `,
+    [gameId]
+  );
+
+  const payload = { game, boxscore: boxscoreWithNames.length > 0 ? boxscoreWithNames : boxscore, resolved: { game_id: gameId } };
   await cachePutJson(c.env.CACHE, key, payload);
   return c.json(payload);
 });

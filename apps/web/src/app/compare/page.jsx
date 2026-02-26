@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardHeader } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { MetricSwitch } from "../../components/ui/metric-switch";
-import { SearchInput } from "../../components/filters/search-input";
 import { EntitySearchInput } from "../../components/filters/entity-search-input";
 import { LoadingPanel, ErrorPanel, EmptyPanel } from "../../components/ui/state-panels";
 import { useApi } from "../../lib/use-api";
 import { MetricBarChart } from "../../components/charts/metric-bar-chart";
+import { SEASON_OPTIONS } from "../../lib/seasons";
 
 const presets = [
   { value: "efficiency", label: "Efficiency", keys: ["ts_proxy", "usage_proxy"] },
@@ -29,14 +30,28 @@ const quickMatchups = [
   { label: "NBA vs EL Example", a: "NBA_201939", b: "EL_9001", season: "NBA_2025" },
 ];
 
-export default function ComparePage() {
-  const [playerAInput, setPlayerAInput] = useState("NBA_201939");
-  const [playerBInput, setPlayerBInput] = useState("NBA_2544");
-  const [seasonInput, setSeasonInput] = useState("NBA_2025");
-  const [playerA, setPlayerA] = useState("NBA_201939");
-  const [playerB, setPlayerB] = useState("NBA_2544");
-  const [season, setSeason] = useState("NBA_2025");
-  const [preset, setPreset] = useState("efficiency");
+function ComparePageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialPlayerA = searchParams.get("playerA") ?? "NBA_201939";
+  const initialPlayerB = searchParams.get("playerB") ?? "NBA_2544";
+  const initialSeason = searchParams.get("season") ?? "NBA_2025";
+  const [playerAInput, setPlayerAInput] = useState(initialPlayerA);
+  const [playerBInput, setPlayerBInput] = useState(initialPlayerB);
+  const [seasonInput, setSeasonInput] = useState(initialSeason);
+  const [playerA, setPlayerA] = useState(initialPlayerA);
+  const [playerB, setPlayerB] = useState(initialPlayerB);
+  const [season, setSeason] = useState(initialSeason);
+  const [preset, setPreset] = useState(searchParams.get("preset") ?? "efficiency");
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    next.set("playerA", playerA);
+    next.set("playerB", playerB);
+    next.set("season", season);
+    next.set("preset", preset);
+    router.replace(`/compare?${next.toString()}`);
+  }, [playerA, playerB, season, preset, router]);
 
   const { data, loading, error } = useApi(
     playerA && playerB
@@ -94,7 +109,17 @@ export default function ComparePage() {
             placeholder="Player B (type name or ID)"
             type="player"
           />
-          <SearchInput value={seasonInput} onChange={setSeasonInput} placeholder="Season (e.g. NBA_2025)" />
+          <select
+            value={seasonInput}
+            onChange={(e) => setSeasonInput(e.target.value)}
+            className="w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 text-sm text-slate-100 outline-none focus:border-neon-400"
+          >
+            {SEASON_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value} className="bg-ink-900 text-slate-100">
+                {option.label}
+              </option>
+            ))}
+          </select>
           <Button
             variant="court"
             onClick={() => {
@@ -159,5 +184,13 @@ export default function ComparePage() {
         </>
       ) : null}
     </section>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<LoadingPanel text="Loading comparison..." />}>
+      <ComparePageContent />
+    </Suspense>
   );
 }

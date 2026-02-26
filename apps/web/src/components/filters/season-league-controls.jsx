@@ -1,11 +1,7 @@
 "use client";
 
 import { Button } from "../ui/button";
-
-const seasonByLeague = {
-  NBA: "NBA_2025",
-  EL: "EL_2025",
-};
+import { DEFAULT_SEASON_BY_LEAGUE, seasonsForLeague } from "../../lib/seasons";
 
 export function SeasonLeagueControls({
   league,
@@ -24,7 +20,7 @@ export function SeasonLeagueControls({
             className="px-2 py-1 text-xs"
             onClick={() => {
               setLeague(option);
-              setSeason(seasonByLeague[option]);
+              setSeason(DEFAULT_SEASON_BY_LEAGUE[option]);
             }}
           >
             {option}
@@ -34,11 +30,17 @@ export function SeasonLeagueControls({
 
       <label className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/20 px-3 py-2">
         <span className="text-xs uppercase tracking-wide text-slate-300">Season</span>
-        <input
+        <select
           value={season}
           onChange={(e) => setSeason(e.target.value)}
-          className="w-24 bg-transparent text-sm text-slate-100 outline-none"
-        />
+          className="min-w-44 bg-transparent text-sm text-slate-100 outline-none"
+        >
+          {seasonsForLeague(league).map((option) => (
+            <option key={option.value} value={option.value} className="bg-ink-900 text-slate-100">
+              {option.label}
+            </option>
+          ))}
+        </select>
       </label>
     </div>
   );
