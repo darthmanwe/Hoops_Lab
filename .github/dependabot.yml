@@ -1,0 +1,31 @@
+version: 2
+
+updates:
+  # Grouped so that a quiet week produces one reviewable pull request rather
+  # than thirty that nobody opens.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      cloudflare:
+        patterns: ["wrangler", "@cloudflare/*", "hono"]
+      tooling:
+        patterns: ["eslint*", "@eslint/*", "typescript-eslint", "prettier", "vitest", "typescript"]
+      web:
+        patterns: ["next", "react", "react-dom", "@types/react*", "tailwindcss", "@tailwindcss/*"]
+
+  - package-ecosystem: uv
+    directory: /services/ml
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-tooling:
+        patterns: ["ruff", "mypy", "pytest*", "types-*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

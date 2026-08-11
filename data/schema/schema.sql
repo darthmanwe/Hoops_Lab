@@ -1,3 +1,31 @@
+-- ===========================================================================
+-- SUPERSEDED. Do not extend this file.
+--
+-- Retained only as a record of the shape of the current production database
+-- until phase 3 replaces it with numbered migrations applied by
+-- `wrangler d1 migrations apply`.
+--
+-- Three reasons it cannot be built on:
+--
+--   1. `CREATE TABLE IF NOT EXISTS` is not a migration system. Re-running this
+--      after a schema change is a silent no-op, so adding a column or a
+--      constraint to an existing table does nothing and reports success.
+--
+--   2. `players.league_id` makes a player who moves between leagues two
+--      unrelated rows. That structurally prevents the cross-league translation
+--      model — the point of the project — from being fitted or backtested,
+--      because there is no join key on "the same person in both leagues".
+--      Phase 3 replaces it with persons / player_identities / player_stints.
+--
+--   3. Several tables here exist only to hold fabricated metrics
+--      (`nba_gravity`, `team_gravity_effect`, `game_momentum`, and the
+--      `*_proxy` columns on `player_season_features`). They are dropped rather
+--      than repopulated; see docs/modeling.md.
+--
+-- No endpoint reads any of these tables. Every analytics route returns 501 or
+-- 410 until real data and fitted models exist.
+-- ===========================================================================
+
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS leagues (

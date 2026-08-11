@@ -1,0 +1,31 @@
+# Normalise line endings. Without this, test fixtures and generated SQL hash
+# differently on Windows than on the Linux CI runners, and the committed
+# contract checksums flap between platforms.
+* text=auto eol=lf
+
+*.sql        text eol=lf
+*.py         text eol=lf
+*.ts         text eol=lf
+*.tsx        text eol=lf
+*.js         text eol=lf
+*.jsx        text eol=lf
+*.json       text eol=lf
+*.yml        text eol=lf
+*.yaml       text eol=lf
+*.md         text eol=lf
+*.toml       text eol=lf
+
+# Binary and generated payloads: never touch these.
+*.parquet    binary
+*.png        binary
+*.jpg        binary
+*.gif        binary
+*.ico        binary
+*.woff2      binary
+*.joblib     binary
+*.gz         binary
+*.zst        binary
+
+# Keep generated artefacts out of diffs and language statistics.
+package-lock.json  -diff linguist-generated
+uv.lock            -diff linguist-generated

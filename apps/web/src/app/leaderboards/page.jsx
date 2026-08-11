@@ -23,7 +23,9 @@ function LeaderboardsPageContent() {
   const searchParams = useSearchParams();
   const initialLeague = searchParams.get("league")?.toUpperCase() === "EL" ? "EL" : "NBA";
   const [league, setLeague] = useState(initialLeague);
-  const [season, setSeason] = useState(searchParams.get("season") ?? DEFAULT_SEASON_BY_LEAGUE[initialLeague]);
+  const [season, setSeason] = useState(
+    searchParams.get("season") ?? DEFAULT_SEASON_BY_LEAGUE[initialLeague]
+  );
   const [metric, setMetric] = useState(searchParams.get("metric") ?? "gravity");
   const [sortBy, setSortBy] = useState(searchParams.get("sort") ?? "score_desc");
   const [playerQuery, setPlayerQuery] = useState(searchParams.get("player") ?? "");
@@ -52,8 +54,12 @@ function LeaderboardsPageContent() {
     const q = playerQuery.trim().toLowerCase();
     return results.filter((row) => {
       return (
-        String(row.name ?? "").toLowerCase().includes(q) ||
-        String(row.player_id ?? "").toLowerCase().includes(q)
+        String(row.name ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(row.player_id ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [results, playerQuery]);
@@ -183,7 +189,9 @@ function LeaderboardsPageContent() {
                       <td className="px-2 py-2 text-slate-300">{idx + 1}</td>
                       <td className="px-2 py-2 text-white">{row.name}</td>
                       <td className="px-2 py-2 text-slate-300">{row.league_id ?? "-"}</td>
-                      <td className="px-2 py-2 text-neon-300">{Number(row[scoreKey] ?? 0).toFixed(3)}</td>
+                      <td className="px-2 py-2 text-neon-300">
+                        {Number(row[scoreKey] ?? 0).toFixed(3)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

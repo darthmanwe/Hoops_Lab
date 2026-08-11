@@ -3,13 +3,7 @@
 import { Button } from "../ui/button";
 import { DEFAULT_SEASON_BY_LEAGUE, seasonsForLeague } from "../../lib/seasons";
 
-export function SeasonLeagueControls({
-  league,
-  setLeague,
-  season,
-  setSeason,
-  className = "",
-}) {
+export function SeasonLeagueControls({ league, setLeague, season, setSeason, className = "" }) {
   return (
     <div className={`flex flex-wrap items-center gap-2 ${className}`}>
       <div className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/20 p-1">

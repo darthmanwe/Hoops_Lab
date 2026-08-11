@@ -76,7 +76,13 @@ function ComparePageContent() {
         <CardHeader
           title="Compare Workbench"
           subtitle="Pick two players, choose a lens, and see a side-by-side performance story."
-          right={<MetricSwitch options={presets.map((p) => ({ value: p.value, label: p.label }))} value={preset} onChange={setPreset} />}
+          right={
+            <MetricSwitch
+              options={presets.map((p) => ({ value: p.value, label: p.label }))}
+              value={preset}
+              onChange={setPreset}
+            />
+          }
         />
         <div className="mb-3 flex flex-wrap gap-2">
           {quickMatchups.map((matchup) => (
@@ -136,7 +142,10 @@ function ComparePageContent() {
       {loading ? <LoadingPanel text="Running comparison..." /> : null}
       {error ? <ErrorPanel error={error} /> : null}
       {!loading && !error && !data ? (
-        <EmptyPanel title="No matchup loaded yet" description="Enter two player IDs or tap a quick matchup." />
+        <EmptyPanel
+          title="No matchup loaded yet"
+          description="Enter two player IDs or tap a quick matchup."
+        />
       ) : null}
 
       {!loading && !error && data ? (
@@ -148,7 +157,10 @@ function ComparePageContent() {
                 {Object.entries(data.playerA)
                   .filter(([k]) => selectedPreset.keys.includes(k))
                   .map(([k, v]) => (
-                    <div key={k} className="flex items-center justify-between rounded bg-black/20 px-3 py-2">
+                    <div
+                      key={k}
+                      className="flex items-center justify-between rounded bg-black/20 px-3 py-2"
+                    >
                       <span>{metricLabels[k] ?? k}</span>
                       <strong>{Number(v ?? 0).toFixed(3)}</strong>
                     </div>
@@ -161,7 +173,10 @@ function ComparePageContent() {
                 {Object.entries(data.playerB)
                   .filter(([k]) => selectedPreset.keys.includes(k))
                   .map(([k, v]) => (
-                    <div key={k} className="flex items-center justify-between rounded bg-black/20 px-3 py-2">
+                    <div
+                      key={k}
+                      className="flex items-center justify-between rounded bg-black/20 px-3 py-2"
+                    >
                       <span>{metricLabels[k] ?? k}</span>
                       <strong>{Number(v ?? 0).toFixed(3)}</strong>
                     </div>

@@ -2,7 +2,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "HoopsLab",
-  description: "NBA + EuroLeague Intelligence Platform"
+  description: "NBA + EuroLeague Intelligence Platform",
 };
 
 export default function RootLayout({ children }) {
@@ -23,13 +23,18 @@ export default function RootLayout({ children }) {
           <header className="glass mb-6 p-4 md:p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-court-300">Basketball Intelligence Platform</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-court-300">
+                  Basketball Intelligence Platform
+                </p>
                 <h1 className="mt-1 text-2xl font-bold text-white md:text-3xl">HoopsLab</h1>
                 <p className="mt-1 text-sm text-slate-300">
-                  Follow the story of every game with interactive NBA + EuroLeague analytics made for basketball fans.
+                  Follow the story of every game with interactive NBA + EuroLeague analytics made
+                  for basketball fans.
                 </p>
               </div>
-              <p className="text-xs uppercase tracking-widest text-slate-400">Live tools · Compare · Lineup lab</p>
+              <p className="text-xs uppercase tracking-widest text-slate-400">
+                Live tools · Compare · Lineup lab
+              </p>
             </div>
             <nav className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
               {navItems.map((item) => (

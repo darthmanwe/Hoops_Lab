@@ -32,15 +32,26 @@ export default function TeamPage({ params, searchParams }) {
   const [seasonInput, setSeasonInput] = useState(resolvedSearchParams?.season ?? "NBA_2025");
   const [teamInput, setTeamInput] = useState(teamId);
 
-  const teamData = useApi(`/teams/${encodeURIComponent(teamId)}?season=${encodeURIComponent(season)}`);
-  const fatigueData = useApi(`/teams/${encodeURIComponent(teamId)}/fatigue?season=${encodeURIComponent(season)}`);
-  const shotData = useApi(`/teams/${encodeURIComponent(teamId)}/shot-profile?season=${encodeURIComponent(season)}`);
-  const styleData = useApi(`/teams/${encodeURIComponent(teamId)}/play-style?season=${encodeURIComponent(season)}`);
-  const lineupData = useApi(`/teams/${encodeURIComponent(teamId)}/lineup-impact/snapshots?season=${encodeURIComponent(season)}`);
+  const teamData = useApi(
+    `/teams/${encodeURIComponent(teamId)}?season=${encodeURIComponent(season)}`
+  );
+  const fatigueData = useApi(
+    `/teams/${encodeURIComponent(teamId)}/fatigue?season=${encodeURIComponent(season)}`
+  );
+  const shotData = useApi(
+    `/teams/${encodeURIComponent(teamId)}/shot-profile?season=${encodeURIComponent(season)}`
+  );
+  const styleData = useApi(
+    `/teams/${encodeURIComponent(teamId)}/play-style?season=${encodeURIComponent(season)}`
+  );
+  const lineupData = useApi(
+    `/teams/${encodeURIComponent(teamId)}/lineup-impact/snapshots?season=${encodeURIComponent(season)}`
+  );
 
   if (teamData.loading) return <LoadingPanel text="Loading team dashboard..." />;
   if (teamData.error) return <ErrorPanel error={teamData.error} />;
-  if (!teamData.data?.team) return <EmptyPanel title="Team not found" description="Try another team id." />;
+  if (!teamData.data?.team)
+    return <EmptyPanel title="Team not found" description="Try another team id." />;
 
   const team = teamData.data.team;
   const gravity = teamData.data.gravity ?? {};
@@ -51,8 +62,16 @@ export default function TeamPage({ params, searchParams }) {
 
   const styleChartData = useMemo(
     () => [
-      { phase: "Transition", rating: Number(style.transition_off_rating ?? 0), rate: Number(style.transition_poss_rate ?? 0) * 100 },
-      { phase: "Set Play", rating: Number(style.set_play_off_rating ?? 0), rate: Number(style.set_play_poss_rate ?? 0) * 100 },
+      {
+        phase: "Transition",
+        rating: Number(style.transition_off_rating ?? 0),
+        rate: Number(style.transition_poss_rate ?? 0) * 100,
+      },
+      {
+        phase: "Set Play",
+        rating: Number(style.set_play_off_rating ?? 0),
+        rate: Number(style.set_play_poss_rate ?? 0) * 100,
+      },
     ],
     [style]
   );
@@ -66,7 +85,8 @@ export default function TeamPage({ params, searchParams }) {
           right={<MetricSwitch options={modes} value={mode} onChange={setMode} />}
         />
         <p className="mb-3 text-sm text-slate-300">
-          Switch tabs to understand how this team creates offense, handles travel fatigue, and what lineup combinations project best.
+          Switch tabs to understand how this team creates offense, handles travel fatigue, and what
+          lineup combinations project best.
         </p>
         <div className="mt-2 grid gap-2 md:grid-cols-3">
           <EntitySearchInput
@@ -91,7 +111,9 @@ export default function TeamPage({ params, searchParams }) {
             onClick={() => {
               const nextSeason = seasonInput.trim();
               setSeason(nextSeason);
-              router.replace(`/teams/${encodeURIComponent(teamInput.trim() || teamId)}?season=${encodeURIComponent(nextSeason)}`);
+              router.replace(
+                `/teams/${encodeURIComponent(teamInput.trim() || teamId)}?season=${encodeURIComponent(nextSeason)}`
+              );
             }}
           >
             Open Team
@@ -101,11 +123,23 @@ export default function TeamPage({ params, searchParams }) {
 
       {mode === "gravity" ? (
         <Card>
-          <CardHeader title="Gravity Effect" subtitle="Team-level gravity and adjusted offense outcomes." />
+          <CardHeader
+            title="Gravity Effect"
+            subtitle="Team-level gravity and adjusted offense outcomes."
+          />
           <div className="grid gap-3 md:grid-cols-4">
-            <MetricTile label="Gravity Load" value={Number(gravity.team_gravity_load ?? 0).toFixed(2)} />
-            <MetricTile label="Adj Offense" value={Number(gravity.gravity_adjusted_offense ?? 0).toFixed(2)} />
-            <MetricTile label="Spillover" value={Number(gravity.gravity_spillover ?? 0).toFixed(2)} />
+            <MetricTile
+              label="Gravity Load"
+              value={Number(gravity.team_gravity_load ?? 0).toFixed(2)}
+            />
+            <MetricTile
+              label="Adj Offense"
+              value={Number(gravity.gravity_adjusted_offense ?? 0).toFixed(2)}
+            />
+            <MetricTile
+              label="Spillover"
+              value={Number(gravity.gravity_spillover ?? 0).toFixed(2)}
+            />
             <MetricTile label="Model" value={gravity.model_version ?? "n/a"} />
           </div>
         </Card>
@@ -113,13 +147,22 @@ export default function TeamPage({ params, searchParams }) {
 
       {mode === "fatigue" ? (
         <Card>
-          <CardHeader title="Fatigue and Travel" subtitle="Rest disadvantage and mileage effects." />
+          <CardHeader
+            title="Fatigue and Travel"
+            subtitle="Rest disadvantage and mileage effects."
+          />
           {fatigueData.loading ? <LoadingPanel text="Loading fatigue..." /> : null}
           {fatigueData.error ? <ErrorPanel error={fatigueData.error} /> : null}
           {!fatigueData.loading && !fatigueData.error ? (
             <div className="grid gap-3 md:grid-cols-4">
-              <MetricTile label="Fatigue Score" value={Number(fatigue.fatigue_score ?? 0).toFixed(2)} />
-              <MetricTile label="Rest Disadvantage Games" value={fatigue.rest_disadvantage_games ?? 0} />
+              <MetricTile
+                label="Fatigue Score"
+                value={Number(fatigue.fatigue_score ?? 0).toFixed(2)}
+              />
+              <MetricTile
+                label="Rest Disadvantage Games"
+                value={fatigue.rest_disadvantage_games ?? 0}
+              />
               <MetricTile label="Travel (km)" value={fatigue.travel_km ?? 0} />
               <MetricTile label="Model" value={fatigue.model_version ?? "n/a"} />
             </div>
@@ -129,7 +172,10 @@ export default function TeamPage({ params, searchParams }) {
 
       {mode === "style" ? (
         <Card>
-          <CardHeader title="Transition vs Set Play" subtitle="Possession split and offensive rating comparison." />
+          <CardHeader
+            title="Transition vs Set Play"
+            subtitle="Possession split and offensive rating comparison."
+          />
           {styleData.loading ? <LoadingPanel text="Loading play style..." /> : null}
           {styleData.error ? <ErrorPanel error={styleData.error} /> : null}
           {!styleData.loading && !styleData.error ? (
@@ -154,7 +200,10 @@ export default function TeamPage({ params, searchParams }) {
             <div className="grid gap-3 md:grid-cols-4">
               <MetricTile label="Rim Rate" value={Number(shot.rim_rate ?? 0).toFixed(2)} />
               <MetricTile label="Mid Rate" value={Number(shot.mid_rate ?? 0).toFixed(2)} />
-              <MetricTile label="3PT (Corner+Above)" value={Number((shot.corner3_rate ?? 0) + (shot.abv3_rate ?? 0)).toFixed(2)} />
+              <MetricTile
+                label="3PT (Corner+Above)"
+                value={Number((shot.corner3_rate ?? 0) + (shot.abv3_rate ?? 0)).toFixed(2)}
+              />
               <MetricTile label="3PT FG%" value={Number(shot.three_fg_pct ?? 0).toFixed(2)} />
             </div>
           ) : null}
@@ -167,18 +216,33 @@ export default function TeamPage({ params, searchParams }) {
           {lineupData.loading ? <LoadingPanel text="Loading lineup snapshots..." /> : null}
           {lineupData.error ? <ErrorPanel error={lineupData.error} /> : null}
           {!lineupData.loading && !lineupData.error && snapshots.length === 0 ? (
-            <EmptyPanel title="No snapshots available" description="Build lineup candidates in Lineup Lab." />
+            <EmptyPanel
+              title="No snapshots available"
+              description="Build lineup candidates in Lineup Lab."
+            />
           ) : null}
           {!lineupData.loading && !lineupData.error && snapshots.length > 0 ? (
             <div className="space-y-2">
               {snapshots.map((row) => (
-                <div key={row.lineup_key} className="rounded-lg border border-white/10 bg-black/25 p-3">
+                <div
+                  key={row.lineup_key}
+                  className="rounded-lg border border-white/10 bg-black/25 p-3"
+                >
                   <p className="text-sm font-semibold text-white">{row.lineup_key}</p>
                   <p className="mt-1 text-xs text-slate-300">Players: {row.player_ids_json}</p>
                   <div className="mt-2 grid gap-2 md:grid-cols-3">
-                    <MetricTile label="Offense Projection" value={Number(row.offense_projection ?? 0).toFixed(2)} />
-                    <MetricTile label="Transition Fit" value={Number(row.transition_fit ?? 0).toFixed(2)} />
-                    <MetricTile label="Set Play Fit" value={Number(row.set_play_fit ?? 0).toFixed(2)} />
+                    <MetricTile
+                      label="Offense Projection"
+                      value={Number(row.offense_projection ?? 0).toFixed(2)}
+                    />
+                    <MetricTile
+                      label="Transition Fit"
+                      value={Number(row.transition_fit ?? 0).toFixed(2)}
+                    />
+                    <MetricTile
+                      label="Set Play Fit"
+                      value={Number(row.set_play_fit ?? 0).toFixed(2)}
+                    />
                   </div>
                 </div>
               ))}
