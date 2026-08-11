@@ -55,17 +55,20 @@ def test_verify_passes_against_the_committed_snapshot() -> None:
 
 
 def test_cli_advertises_only_commands_that_do_something() -> None:
-    """A command appears here only once it is real.
+    """A command exists only once it does something real.
 
-    `train` joined the list in phase 2, when a model existed to fit. `predict`
-    and `serve` have not, because nothing behind them is built yet — and a CLI
-    that advertises them would be the same overclaim as an API returning
-    hand-written constants.
+    Asserted against the registered command names, not the rendered help text.
+    Matching on prose failed for a reason unrelated to the property under test:
+    "backtest" appears in `train`'s one-line description.
     """
-    result = runner.invoke(app, ["--help"])
+    registered = {
+        command.name or command.callback.__name__
+        for command in app.registered_commands
+        if command.callback is not None
+    }
 
-    for implemented in ("ingest", "build", "verify", "train"):
-        assert implemented in result.stdout
+    assert {"ingest", "build", "train", "export", "fixture", "verify"} <= registered
 
-    for unimplemented in ("predict", "serve", "export"):
-        assert unimplemented not in result.stdout
+    # Nothing behind these is built. Advertising them would be the same
+    # overclaim as an API returning hand-written constants.
+    assert not registered & {"predict", "deploy", "serve"}

@@ -53,6 +53,7 @@ def run_all(tables: dict[str, pl.DataFrame]) -> list[CheckResult]:
         pairs_change_league(pairs),
         pairs_respect_gap(pairs),
         pairs_have_one_row_per_landing(pairs),
+        pairs_have_one_row_per_departure(pairs),
         pairs_reference_real_seasons(pairs, players),
         minutes_are_non_negative(players),
         shots_made_not_exceed_attempts(players),
@@ -240,6 +241,28 @@ def pairs_have_one_row_per_landing(pairs: pl.DataFrame) -> CheckResult:
         "one row per arrival"
         if duplicated.is_empty()
         else f"{duplicated.height} arrivals appear more than once",
+    )
+
+
+def pairs_have_one_row_per_departure(pairs: pl.DataFrame) -> CheckResult:
+    """Each source season is used at most once per direction.
+
+    The mirror of the landing check. One source season with both a one- and a
+    two-season gap to different targets would otherwise count the same
+    departure twice — and would collide with the serving primary key, which is
+    how this was found.
+    """
+    duplicated = (
+        pairs.group_by(["person_id", "source_season_id", "direction"])
+        .agg(pl.len().alias("n"))
+        .filter(pl.col("n") > 1)
+    )
+    return CheckResult(
+        "pairs_have_one_row_per_departure",
+        duplicated.is_empty(),
+        "one row per departure"
+        if duplicated.is_empty()
+        else f"{duplicated.height} departures appear more than once",
     )
 
 

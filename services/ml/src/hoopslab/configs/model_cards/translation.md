@@ -47,19 +47,26 @@ Committed gold, built from public sources:
 | EuroLeague | 2007–2024 | 5,606          |
 | G League   | 2015–2024 | 4,463          |
 
-**Transition pairs: 537 observed**, of which 419 have both sides qualified and
+**Transition pairs: 414 observed**, of which 324 have both sides qualified and
 enter the fit. A pair requires ≥400 minutes in the source league, ≥300 in the
 target, a gap of one or two seasons, and no appearance in the target league
 during the source season.
 
-| Direction             | Pairs |
-| --------------------- | ----- |
-| NBA → G League        | 159   |
-| NBA → EuroLeague      | 149   |
-| EuroLeague → NBA      | 96    |
-| G League → NBA        | 59    |
-| G League → EuroLeague | 59    |
-| EuroLeague → G League | 15    |
+Candidates are then reduced to a **matching**: within a person and direction,
+each source season and each target season is used at most once. Deduplicating
+only one side is not enough — two qualifying seasons before a move duplicate
+the response variable, and one source season with both a one- and a two-season
+gap counts the same departure twice. An earlier version deduplicated on the
+target alone and reported 96 EuroLeague→NBA pairs; the correct figure is 61.
+
+| Direction             | Pairs | Players |
+| --------------------- | ----- | ------- |
+| NBA → G League        | 134   | 132     |
+| NBA → EuroLeague      | 115   | 110     |
+| EuroLeague → NBA      | 61    | 61      |
+| G League → NBA        | 45    | 45      |
+| G League → EuroLeague | 45    | 45      |
+| EuroLeague → G League | 14    | 14      |
 
 ## Targets
 
@@ -102,38 +109,52 @@ performance, something is leaking and the headline number is measuring the leak.
 
 ## Results
 
-Out-of-fold, in rate units, n = 370 evaluated pairs across 11 season folds.
+Out-of-fold, in rate units, n = 277 evaluated pairs.
 
-| Metric    | MAE        | 95% CI (cluster bootstrap) | Best baseline        | Shuffled control |
-| --------- | ---------- | -------------------------- | -------------------- | ---------------- |
-| `usg_pct` | **0.0309** | [0.0285, 0.0333]           | 0.0419 (league mean) | 0.0463           |
-| `ts_pct`  | **0.0408** | [0.0375, 0.0439]           | 0.0431 (league mean) | 0.0584           |
+| Metric    | MAE        | 95% CI (cluster bootstrap) | Best baseline        | Verdict                      |
+| --------- | ---------- | -------------------------- | -------------------- | ---------------------------- |
+| `usg_pct` | **0.0317** | [0.0291, 0.0346]           | 0.0417 (league mean) | **beats it by 24.0%**        |
+| `ts_pct`  | 0.0448     | [0.0407, 0.0492]           | 0.0431 (league mean) | **loses by 3.9% — unusable** |
 
 All four baselines, `usg_pct`:
 
 | Baseline                       | MAE    | Model better by |
 | ------------------------------ | ------ | --------------- |
-| League mean                    | 0.0419 | 26.3%           |
-| Stage-1 persistence, no league | 0.0515 | 40.0%           |
-| z-preservation                 | 0.0536 | 42.4%           |
-| Folk ×0.75 rule                | 0.0821 | 62.4%           |
+| League mean                    | 0.0417 | 24.0%           |
+| Stage-1 persistence, no league | 0.0532 | 40.3%           |
+| z-preservation                 | 0.0553 | 42.5%           |
+| Folk ×0.75 rule                | 0.0859 | 63.0%           |
 
-**Estimated compression.** Shared slope β = **0.776** for usage, **0.642** for
-true shooting. A slope below one means standing within a league compresses on
-the way across.
+Shuffled-target controls: 0.0461 for usage, 0.0514 for true shooting. Both are
+worse than the fitted model and close to the league-mean baseline, which is
+what a clean pipeline looks like.
+
+**Estimated compression.** Shared slope β = **0.743** for usage, 0.657 for true
+shooting. A slope below one means standing within a league compresses on the
+way across.
+
+### The model does not work for true shooting
+
+On the corrected cohort it is **worse than predicting the league average**
+(0.0448 against 0.0431). It should not be used for that metric, and the API
+says so: `model_evaluations.beats_best_baseline` is served as `false`, so a
+consumer can tell without reading this page.
+
+It is kept and published rather than quietly dropped. Removing the metric that
+did not work would leave a model card showing only the metric that did, which
+is the more flattering and less honest presentation.
 
 ## Known failure modes and caveats
 
-- **True shooting is barely predictable.** The model beats the league-mean
-  baseline by only 5.3% on `ts_pct`, and stage-1 persistence for that metric has
-  R² = 0.30 against 0.74 for usage. Shooting efficiency is mostly year-to-year
-  noise, and the honest reading is that this model adds little for it. It is
-  reported because omitting the weaker of two headline metrics would be
-  selective.
-- **The direction-specific slopes disagree.** For usage, EL→NBA is 0.695 and
-  NBA→EL is 0.973. The shared-slope restriction is therefore doing real work,
-  and part of the estimated compression is direction-specific rather than a
-  property of the leagues alone. This is reported rather than smoothed over.
+- **True shooting is not predictable by this model** — see above. Stage-1
+  persistence for that metric has R² = 0.30 against 0.74 for usage; shooting
+  efficiency is mostly year-to-year noise.
+- **The direction-specific slopes disagree, and by more than before.** For
+  usage, EL→NBA is 0.575 and NBA→EL is 0.977, a gap of 0.40. The shared-slope
+  restriction is therefore doing substantial work, and a meaningful part of the
+  estimated compression is direction-specific rather than a property of the
+  leagues alone. On the smaller, correctly matched cohort this is the largest
+  open question about the estimate.
 - **The folk ×0.75 rule is worse than predicting the league average.** Worth
   knowing, and the reason it is included as a baseline at all.
 - **Stage-1 persistence alone is worse than the league mean** for usage (0.0515
@@ -154,9 +175,12 @@ deviations of usage:
 
 | Direction        | Movers | Gap vs peers |
 | ---------------- | ------ | ------------ |
-| EuroLeague → NBA | 96     | **+0.47 sd** |
-| NBA → EuroLeague | 149    | **−0.30 sd** |
-| NBA → G League   | 159    | −0.37 sd     |
+| EuroLeague → NBA | 61     | **positive** |
+| NBA → EuroLeague | 115    | **negative** |
+| NBA → G League   | 134    | negative     |
+
+Exact figures are in the run log and served at
+`/models/{version}/evaluation`.
 
 The two headline directions are selected in **opposite** directions, exactly as
 the design assumed: players move up because they were good, and down because

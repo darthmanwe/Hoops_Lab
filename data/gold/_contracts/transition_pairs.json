@@ -11,21 +11,7 @@
       "dtype": "String",
       "maximum": null,
       "minimum": null,
-      "name": "target_season_id",
-      "null_rate": 0.0
-    },
-    {
-      "dtype": "String",
-      "maximum": null,
-      "minimum": null,
       "name": "source_league",
-      "null_rate": 0.0
-    },
-    {
-      "dtype": "String",
-      "maximum": null,
-      "minimum": null,
-      "name": "target_league",
       "null_rate": 0.0
     },
     {
@@ -54,13 +40,27 @@
       "maximum": 34.0,
       "minimum": 18.0,
       "name": "source_age",
-      "null_rate": 0.219739
+      "null_rate": 0.217391
     },
     {
       "dtype": "String",
       "maximum": null,
       "minimum": null,
       "name": "player_name",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "target_league",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "target_season_id",
       "null_rate": 0.0
     },
     {
@@ -72,7 +72,7 @@
     },
     {
       "dtype": "Float64",
-      "maximum": 2602.155,
+      "maximum": 2317.74,
       "minimum": 302.083333,
       "name": "target_minutes",
       "null_rate": 0.0
@@ -82,7 +82,7 @@
       "maximum": 36.0,
       "minimum": 19.0,
       "name": "target_age",
-      "null_rate": 0.324022
+      "null_rate": 0.357488
     },
     {
       "dtype": "String",
@@ -99,9 +99,9 @@
       "null_rate": 0.0
     }
   ],
-  "content_hash": "5e280b7f5b2a34673d142c2b8ba57a65",
+  "content_hash": "0dd8e9966a906dadc2680d31e038ef40",
   "contract_version": 1,
   "n_columns": 14,
-  "n_rows": 537,
+  "n_rows": 414,
   "table": "transition_pairs"
 }

@@ -9,10 +9,9 @@ stated up front.
 
 ---
 
-> ## Status: rebuilding (phase 3 of 8)
+> ## Status: rebuilding (phase 4 of 8)
 >
-> **The data and the flagship model are real. The API does not serve them yet —
-> that is phase 3.**
+> **Real data, a fitted model, and an API that serves it with provenance.**
 >
 > An audit of the previous version found that every number it displayed came
 > from a Python literal. The ETL was 723 lines of hardcoded dictionaries for
@@ -22,10 +21,11 @@ stated up front.
 >
 > Phase 0 removed all of it. Phase 1 replaced it with **22,297 real
 > player-seasons across three leagues** and a person-centric identity crosswalk.
-> Phase 2 fitted the translation model and measured its selection bias. Every
-> analytics endpoint still returns `501` or `410` until phase 3 wires the model
-> through to serving — the numbers below exist, but nothing is shipped until it
-> can be served with its interval and its model version attached.
+> Phase 2 fitted the translation model and measured its selection bias. Phase 3
+> put it behind a typed API where every prediction carries its interval, its
+> model version and the data snapshot it came from — and where the model
+> reports the metric it is **worse than useless** for. Endpoints not yet backed
+> by a model still return `501` or `410`.
 >
 > Progress is tracked in the [roadmap](#roadmap).
 
@@ -75,16 +75,22 @@ with no network access.
 
 | Direction             | Pairs  | Players | Span      |
 | --------------------- | ------ | ------- | --------- |
-| NBA → G League        | 159    | 132     | 2013-2023 |
-| NBA → EuroLeague      | 149    | 110     | 2005-2023 |
-| **EuroLeague → NBA**  | **96** | **61**  | 2007-2023 |
-| G League → NBA        | 59     | 45      | 2015-2023 |
-| G League → EuroLeague | 59     | 45      | 2015-2023 |
-| EuroLeague → G League | 15     | 14      | 2013-2023 |
+| NBA → G League        | 134    | 132     | 2013-2023 |
+| NBA → EuroLeague      | 115    | 110     | 2005-2023 |
+| **EuroLeague → NBA**  | **61** | **61**  | 2007-2023 |
+| G League → NBA        | 45     | 45      | 2015-2023 |
+| G League → EuroLeague | 45     | 45      | 2015-2023 |
+| EuroLeague → G League | 14     | 14      | 2013-2023 |
+
+Candidates are reduced to a **matching**: within a person and direction, each
+source season and each target season is used at most once. An earlier version
+deduplicated only on the target and reported 96 EuroLeague→NBA pairs, which
+double-counted departures; the correct figure is 61. The serving primary key is
+what surfaced it.
 
 The floor was set **before** the data was pulled: below 40 usable
 EuroLeague→NBA pairs, the commitment was to report coefficients with intervals
-only and refuse per-player point predictions. At 96 that is not triggered, and
+only and refuse per-player point predictions. At 61 that is not triggered, and
 the test asserting it is in the suite either way.
 
 Spot-checking the cohort against reality: Micic, Vezenkov, Campazzo,
@@ -168,25 +174,33 @@ contract, so silent data drift fails the build.
 
 ## Results
 
-Out-of-fold, leave-one-target-season-out **grouped by player**, n = 370 across
-11 season folds. Reproduced by CI on every push.
+Out-of-fold, leave-one-target-season-out **grouped by player**, n = 277.
+Reproduced by CI on every push.
 
-| Metric          | MAE        | 95% CI (cluster bootstrap) | Best baseline        | Shuffled control |
-| --------------- | ---------- | -------------------------- | -------------------- | ---------------- |
-| Usage rate      | **0.0309** | [0.0285, 0.0333]           | 0.0419 (league mean) | 0.0463           |
-| True shooting % | **0.0408** | [0.0375, 0.0439]           | 0.0431 (league mean) | 0.0584           |
+| Metric          | MAE        | 95% CI (cluster bootstrap) | Best baseline        | Verdict                      |
+| --------------- | ---------- | -------------------------- | -------------------- | ---------------------------- |
+| Usage rate      | **0.0317** | [0.0291, 0.0346]           | 0.0417 (league mean) | **beats it by 24.0%**        |
+| True shooting % | 0.0448     | [0.0407, 0.0492]           | 0.0431 (league mean) | **loses by 3.9% — unusable** |
 
 Against every baseline, on usage rate:
 
 | Baseline                       | MAE    | Model better by |
 | ------------------------------ | ------ | --------------- |
-| League mean                    | 0.0419 | 26.3%           |
-| Stage-1 persistence, no league | 0.0515 | 40.0%           |
-| z-preservation                 | 0.0536 | 42.4%           |
-| The folk ×0.75 rule            | 0.0821 | 62.4%           |
+| League mean                    | 0.0417 | 24.0%           |
+| Stage-1 persistence, no league | 0.0532 | 40.3%           |
+| z-preservation                 | 0.0553 | 42.5%           |
+| The folk ×0.75 rule            | 0.0859 | 63.0%           |
 
-**Estimated compression: β = 0.776** for usage, 0.642 for true shooting. A
-slope below one means standing within a league compresses on the way across.
+**Estimated compression: β = 0.743** for usage. A slope below one means
+standing within a league compresses on the way across.
+
+### The model does not work for true shooting, and says so
+
+On true shooting it is **worse than predicting the league average**. Rather
+than drop the metric that failed, the API serves the verdict:
+`beats_best_baseline` comes back `false`, so a consumer learns it from the data
+rather than from a footnote. Publishing only the metric that worked would have
+been the more flattering and less honest presentation.
 
 Three things in that table are worth more than the headline:
 
@@ -218,8 +232,8 @@ the design predicted: players move up because they were good, and down because
 they were not. That opposition is what makes the effect testable rather than
 merely acknowledged.
 
-**And the test does not fully pass.** Fitting a separate slope per direction
-gives 0.695 for EuroLeague→NBA and 0.973 for NBA→EuroLeague — a gap of 0.28.
+**And the test does not pass.** Fitting a separate slope per direction gives
+0.575 for EuroLeague→NBA and 0.977 for NBA→EuroLeague — a gap of 0.40.
 If one slope fitted both, the compression would be unlikely to be a selection
 artefact. It does not, so part of the estimated compression is
 direction-specific. That is reported here, in the model card, and in the CLI
@@ -277,8 +291,8 @@ curl http://127.0.0.1:8787/leaderboards/gravity   # 410, and explains why
 | **0** | Remove fabricated data; workspace, tooling, CI, honest API surface                                                              | ✅ done |
 | **1** | Real ingestion (NBA 2000-25, EuroLeague 2007-25, G League 2015-25), identity crosswalk, data contracts, committed gold          | next    |
 | **2** | **Translation model** — two-stage hierarchical fit, four baselines, cluster-bootstrap intervals, selection analysis, model card |         |
-| **3** | Serving contract — Drizzle schema, real migrations, typed routes, OpenAPI, provenance envelope                                  |         |
-| **4** | Shot data, archetypes (CLR → GMM with published per-cluster stability), empirical-Bayes shooting, game calibration              |         |
+| **3** | Serving contract — Drizzle schema, real migrations, typed routes, OpenAPI, provenance envelope                                  | ✅ done |
+| **4** | Shot data, archetypes (CLR → GMM with published per-cluster stability), empirical-Bayes shooting, game calibration              | next    |
 | **5** | Frontend — TypeScript, court shot charts, calibration page, translation explorer, accessibility                                 |         |
 | **6** | Grounded Claude scouting reports with a groundedness harness and a $0 cached demo                                               |         |
 | **7** | Presentation — measured results, architecture, model cards                                                                      |         |
@@ -304,12 +318,13 @@ Filled in with measured numbers as each phase lands. What can be said already:
   "what would a random EuroLeague player do". Only the first is identified from
   the data.
 - **Per-player intervals are wide, as expected.** Measured out-of-fold error on
-  usage rate is 3.1 percentage points against a population standard deviation of
+  usage rate is 3.2 percentage points against a population standard deviation of
   about 5. Useful for ranking a cohort; useless for deciding a contract.
-- **The shared-slope restriction is not fully supported.** The two directions
-  give 0.695 and 0.973, so some of the estimated compression is
+- **The shared-slope restriction is not supported.** The two directions give
+  0.575 and 0.977, so a substantial part of the estimated compression is
   direction-specific rather than a property of the leagues.
-- **True shooting adds little over the league average** (5.3%).
+- **The model is worse than the league average for true shooting**, and the API
+  reports that rather than leaving it to be discovered.
 - **The game model is not a betting model.** It is expected to lose to the
   closing line, and the gap will be published. There is no bankroll, no Kelly
   sizing and no ROI curve in this repository.

@@ -111,12 +111,29 @@ describe("cross-cutting response guarantees", () => {
    * data route before it is backed by a fitted model over real data, this
    * fails.
    */
-  it("serves no analytics data at all", async () => {
-    const dataPaths = ENDPOINTS.filter((e) => e.state !== "live").map((e) => concretise(e.path));
+  /**
+   * The guarantee that survives from phase 0: an endpoint serves data only
+   * once it is backed by real, fitted output. Anything still marked pending or
+   * withdrawn must fail loudly rather than return a plausible number.
+   */
+  it("serves nothing that is not backed by a model or real data", async () => {
+    const notLive = ENDPOINTS.filter((e) => e.state !== "live").map((e) => concretise(e.path));
 
-    for (const path of dataPaths) {
+    for (const path of notLive) {
       const res = await SELF.fetch(`https://api.test${path}`);
       expect(res.ok, `${path} answered ${res.status}; it must not serve data yet`).toBe(false);
+    }
+  });
+
+  it("every live endpoint actually answers", async () => {
+    const live = ENDPOINTS.filter((e) => e.state === "live").map((e) => e.path);
+
+    for (const path of live) {
+      // Parameterised live paths need a real id, which the dedicated suites
+      // cover; here we only require that the route is reachable.
+      if (path.includes("{")) continue;
+      const res = await SELF.fetch(`https://api.test${path}`);
+      expect([200, 404, 422]).toContain(res.status);
     }
   });
 });

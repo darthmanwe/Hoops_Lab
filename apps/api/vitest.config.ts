@@ -1,5 +1,6 @@
-import { defineConfig } from "vitest/config";
+import { readD1Migrations } from "@cloudflare/vitest-pool-workers";
 import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
+import { defineConfig } from "vitest/config";
 
 /**
  * Tests execute inside workerd with real D1 and KV bindings, not against a
@@ -9,6 +10,8 @@ import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
  * Note: pool-workers 0.21 replaced the old `defineWorkersConfig` helper with
  * this Vite plugin. Older guides still show the helper; it no longer exists.
  */
+const migrations = await readD1Migrations("./migrations");
+
 export default defineConfig({
   plugins: [
     cloudflareTest({
@@ -16,6 +19,9 @@ export default defineConfig({
       miniflare: {
         d1Databases: ["DB"],
         kvNamespaces: ["CACHE"],
+        // Real migrations, handed to the setup file so the schema under test
+        // is the schema that ships.
+        bindings: { TEST_MIGRATIONS: migrations },
       },
       // Off explicitly. This defaults to true in 0.21, which would let the
       // suite bind to real Cloudflare resources over the network — tests must
@@ -23,4 +29,7 @@ export default defineConfig({
       remoteBindings: false,
     }),
   ],
+  test: {
+    setupFiles: ["./test/setup.ts"],
+  },
 });

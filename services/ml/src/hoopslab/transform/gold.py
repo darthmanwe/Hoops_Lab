@@ -211,19 +211,17 @@ def build_transition_pairs(player_seasons: pl.DataFrame) -> pl.DataFrame:
         )
     )
 
-    # One pair per (person, target season, direction), keeping the smallest gap.
+    # Reduce candidates to a matching: within a person and direction, each
+    # source season and each target season is used at most once.
     #
-    # Without this, a player with two qualifying seasons before he moved
-    # produces two rows sharing a target season — the same landing observation
-    # counted twice, with a duplicated response variable. Deduplicating on the
-    # *target* rather than the source keeps each observed outcome once, while
-    # still allowing a genuine second transition later in a career
-    # (NBA -> EuroLeague -> NBA) to appear as its own pair.
-    pairs = (
-        pairs.sort(["person_id", "target_season_order", "gap_seasons_raw"])
-        .group_by(["person_id", "target_season_id", "source_league", "target_league"])
-        .first()
-    )
+    # Deduplicating on only one side is not enough, and both failures are real.
+    # Two qualifying seasons before a move produce two rows sharing a *target*,
+    # which duplicates the response variable. One source season with both a
+    # one- and a two-season gap produces two rows sharing a *source*, which
+    # counts the same departure twice. Greedy assignment by smallest gap
+    # resolves both while still allowing a genuine second transition later in a
+    # career (NBA -> EuroLeague -> NBA) to appear as its own pair.
+    pairs = _greedy_match(pairs)
 
     return (
         pairs.with_columns(
@@ -233,6 +231,40 @@ def build_transition_pairs(player_seasons: pl.DataFrame) -> pl.DataFrame:
         .drop("gap_seasons_raw")
         .sort(["direction", "source_season_order", "person_id"])
     )
+
+
+def _greedy_match(candidates: pl.DataFrame) -> pl.DataFrame:
+    """Keep a one-to-one assignment of source seasons to target seasons.
+
+    Sorted by smallest gap first, so the move is attributed to the season
+    immediately preceding it rather than to an older one that happens to also
+    qualify.
+    """
+    if candidates.is_empty():
+        return candidates
+
+    ordered = candidates.sort(
+        ["person_id", "source_league", "target_league", "gap_seasons_raw", "target_season_order"]
+    )
+
+    used_sources: set[tuple[str, str, str]] = set()
+    used_targets: set[tuple[str, str, str]] = set()
+    keep: list[bool] = []
+
+    for row in ordered.iter_rows(named=True):
+        direction = (row["person_id"], row["source_league"], row["target_league"])
+        source_key = (*direction, row["source_season_id"])
+        target_key = (*direction, row["target_season_id"])
+
+        if source_key in used_sources or target_key in used_targets:
+            keep.append(False)
+            continue
+
+        used_sources.add(source_key)  # type: ignore[arg-type]
+        used_targets.add(target_key)  # type: ignore[arg-type]
+        keep.append(True)
+
+    return ordered.filter(pl.Series("_keep", keep))
 
 
 def summarise_pairs(pairs: pl.DataFrame) -> pl.DataFrame:

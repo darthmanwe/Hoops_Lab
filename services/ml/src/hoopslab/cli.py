@@ -219,6 +219,39 @@ def train(
 
 
 @app.command()
+def export() -> None:
+    """Build the SQL artefact that loads D1.
+
+    Only aggregates are exported. Raw event data stays in parquet: the free
+    tier caps a database at 500 MB and row writes at 100,000 a day.
+    """
+    import logging
+
+    from hoopslab.serve.d1_export import build_export
+
+    settings = load_settings()
+    logging.basicConfig(level=settings.log_level, format="%(levelname)s %(message)s")
+
+    result = build_export(DataPaths.discover())
+    console.print(result.render())
+    console.print("\n[dim]Apply locally with `npm run db:load`.[/dim]")
+
+
+@app.command()
+def fixture() -> None:
+    """Write the deterministic test fixture used by the Worker suite."""
+    from hoopslab.serve.d1_export import build_fixture
+
+    paths = DataPaths.discover()
+    target = paths.root / "apps" / "api" / "test" / "fixtures" / "seed.sql"
+    counts = build_fixture(paths, target)
+
+    console.print(f"wrote {target.relative_to(paths.root)}")
+    for table, n in counts.items():
+        console.print(f"  {table:<26} {n:>6,} rows")
+
+
+@app.command()
 def verify() -> None:
     """Check committed gold against its contracts and integrity rules.
 

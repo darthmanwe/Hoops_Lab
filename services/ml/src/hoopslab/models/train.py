@@ -66,6 +66,27 @@ class MetricResult:
     n_folds: int
     residual_sd: float
 
+    @property
+    def best_baseline(self) -> tuple[str, float]:
+        """The baseline that is hardest to beat, which is the one that counts."""
+        return min(self.baseline_mae.items(), key=lambda kv: kv[1])
+
+    @property
+    def beats_baseline(self) -> bool:
+        """Whether the model is actually better than the best trivial alternative.
+
+        Reported per metric and served through the API, because a model that
+        loses to the league average should say so rather than let a caller
+        assume that being published implies being useful.
+        """
+        return self.mae < self.best_baseline[1]
+
+    @property
+    def skill(self) -> float:
+        """Fractional error reduction against the best baseline. Negative means worse."""
+        reference = self.best_baseline[1]
+        return (reference - self.mae) / reference if reference else 0.0
+
     def render(self) -> str:
         lines = [
             f"  {self.metric}",
@@ -79,6 +100,14 @@ class MetricResult:
             delta = (value - self.mae) / value * 100 if value else 0.0
             lines.append(f"      vs {name:<22} {value:.4f}  ({delta:+.1f}% better)")
         lines.append(f"    shuffled-target control {self.shuffled_mae:.4f} (must be worse)")
+
+        name, value = self.best_baseline
+        verdict = (
+            f"BEATS best baseline ({name}) by {self.skill:+.1%}"
+            if self.beats_baseline
+            else f"LOSES to best baseline ({name}) by {-self.skill:.1%} - do not use this metric"
+        )
+        lines.append(f"    verdict: {verdict}")
 
         if self.direction_slopes:
             rendered = "  ".join(f"{d}={v:+.3f}" for d, v in sorted(self.direction_slopes.items()))

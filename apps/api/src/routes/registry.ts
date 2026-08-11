@@ -60,21 +60,15 @@ export const ENDPOINTS: readonly Endpoint[] = [
   // ---------------------------------------------------------------------
   {
     path: "/players/search",
-    state: "pending",
-    willServe:
-      "Full-text search over ~6,000 real NBA, EuroLeague and G League players, " +
-      "diacritic-insensitive so 'Jokic' finds 'Jokić'.",
-    blockedOn: "phase-1-real-data",
-    previously: "Searched a table containing four hand-written players.",
+    state: "live",
+    description:
+      "Diacritic-insensitive search over 5,347 resolved people; cross-league players ranked first.",
   },
   {
     path: "/players/{playerId}",
-    state: "pending",
-    willServe:
-      "Player identity plus per-season rate stats (usage, TS%, assist and " +
-      "turnover rates) computed from real box scores.",
-    blockedOn: "phase-1-real-data",
-    previously: `${SEED_DATA_NOTE} Columns were named '*_proxy' but were not derived from anything.`,
+    state: "live",
+    description:
+      "A person's whole career across every league they appear in, with identity provenance.",
   },
   {
     path: "/teams/search",
@@ -117,22 +111,15 @@ export const ENDPOINTS: readonly Endpoint[] = [
   // ---------------------------------------------------------------------
   {
     path: "/players/{playerId}/translation",
-    state: "pending",
-    willServe:
-      "Cross-league translation estimates with 80% and 95% prediction intervals, " +
-      "the baselines they beat, and the model version that produced them. " +
-      "Point estimates are never served without an interval.",
-    blockedOn: "phase-2-translation-model",
-    previously:
-      "Returned a hand-written 'translation_score' and 'nba_equivalent_rating'. " +
-      "No model existed; the composite was unfalsifiable by construction.",
+    state: "live",
+    description:
+      "Cross-league translation predictions, each with 80% and 95% intervals and its model version.",
   },
   {
     path: "/leaderboards/translation",
-    state: "pending",
-    willServe: "Players ranked by projected translation, with intervals and cohort size shown.",
-    blockedOn: "phase-2-translation-model",
-    previously: SEED_DATA_NOTE,
+    state: "live",
+    description:
+      "Players ranked by projected translated production, with intervals and what actually happened.",
   },
   {
     path: "/players/{playerId}/comps",

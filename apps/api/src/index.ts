@@ -4,6 +4,8 @@ import type { Env } from "./env";
 import { problem } from "./http/problem";
 import { healthRoute } from "./routes/health";
 import { metaRoute } from "./routes/meta";
+import { modelsRoute } from "./routes/models";
+import { playersRoute } from "./routes/players";
 import { reconstructionRoute } from "./routes/reconstruction";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -35,6 +37,12 @@ app.use(
 
 app.route("/", metaRoute);
 app.route("/", healthRoute);
+
+// Live routes are mounted before the reconstruction handlers so that a path
+// which has become real wins over its withdrawn placeholder.
+app.route("/", playersRoute);
+app.route("/", modelsRoute);
+
 app.route("/", reconstructionRoute);
 
 app.notFound((c) =>

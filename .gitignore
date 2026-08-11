@@ -43,3 +43,4 @@ services/ml/reports/scratch/
 test-results/
 playwright-report/
 blob-report/
+data/d1/
