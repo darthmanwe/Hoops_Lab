@@ -4,11 +4,8 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "jsx": "preserve",
-    "allowJs": true,
-    // Phase 5 migrates this app from .jsx to .tsx. Until then `checkJs` stays
-    // off so the gate compiles from day one; flipping it on before the rename
-    // would produce hundreds of errors and teach everyone to ignore the check.
-    "checkJs": false,
+    // The app is TypeScript as of phase 5; no JavaScript remains to allow.
+    "allowJs": false,
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": { "@/*": ["./src/*"] }

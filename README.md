@@ -9,7 +9,7 @@ stated up front.
 
 ---
 
-> ## Status: rebuilding (phase 5 of 8)
+> ## Status: rebuilding (phase 6 of 8)
 >
 > **Real data, a fitted model, and an API that serves it with provenance.**
 >
@@ -215,6 +215,21 @@ Three things in that table are worth more than the headline:
   with stage-1 R² of 0.30 against 0.74 for usage. Shooting efficiency is mostly
   noise year to year. It is reported because dropping the weaker of two
   headline metrics would be selective.
+
+### What it looks like when the model is wrong
+
+Luka Dončić, EuroLeague 2017-18 → NBA 2018-19, is the transition everyone
+knows. The model gets one of the two metrics wrong:
+
+| Metric        | Source | Predicted (80% interval) | Actual                         |
+| ------------- | ------ | ------------------------ | ------------------------------ |
+| Usage rate    | 28.9%  | 23.7% [18.5%, 28.8%]     | **30.1%** — above the interval |
+| True shooting | 61.2%  | 55.2% [49.7%, 60.6%]     | 54.5% — inside it              |
+
+He used more possessions as an NBA rookie than he had in the EuroLeague, which
+is the opposite of the compression the model estimates on average. That is a
+real miss on the most visible case in the dataset, and it is on the front page
+rather than in a footnote.
 
 ### Selection, measured rather than assumed
 
