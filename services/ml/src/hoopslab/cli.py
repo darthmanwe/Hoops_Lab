@@ -146,6 +146,79 @@ def build(
 
 
 @app.command()
+def train(
+    verify_only: bool = typer.Option(
+        False,
+        "--verify",
+        help="Refit and fail if any metric differs from the committed run log.",
+    ),
+) -> None:
+    """Fit the translation model, backtest it, and record the run.
+
+    Runs offline against committed gold. With ``--verify`` nothing is written:
+    the model is refitted and every reported metric is compared to the
+    committed run log, so CI can prove the numbers in the README on each push.
+    """
+    import logging
+
+    from hoopslab.models.train import (
+        compare_to_committed,
+        latest_run,
+        train_all,
+        write_run,
+    )
+
+    settings = load_settings()
+    logging.basicConfig(level=settings.log_level, format="%(levelname)s %(message)s")
+
+    paths = DataPaths.discover()
+    run, results = train_all(paths, seed=settings.seed)
+
+    console.print(f"[bold]{run.model_version}[/bold]  seed={run.seed}  git={run.git_sha}")
+    for result in results:
+        console.print(result.render())
+
+    console.print("\n[bold]Selection: how far above their league the movers sat[/bold]")
+    console.print(
+        "  Positive means the cohort was better than its peers, so the estimate is "
+        "conditional on having been\n  selected to move. The two headline directions "
+        "are selected oppositely, which is what makes this measurable."
+    )
+    for row in run.selection:
+        console.print(
+            f"  {row['direction']:<9} {row['metric']:<8} "
+            f"n={row['n_movers']:<4} vs {row['n_league']:<5} peers   "
+            f"gap {row['gap_sd']:+.2f} sd"
+        )
+
+    if verify_only:
+        committed = latest_run(paths)
+        if committed is None:
+            console.print("[red]No committed run log to verify against.[/red]")
+            raise typer.Exit(code=1)
+
+        problems = compare_to_committed(results, committed)
+        if problems:
+            console.print("\n[red]Metrics differ from the committed run:[/red]")
+            for problem in problems:
+                console.print(f"  {problem}")
+            raise typer.Exit(code=1)
+
+        console.print("\n[green]Committed metrics reproduce exactly.[/green]")
+        return
+
+    if run.git_dirty:
+        # A run from an uncommitted tree cannot be traced back to anything, so
+        # it is written but must not be quoted as a result.
+        console.print(
+            "\n[yellow]Working tree is dirty; this run is not reproducible "
+            "and must not be quoted.[/yellow]"
+        )
+
+    console.print(f"\nwrote {write_run(run, paths).name}")
+
+
+@app.command()
 def verify() -> None:
     """Check committed gold against its contracts and integrity rules.
 

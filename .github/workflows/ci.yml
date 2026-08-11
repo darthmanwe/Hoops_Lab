@@ -124,6 +124,25 @@ jobs:
       # number quietly moving.
       - run: uv run hoopslab verify
 
+  repro:
+    name: Reported metrics reproduce
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv sync --frozen --extra dev
+      # Refits every model from the committed data, with no network, and fails
+      # if any reported metric has moved. This is what makes the numbers in the
+      # README and the model card checkable rather than asserted: they cannot
+      # silently stop being true.
+      - run: uv run hoopslab train --verify
+
   no-fabricated-data:
     name: No endpoint serves fabricated data
     runs-on: ubuntu-latest

@@ -31,12 +31,12 @@
     {
       "dtype": "Float64",
       "maximum": 1.0,
-      "minimum": 0.3,
+      "minimum": 0.7,
       "name": "confidence",
       "null_rate": 0.0
     }
   ],
-  "content_hash": "b6e96cae023aecc8aebdb469949bd5c2",
+  "content_hash": "4417c1d6b897881cb41208c33b5aa2bc",
   "contract_version": 1,
   "n_columns": 5,
   "n_rows": 6913,

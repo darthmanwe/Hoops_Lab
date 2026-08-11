@@ -19,7 +19,7 @@
       "maximum": 2007.0,
       "minimum": 1960.0,
       "name": "birth_year",
-      "null_rate": 0.246962
+      "null_rate": 0.247054
     },
     {
       "dtype": "String",
@@ -29,9 +29,9 @@
       "null_rate": 0.0
     }
   ],
-  "content_hash": "8d28701d5600ca6cf5e6ba0928590817",
+  "content_hash": "24fc98cd7c0d411a0c40cb5d35c8a43b",
   "contract_version": 1,
   "n_columns": 4,
-  "n_rows": 5349,
+  "n_rows": 5347,
   "table": "persons"
 }

@@ -1,0 +1,3 @@
+euroleague_player_id,nba_player_id,note
+005968,202874,"Chris Wright. Two NBA players share the name and both fall inside the birth-year tolerance, so automatic matching correctly refused to choose. Resolved on career shape: 202874 (Georgetown, b. 1988) played 311 NBA minutes across 2011-13 before a long European career; 203203 (Dayton, b. 1989) played 4 minutes in one season and did not. The EuroLeague record is age 26 in 2014-15, agreeing with 202874."
+004212,200766,"Marcus Williams. Same situation. 200766 (UConn, b. Dec 1985) played 3,094 NBA minutes 2006-09 and then moved to Europe; 201173 (Arizona, b. 1986) played 39 minutes. The EuroLeague record spans 2012-15 at ages 27-30, implying a 1985 birth year, which matches 200766."

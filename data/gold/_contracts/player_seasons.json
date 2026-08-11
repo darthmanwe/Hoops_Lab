@@ -199,7 +199,7 @@
     {
       "dtype": "Float64",
       "maximum": 1.0,
-      "minimum": 0.3,
+      "minimum": 0.7,
       "name": "confidence",
       "null_rate": 0.0
     },
@@ -400,7 +400,7 @@
       "null_rate": 4.5e-05
     }
   ],
-  "content_hash": "423b6ed5c654d440fffd09dcd8463264",
+  "content_hash": "ad9168bf6eb0788f37158556280ece78",
   "contract_version": 1,
   "n_columns": 57,
   "n_rows": 22297,

@@ -48,6 +48,7 @@ def run_all(tables: dict[str, pl.DataFrame]) -> list[CheckResult]:
         rates_in_range(players),
         identities_are_unique(identities),
         every_identity_has_a_person(identities, persons),
+        unnamed_persons_are_rare(persons),
         every_player_season_resolves(players),
         pairs_change_league(pairs),
         pairs_respect_gap(pairs),
@@ -160,6 +161,30 @@ def every_identity_has_a_person(identities: pl.DataFrame, persons: pl.DataFrame)
         "every_identity_has_a_person",
         not orphans,
         "all resolve" if not orphans else f"{len(orphans)} person ids missing from persons",
+    )
+
+
+#: A handful of G League rows arrive from the source with no name at all. They
+#: are kept rather than dropped — the statistics are real, only the label is
+#: missing, and dropping them would leave dangling identity references. The
+#: bound exists so that a regression like the one that silently lost 1,321
+#: people fails the build instead of passing quietly.
+MAX_UNNAMED_PERSONS = 10
+
+
+def unnamed_persons_are_rare(persons: pl.DataFrame) -> CheckResult:
+    """Missing names are tolerated, but only at the scale the source actually has.
+
+    Inventing a placeholder name would be fabrication; the honest handling is a
+    null display name plus a ceiling on how many of them there may be.
+    """
+    unnamed = persons.filter(
+        pl.col("display_name").is_null() | (pl.col("display_name").str.strip_chars() == "")
+    ).height
+    return CheckResult(
+        "unnamed_persons_are_rare",
+        unnamed <= MAX_UNNAMED_PERSONS,
+        f"{unnamed} of {persons.height} persons have no name (ceiling {MAX_UNNAMED_PERSONS})",
     )
 
 

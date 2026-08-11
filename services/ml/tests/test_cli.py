@@ -54,13 +54,18 @@ def test_verify_passes_against_the_committed_snapshot() -> None:
     assert "verified" in result.stdout.lower()
 
 
-def test_cli_exposes_no_modelling_commands_yet() -> None:
-    """Guards against advertising `train`/`predict` before a model exists.
+def test_cli_advertises_only_commands_that_do_something() -> None:
+    """A command appears here only once it is real.
 
-    `ingest` and `build` are deliberately absent from this list: they exist and
-    do what they say. The point is that a command appears only once it is real.
+    `train` joined the list in phase 2, when a model existed to fit. `predict`
+    and `serve` have not, because nothing behind them is built yet — and a CLI
+    that advertises them would be the same overclaim as an API returning
+    hand-written constants.
     """
     result = runner.invoke(app, ["--help"])
 
-    for unimplemented in ("train", "predict", "backtest", "translate"):
+    for implemented in ("ingest", "build", "verify", "train"):
+        assert implemented in result.stdout
+
+    for unimplemented in ("predict", "serve", "export"):
         assert unimplemented not in result.stdout
