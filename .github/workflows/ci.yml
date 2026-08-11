@@ -98,7 +98,12 @@ jobs:
       # `--frozen` fails rather than silently re-resolving, so the lockfile is
       # the single source of truth for what CI actually tested.
       - run: uv sync --frozen --extra dev --python ${{ matrix.python }}
-      - run: uv run pytest --cov --cov-report=term-missing
+      # `--python` is required here as well as on the sync above. Without it,
+      # `uv run` honours services/ml/.python-version (3.12), rebuilds the
+      # virtualenv for that interpreter, and discards the matrix environment
+      # along with pytest itself — so the job fails with "program not found"
+      # rather than testing the version it claims to.
+      - run: uv run --frozen --extra dev --python ${{ matrix.python }} pytest --cov --cov-report=term-missing
 
   data-contract:
     name: Committed gold matches its contracts
