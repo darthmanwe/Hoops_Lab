@@ -1,3 +1,14 @@
+CREATE TABLE `archetype_definitions` (
+	`model_version` text NOT NULL,
+	`cluster` integer NOT NULL,
+	`n_members` integer NOT NULL,
+	`top_features` text NOT NULL,
+	`exemplars` text NOT NULL,
+	`stability_jaccard` real NOT NULL,
+	`reportable` integer NOT NULL,
+	PRIMARY KEY(`model_version`, `cluster`)
+);
+
 CREATE TABLE `data_snapshots` (
 	`snapshot_id` text PRIMARY KEY NOT NULL,
 	`built_at` text NOT NULL,
@@ -49,6 +60,29 @@ CREATE TABLE `persons` (
 );
 
 CREATE INDEX `idx_persons_name` ON `persons` (`name_normalized`);
+CREATE TABLE `player_archetypes` (
+	`season_id` text NOT NULL,
+	`person_id` text NOT NULL,
+	`league` text NOT NULL,
+	`cluster` integer NOT NULL,
+	`model_version` text NOT NULL,
+	PRIMARY KEY(`season_id`, `person_id`),
+	FOREIGN KEY (`person_id`) REFERENCES `persons`(`person_id`) ON UPDATE no action ON DELETE no action
+);
+
+CREATE INDEX `idx_archetypes_cluster` ON `player_archetypes` (`model_version`,`cluster`);
+CREATE TABLE `player_comps` (
+	`season_id` text NOT NULL,
+	`person_id` text NOT NULL,
+	`rank` integer NOT NULL,
+	`neighbour_person_id` text NOT NULL,
+	`distance` real NOT NULL,
+	`model_version` text NOT NULL,
+	PRIMARY KEY(`season_id`, `person_id`, `rank`),
+	FOREIGN KEY (`person_id`) REFERENCES `persons`(`person_id`) ON UPDATE no action ON DELETE no action
+);
+
+CREATE INDEX `idx_comps_person` ON `player_comps` (`person_id`);
 CREATE TABLE `player_identities` (
 	`league` text NOT NULL,
 	`source_player_id` text NOT NULL,
@@ -85,6 +119,23 @@ CREATE TABLE `player_seasons` (
 
 CREATE INDEX `idx_player_seasons_person` ON `player_seasons` (`person_id`);
 CREATE INDEX `idx_player_seasons_league` ON `player_seasons` (`league`,`season_id`);
+CREATE TABLE `player_shooting` (
+	`season_id` text NOT NULL,
+	`person_id` text NOT NULL,
+	`fg3a` real NOT NULL,
+	`fg3a_per_75` real NOT NULL,
+	`fg3_pct_raw` real,
+	`fg3_pct_shrunk` real NOT NULL,
+	`shrinkage_weight` real NOT NULL,
+	`prior_mean` real NOT NULL,
+	`spacing_score` real NOT NULL,
+	`reportable` integer NOT NULL,
+	`model_version` text NOT NULL,
+	PRIMARY KEY(`season_id`, `person_id`),
+	FOREIGN KEY (`person_id`) REFERENCES `persons`(`person_id`) ON UPDATE no action ON DELETE no action
+);
+
+CREATE INDEX `idx_shooting_season` ON `player_shooting` (`season_id`,`spacing_score`);
 CREATE TABLE `seasons` (
 	`season_id` text PRIMARY KEY NOT NULL,
 	`league` text NOT NULL,

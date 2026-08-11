@@ -123,14 +123,29 @@ export const ENDPOINTS: readonly Endpoint[] = [
   },
   {
     path: "/players/{playerId}/comps",
-    state: "pending",
-    willServe:
-      "Nearest neighbours precomputed in whitened archetype space, with the " +
-      "distance metric and cluster stability published alongside.",
-    blockedOn: "phase-4-archetypes",
-    previously:
-      "Cosine similarity over a hand-written five-element vector, computed by " +
-      "scanning the whole season table inside the Worker on every request.",
+    state: "live",
+    description:
+      "Comparables precomputed in whitened archetype space, with the distance metric stated.",
+  },
+  {
+    path: "/players/{playerId}/archetype",
+    state: "live",
+    description: "Archetype assignment per season, carrying that cluster's bootstrap stability.",
+  },
+  {
+    path: "/players/{playerId}/shooting",
+    state: "live",
+    description: "Empirical-Bayes shrunk three-point threat, with the shrinkage weight exposed.",
+  },
+  {
+    path: "/archetypes",
+    state: "live",
+    description: "The five clusters, their distinguishing features, exemplars and stability.",
+  },
+  {
+    path: "/leaderboards/shooting",
+    state: "live",
+    description: "Spacing leaderboard, restricted to players above the attempt floor.",
   },
   {
     path: "/players/{playerId}/shot-profile",
@@ -197,9 +212,9 @@ export const ENDPOINTS: readonly Endpoint[] = [
       "the EuroLeague does not collect it. The previous version of this " +
       "endpoint reported gravity values that were typed by hand.",
     instead:
-      "/players/{playerId}/shooting will serve an empirical-Bayes shrunk 3PT " +
-      "threat measure, which is computable from public data and is named for " +
-      "what it actually measures.",
+      "/players/{playerId}/shooting serves an empirical-Bayes shrunk 3PT threat " +
+      "measure, which is computable from public data and is named for what it " +
+      "actually measures.",
   },
   {
     path: "/leaderboards/clutch",

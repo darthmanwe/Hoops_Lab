@@ -6,6 +6,7 @@ import { healthRoute } from "./routes/health";
 import { metaRoute } from "./routes/meta";
 import { modelsRoute } from "./routes/models";
 import { playersRoute } from "./routes/players";
+import { rolesRoute } from "./routes/roles";
 import { reconstructionRoute } from "./routes/reconstruction";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -42,6 +43,7 @@ app.route("/", healthRoute);
 // which has become real wins over its withdrawn placeholder.
 app.route("/", playersRoute);
 app.route("/", modelsRoute);
+app.route("/", rolesRoute);
 
 app.route("/", reconstructionRoute);
 

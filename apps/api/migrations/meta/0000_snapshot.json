@@ -1,9 +1,76 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "775af58e-4f16-4717-a742-ba1144fe66bf",
+  "id": "56b7294e-a016-4768-b286-806e4c6432ba",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "archetype_definitions": {
+      "name": "archetype_definitions",
+      "columns": {
+        "model_version": {
+          "name": "model_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cluster": {
+          "name": "cluster",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "n_members": {
+          "name": "n_members",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "top_features": {
+          "name": "top_features",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "exemplars": {
+          "name": "exemplars",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stability_jaccard": {
+          "name": "stability_jaccard",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reportable": {
+          "name": "reportable",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "archetype_definitions_model_version_cluster_pk": {
+          "columns": [
+            "model_version",
+            "cluster"
+          ],
+          "name": "archetype_definitions_model_version_cluster_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "data_snapshots": {
       "name": "data_snapshots",
       "columns": {
@@ -328,6 +395,165 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "player_archetypes": {
+      "name": "player_archetypes",
+      "columns": {
+        "season_id": {
+          "name": "season_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "person_id": {
+          "name": "person_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "league": {
+          "name": "league",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cluster": {
+          "name": "cluster",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "model_version": {
+          "name": "model_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_archetypes_cluster": {
+          "name": "idx_archetypes_cluster",
+          "columns": [
+            "model_version",
+            "cluster"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "player_archetypes_person_id_persons_person_id_fk": {
+          "name": "player_archetypes_person_id_persons_person_id_fk",
+          "tableFrom": "player_archetypes",
+          "tableTo": "persons",
+          "columnsFrom": [
+            "person_id"
+          ],
+          "columnsTo": [
+            "person_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "player_archetypes_season_id_person_id_pk": {
+          "columns": [
+            "season_id",
+            "person_id"
+          ],
+          "name": "player_archetypes_season_id_person_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "player_comps": {
+      "name": "player_comps",
+      "columns": {
+        "season_id": {
+          "name": "season_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "person_id": {
+          "name": "person_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rank": {
+          "name": "rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "neighbour_person_id": {
+          "name": "neighbour_person_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "distance": {
+          "name": "distance",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "model_version": {
+          "name": "model_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_comps_person": {
+          "name": "idx_comps_person",
+          "columns": [
+            "person_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "player_comps_person_id_persons_person_id_fk": {
+          "name": "player_comps_person_id_persons_person_id_fk",
+          "tableFrom": "player_comps",
+          "tableTo": "persons",
+          "columnsFrom": [
+            "person_id"
+          ],
+          "columnsTo": [
+            "person_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "player_comps_season_id_person_id_rank_pk": {
+          "columns": [
+            "season_id",
+            "person_id",
+            "rank"
+          ],
+          "name": "player_comps_season_id_person_id_rank_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "player_identities": {
       "name": "player_identities",
       "columns": {
@@ -578,6 +804,124 @@
             "person_id"
           ],
           "name": "player_seasons_season_id_person_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "player_shooting": {
+      "name": "player_shooting",
+      "columns": {
+        "season_id": {
+          "name": "season_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "person_id": {
+          "name": "person_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fg3a": {
+          "name": "fg3a",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fg3a_per_75": {
+          "name": "fg3a_per_75",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fg3_pct_raw": {
+          "name": "fg3_pct_raw",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "fg3_pct_shrunk": {
+          "name": "fg3_pct_shrunk",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "shrinkage_weight": {
+          "name": "shrinkage_weight",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prior_mean": {
+          "name": "prior_mean",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "spacing_score": {
+          "name": "spacing_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reportable": {
+          "name": "reportable",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "model_version": {
+          "name": "model_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_shooting_season": {
+          "name": "idx_shooting_season",
+          "columns": [
+            "season_id",
+            "spacing_score"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "player_shooting_person_id_persons_person_id_fk": {
+          "name": "player_shooting_person_id_persons_person_id_fk",
+          "tableFrom": "player_shooting",
+          "tableTo": "persons",
+          "columnsFrom": [
+            "person_id"
+          ],
+          "columnsTo": [
+            "person_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "player_shooting_season_id_person_id_pk": {
+          "columns": [
+            "season_id",
+            "person_id"
+          ],
+          "name": "player_shooting_season_id_person_id_pk"
         }
       },
       "uniqueConstraints": {},

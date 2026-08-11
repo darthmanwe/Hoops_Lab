@@ -9,7 +9,7 @@ stated up front.
 
 ---
 
-> ## Status: rebuilding (phase 4 of 8)
+> ## Status: rebuilding (phase 5 of 8)
 >
 > **Real data, a fitted model, and an API that serves it with provenance.**
 >
@@ -242,6 +242,45 @@ look better than it is.
 
 Full method, caveats and fairness notes:
 [model card](services/ml/src/hoopslab/configs/model_cards/translation.md).
+
+## Archetypes and shooting
+
+Two descriptive models, added in phase 4, replacing the hand-written
+`archetype_vector_json` and the fabricated `nba_gravity`.
+
+**Archetypes.** Centred log-ratio on the compositional shot mix, within-season
+standardisation, PCA, then a Gaussian mixture. `k = 5`, chosen where two
+criteria disagreed: held-out log-likelihood keeps improving with `k` but
+flattens after 5, while bootstrap stability collapses at `k ≥ 6` (mean Jaccard
+0.52 → 0.40). The smaller `k` wins.
+
+| Cluster | Distinguished by                            | Exemplars                    | Stability |
+| ------- | ------------------------------------------- | ---------------------------- | --------- |
+| 0       | high usage and assist rate                  | Iverson, Kobe Bryant         | 0.55      |
+| 1       | very high assist rate and turnovers         | Eric Snow, Deron Williams    | 0.54      |
+| 2       | no threes, heavy free throws, most rebounds | Dwight Howard, Ben Wallace   | 0.53      |
+| 3       | rebounds, few threes                        | Duncan, Garnett              | **0.42**  |
+| 4       | highest three-point share                   | Peja Stojaković, Joe Johnson | 0.56      |
+
+**Mean stability is 0.52 — moderate, not a crisp taxonomy.** Cluster 3 falls
+below the floor and is served with `reportable: false`, meaning read it as
+_unclassified_ rather than as a type. That flag is in the API payload, not just
+in this table.
+
+**Shooting, replacing "gravity".** Gravity measures defensive attention and
+needs optical tracking data that no public source provides, so it is gone
+rather than renamed. What is computable is threat, and the statistical problem
+is small samples:
+
+| Attempts | Raw 3P% | Shrunk | Weight on own data |
+| -------- | ------- | ------ | ------------------ |
+| 1        | 1.000   | 0.358  | 0.01               |
+| 35       | 0.371   | 0.362  | 0.27               |
+| 876      | 0.408   | 0.403  | 0.90               |
+
+`shrinkage_weight` ships with every value, so a reader can see how much of a
+number is the player and how much is the league prior.
+[Model card](services/ml/src/hoopslab/configs/model_cards/roles.md).
 
 ## Repository layout
 

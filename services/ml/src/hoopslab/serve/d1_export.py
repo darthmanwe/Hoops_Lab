@@ -30,6 +30,8 @@ from hoopslab.features.translation import (
     league_season_moments,
 )
 from hoopslab.models import baselines
+from hoopslab.models.roles import MODEL_VERSION as ROLES_VERSION
+from hoopslab.models.roles import STABILITY_FLOOR, RolesResult, fit_roles
 from hoopslab.models.train import MODEL_NAME, latest_run
 from hoopslab.models.translation import fit_persistence, fit_translation
 from hoopslab.paths import DataPaths
@@ -48,6 +50,10 @@ TABLES_IN_LOAD_ORDER = (
     "translation_predictions",
     "model_evaluations",
     "selection_summaries",
+    "player_archetypes",
+    "archetype_definitions",
+    "player_comps",
+    "player_shooting",
 )
 
 
@@ -129,6 +135,10 @@ def build_export(paths: DataPaths) -> ExportResult:
     emit("translation_predictions", *prediction_rows)
     emit("model_evaluations", *evaluation_rows)
     emit("selection_summaries", *selection_rows)
+
+    roles = fit_roles(player_seasons)
+    for table, columns, rows in _roles_rows(roles, persons):
+        emit(table, columns, rows)
 
     out_dir = paths.data / "d1"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -532,6 +542,122 @@ def build_fixture(paths: DataPaths, out_path: Path, *, n_persons: int = 60) -> d
     emit("model_evaluations", *evaluation_rows)
     emit("selection_summaries", *selection_rows)
 
+    # Roles are fitted on the whole population — clustering a 60-player slice
+    # would be meaningless — then filtered to the fixture's people.
+    roles = fit_roles(player_seasons)
+    for table, columns, rows in _roles_rows(roles, persons_slice):
+        emit(table, columns, rows)
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(sql.transaction(statements), encoding="utf-8")
     return counts
+
+
+def _roles_rows(
+    roles: RolesResult, persons: pl.DataFrame
+) -> list[tuple[str, list[str], list[list[Any]]]]:
+    """Serving rows for the archetype, comparable and shooting tables.
+
+    Filtered to people who exist in `persons`, so every foreign key resolves.
+    """
+    known = set(persons["person_id"].to_list())
+
+    archetypes = [
+        [r["season_id"], r["person_id"], r["league"], int(r["cluster"]), ROLES_VERSION]
+        for r in roles.assignments.iter_rows(named=True)
+        if r["person_id"] in known
+    ]
+
+    definitions = [
+        [
+            ROLES_VERSION,
+            int(r["cluster"]),
+            int(r["n_members"]),
+            r["top_features"],
+            r["exemplars"],
+            float(r["stability_jaccard"]),
+            bool(r["stability_jaccard"] >= STABILITY_FLOOR),
+        ]
+        for r in roles.cluster_descriptions.iter_rows(named=True)
+    ]
+
+    comps = [
+        [
+            r["season_id"],
+            r["person_id"],
+            int(r["rank"]),
+            r["neighbour_person_id"],
+            float(r["distance"]),
+            ROLES_VERSION,
+        ]
+        for r in roles.neighbours.iter_rows(named=True)
+        if r["person_id"] in known and r["neighbour_person_id"] in known
+    ]
+
+    shooting = [
+        [
+            r["season_id"],
+            r["person_id"],
+            float(r["fg3a"]),
+            float(r["fg3a_per_75"]),
+            _round(r["fg3_pct_raw"], 4),
+            float(r["fg3_pct_shrunk"]),
+            float(r["shrinkage_weight"]),
+            float(r["prior_mean"]),
+            float(r["spacing_score"]),
+            bool(r["reportable"]),
+            ROLES_VERSION,
+        ]
+        for r in roles.shooting.iter_rows(named=True)
+        if r["person_id"] in known
+    ]
+
+    return [
+        (
+            "player_archetypes",
+            ["season_id", "person_id", "league", "cluster", "model_version"],
+            archetypes,
+        ),
+        (
+            "archetype_definitions",
+            [
+                "model_version",
+                "cluster",
+                "n_members",
+                "top_features",
+                "exemplars",
+                "stability_jaccard",
+                "reportable",
+            ],
+            definitions,
+        ),
+        (
+            "player_comps",
+            [
+                "season_id",
+                "person_id",
+                "rank",
+                "neighbour_person_id",
+                "distance",
+                "model_version",
+            ],
+            comps,
+        ),
+        (
+            "player_shooting",
+            [
+                "season_id",
+                "person_id",
+                "fg3a",
+                "fg3a_per_75",
+                "fg3_pct_raw",
+                "fg3_pct_shrunk",
+                "shrinkage_weight",
+                "prior_mean",
+                "spacing_score",
+                "reportable",
+                "model_version",
+            ],
+            shooting,
+        ),
+    ]

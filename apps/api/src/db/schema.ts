@@ -231,3 +231,101 @@ export const dataSnapshots = sqliteTable("data_snapshots", {
   nPersons: integer("n_persons").notNull(),
   nTransitionPairs: integer("n_transition_pairs").notNull(),
 });
+
+/** Archetype assignment per player-season. Descriptive, never predictive. */
+export const playerArchetypes = sqliteTable(
+  "player_archetypes",
+  {
+    seasonId: text("season_id").notNull(),
+    personId: text("person_id")
+      .notNull()
+      .references(() => persons.personId),
+    league: text("league").notNull(),
+    cluster: integer("cluster").notNull(),
+    modelVersion: text("model_version").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.seasonId, table.personId] }),
+    index("idx_archetypes_cluster").on(table.modelVersion, table.cluster),
+  ]
+);
+
+/**
+ * What each cluster is, and how much to trust it.
+ *
+ * `stabilityJaccard` and `reportable` are served rather than kept internal:
+ * clusters are not equally real, and a label presented without its stability
+ * implies a crispness the clustering does not have.
+ */
+export const archetypeDefinitions = sqliteTable(
+  "archetype_definitions",
+  {
+    modelVersion: text("model_version").notNull(),
+    cluster: integer("cluster").notNull(),
+    nMembers: integer("n_members").notNull(),
+    topFeatures: text("top_features").notNull(),
+    exemplars: text("exemplars").notNull(),
+    stabilityJaccard: real("stability_jaccard").notNull(),
+    /** False means "read this as unclassified", not "a type we named". */
+    reportable: integer("reportable", { mode: "boolean" }).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.modelVersion, table.cluster] })]
+);
+
+/**
+ * Precomputed comparables, in the whitened archetype space.
+ *
+ * Computed in Python because the Worker gets 10 ms of CPU per request. The
+ * previous version scanned an entire season table and ran cosine similarity
+ * per call — survivable against four hardcoded players, impossible against six
+ * hundred real ones.
+ */
+export const playerComps = sqliteTable(
+  "player_comps",
+  {
+    seasonId: text("season_id").notNull(),
+    personId: text("person_id")
+      .notNull()
+      .references(() => persons.personId),
+    rank: integer("rank").notNull(),
+    neighbourPersonId: text("neighbour_person_id").notNull(),
+    distance: real("distance").notNull(),
+    modelVersion: text("model_version").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.seasonId, table.personId, table.rank] }),
+    index("idx_comps_person").on(table.personId),
+  ]
+);
+
+/**
+ * Three-point shooting threat, shrunk toward an empirical prior.
+ *
+ * This is what replaces "gravity". `shrinkageWeight` is served so a reader can
+ * see how much of a number is the player's own attempts and how much is the
+ * prior — a 40-attempt shooter is mostly prior, and that is the difference
+ * between a measurement and an impression.
+ */
+export const playerShooting = sqliteTable(
+  "player_shooting",
+  {
+    seasonId: text("season_id").notNull(),
+    personId: text("person_id")
+      .notNull()
+      .references(() => persons.personId),
+    fg3a: real("fg3a").notNull(),
+    fg3aPer75: real("fg3a_per_75").notNull(),
+    fg3PctRaw: real("fg3_pct_raw"),
+    fg3PctShrunk: real("fg3_pct_shrunk").notNull(),
+    shrinkageWeight: real("shrinkage_weight").notNull(),
+    priorMean: real("prior_mean").notNull(),
+    spacingScore: real("spacing_score").notNull(),
+    /** False below the attempt floor: reported, but almost entirely prior. */
+    reportable: integer("reportable", { mode: "boolean" }).notNull(),
+    modelVersion: text("model_version").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.seasonId, table.personId] }),
+    index("idx_shooting_season").on(table.seasonId, table.spacingScore),
+  ]
+);
