@@ -9,10 +9,10 @@ stated up front.
 
 ---
 
-> ## Status: rebuilding (phase 2 of 8)
+> ## Status: rebuilding (phase 3 of 8)
 >
-> **The data layer is real and committed. No model is fitted yet, so the API
-> still serves no analytics.**
+> **The data and the flagship model are real. The API does not serve them yet —
+> that is phase 3.**
 >
 > An audit of the previous version found that every number it displayed came
 > from a Python literal. The ETL was 723 lines of hardcoded dictionaries for
@@ -21,11 +21,11 @@ stated up front.
 > data files. The web app presented those constants as model output.
 >
 > Phase 0 removed all of it. Phase 1 replaced it with **22,297 real
-> player-seasons across three leagues**, a person-centric identity crosswalk,
-> and 14 integrity checks that run offline on every push. Every analytics
-> endpoint still returns `501` (coming back, with the phase that unblocks it)
-> or `410` (permanently withdrawn, with the reason the metric cannot exist),
-> because the models that will back them are phase 2.
+> player-seasons across three leagues** and a person-centric identity crosswalk.
+> Phase 2 fitted the translation model and measured its selection bias. Every
+> analytics endpoint still returns `501` or `410` until phase 3 wires the model
+> through to serving — the numbers below exist, but nothing is shipped until it
+> can be served with its interval and its model version attached.
 >
 > Progress is tracked in the [roadmap](#roadmap).
 
@@ -166,6 +166,69 @@ clone reproduces every reported number with no network access whatsoever.**
 `hoopslab verify` re-derives each table's checksum against its committed
 contract, so silent data drift fails the build.
 
+## Results
+
+Out-of-fold, leave-one-target-season-out **grouped by player**, n = 370 across
+11 season folds. Reproduced by CI on every push.
+
+| Metric          | MAE        | 95% CI (cluster bootstrap) | Best baseline        | Shuffled control |
+| --------------- | ---------- | -------------------------- | -------------------- | ---------------- |
+| Usage rate      | **0.0309** | [0.0285, 0.0333]           | 0.0419 (league mean) | 0.0463           |
+| True shooting % | **0.0408** | [0.0375, 0.0439]           | 0.0431 (league mean) | 0.0584           |
+
+Against every baseline, on usage rate:
+
+| Baseline                       | MAE    | Model better by |
+| ------------------------------ | ------ | --------------- |
+| League mean                    | 0.0419 | 26.3%           |
+| Stage-1 persistence, no league | 0.0515 | 40.0%           |
+| z-preservation                 | 0.0536 | 42.4%           |
+| The folk ×0.75 rule            | 0.0821 | 62.4%           |
+
+**Estimated compression: β = 0.776** for usage, 0.642 for true shooting. A
+slope below one means standing within a league compresses on the way across.
+
+Three things in that table are worth more than the headline:
+
+- **The folk ×0.75 rule is worse than predicting the league average** (0.0821
+  vs 0.0419). The rule everyone quotes is not merely imprecise; it is beaten by
+  ignoring the player entirely.
+- **Stage-1 persistence alone is also worse than the league mean** (0.0515).
+  Applying same-league year-to-year dynamics to a cross-league move actively
+  misleads, which is the clearest evidence that the league term is doing real
+  work rather than decorating a trend.
+- **True shooting is barely predictable** — 5.3% better than the league mean,
+  with stage-1 R² of 0.30 against 0.74 for usage. Shooting efficiency is mostly
+  noise year to year. It is reported because dropping the weaker of two
+  headline metrics would be selective.
+
+### Selection, measured rather than assumed
+
+The movers are not a random sample of the league they leave, and the whole
+estimate is conditional on that. How far above their own peers they sat:
+
+| Direction        | Movers | Gap vs peers, usage |
+| ---------------- | ------ | ------------------- |
+| EuroLeague → NBA | 96     | **+0.47 sd**        |
+| NBA → EuroLeague | 149    | **−0.30 sd**        |
+| NBA → G League   | 159    | −0.37 sd            |
+
+The two headline directions are selected in **opposite** directions, exactly as
+the design predicted: players move up because they were good, and down because
+they were not. That opposition is what makes the effect testable rather than
+merely acknowledged.
+
+**And the test does not fully pass.** Fitting a separate slope per direction
+gives 0.695 for EuroLeague→NBA and 0.973 for NBA→EuroLeague — a gap of 0.28.
+If one slope fitted both, the compression would be unlikely to be a selection
+artefact. It does not, so part of the estimated compression is
+direction-specific. That is reported here, in the model card, and in the CLI
+output, because burying it would be the single easiest way to make this project
+look better than it is.
+
+Full method, caveats and fairness notes:
+[model card](services/ml/src/hoopslab/configs/model_cards/translation.md).
+
 ## Repository layout
 
 ```
@@ -188,8 +251,10 @@ npm run test              # 75 Worker tests, inside workerd, real D1 + KV bindin
 
 cd services/ml
 uv sync --extra dev
-uv run pytest             # 135 tests, offline, no credentials
-uv run hoopslab verify    # re-derives every checksum against the committed data
+uv run pytest                  # 153 tests, offline, no credentials
+uv run hoopslab verify         # re-derives every checksum against committed data
+uv run hoopslab train          # refits the model and prints the results above
+uv run hoopslab train --verify # fails if any reported metric has moved
 ```
 
 No API keys. No network after the clone. See
@@ -238,10 +303,13 @@ Filled in with measured numbers as each phase lands. What can be said already:
   that this player got an NBA contract, what does history say to expect", not
   "what would a random EuroLeague player do". Only the first is identified from
   the data.
-- **Per-player intervals will be wide.** Expected out-of-fold error on usage
-  rate is around 3–5 percentage points against a population standard deviation
-  of about 5. That is useful for ranking a cohort and useless for deciding a
-  contract, and it will be reported as such.
+- **Per-player intervals are wide, as expected.** Measured out-of-fold error on
+  usage rate is 3.1 percentage points against a population standard deviation of
+  about 5. Useful for ranking a cohort; useless for deciding a contract.
+- **The shared-slope restriction is not fully supported.** The two directions
+  give 0.695 and 0.973, so some of the estimated compression is
+  direction-specific rather than a property of the leagues.
+- **True shooting adds little over the league average** (5.3%).
 - **The game model is not a betting model.** It is expected to lose to the
   closing line, and the gap will be published. There is no bankroll, no Kelly
   sizing and no ROI curve in this repository.
