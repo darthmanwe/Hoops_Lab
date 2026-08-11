@@ -9,9 +9,10 @@ stated up front.
 
 ---
 
-> ## Status: rebuilding (phase 0 of 8)
+> ## Status: rebuilding (phase 2 of 8)
 >
-> **This project currently serves no basketball data at all, on purpose.**
+> **The data layer is real and committed. No model is fitted yet, so the API
+> still serves no analytics.**
 >
 > An audit of the previous version found that every number it displayed came
 > from a Python literal. The ETL was 723 lines of hardcoded dictionaries for
@@ -19,11 +20,12 @@ stated up front.
 > data were never imported by anything; there were no models, no tests, and no
 > data files. The web app presented those constants as model output.
 >
-> Rather than leave a plausible-looking demo running while real models get
-> built, the fabricated data has been removed. Every analytics endpoint now
-> returns `501` (coming back, with the phase that unblocks it) or `410`
-> (permanently withdrawn, with the reason the metric cannot exist). Each
-> response says what the endpoint used to do.
+> Phase 0 removed all of it. Phase 1 replaced it with **22,297 real
+> player-seasons across three leagues**, a person-centric identity crosswalk,
+> and 14 integrity checks that run offline on every push. Every analytics
+> endpoint still returns `501` (coming back, with the phase that unblocks it)
+> or `410` (permanently withdrawn, with the reason the metric cannot exist),
+> because the models that will back them are phase 2.
 >
 > Progress is tracked in the [roadmap](#roadmap).
 
@@ -55,6 +57,68 @@ leaderboard, and it is built accordingly.
 | A cross-league player is not one entity in any public dataset.                                               | A person-centric identity model with an auditable crosswalk across four id systems, recording how each link was made and how confident it is.                                                                                                                                                                                                                                                                |
 
 Details and the exact estimand are in [docs/modeling.md](docs/modeling.md).
+
+## The data, as actually ingested
+
+Committed to this repository as parquet, so a clean clone reproduces all of it
+with no network access.
+
+| Table               | Rows   | What it is                                                 |
+| ------------------- | ------ | ---------------------------------------------------------- |
+| `player_seasons`    | 22,297 | NBA 2000-24, EuroLeague 2007-24, G League 2015-24          |
+| `persons`           | 5,349  | Human beings, 1,343 of whom appear in more than one league |
+| `player_identities` | 6,913  | Source id → person, with match method and confidence       |
+| `team_seasons`      | 1,433  | Team totals, the denominator of every usage rate           |
+| `transition_pairs`  | 537    | Observed league switches                                   |
+
+**The transition cohort — the sample the flagship model depends on:**
+
+| Direction             | Pairs  | Players | Span      |
+| --------------------- | ------ | ------- | --------- |
+| NBA → G League        | 159    | 132     | 2013-2023 |
+| NBA → EuroLeague      | 149    | 110     | 2005-2023 |
+| **EuroLeague → NBA**  | **96** | **61**  | 2007-2023 |
+| G League → NBA        | 59     | 45      | 2015-2023 |
+| G League → EuroLeague | 59     | 45      | 2015-2023 |
+| EuroLeague → G League | 15     | 14      | 2013-2023 |
+
+The floor was set **before** the data was pulled: below 40 usable
+EuroLeague→NBA pairs, the commitment was to report coefficients with intervals
+only and refuse per-player point predictions. At 96 that is not triggered, and
+the test asserting it is in the suite either way.
+
+Spot-checking the cohort against reality: Micic, Vezenkov, Campazzo,
+Fontecchio, Exum, Melli, Guduric, Landale and Bolden all appear with the
+correct source and target seasons.
+
+### Two bugs the validation caught
+
+Both are the kind that survive an eyeball check, which is the argument for
+having the checks at all.
+
+**Usage rate was five times too large in two of three leagues.**
+`stats.nba.com` reports team `MIN` as game-clock minutes (~3,966 per season);
+summing player minutes gives ~19,830. The standard usage formula's `TmMP / 5`
+term expects the latter. Using each source's own team totals meant the NBA was
+right and the EuroLeague was wrong by exactly 5× — correlating at 0.998 with
+the truth, and landing directly inside the coefficient the project exists to
+estimate. Now every team total is derived from the same player rows that supply
+the numerator, and a check compares the result against the league's own
+published values on every build:
+
+```
+[PASS] rate_agreement:usg_pct   MAD 0.00590 against tolerance 0.010 over n=9,783
+[PASS] rate_agreement:ts_pct    MAD 0.00025 against tolerance 0.001 over n=9,783
+[PASS] rate_agreement:ast_pct   MAD 0.00576 against tolerance 0.010 over n=9,783
+```
+
+The residual is explained and bounded: the league computes usage per team
+stint, so a player traded mid-season is measured against each team separately.
+
+**1,321 identities pointed at people who did not exist.** `persons` was built
+from names rather than from identities, so any player without a name — G League
+rows arrive with a few — was dropped while the row referencing them survived.
+`persons` is now derived from `identities`, making the two unable to disagree.
 
 ## Architecture
 
@@ -124,7 +188,8 @@ npm run test              # 75 Worker tests, inside workerd, real D1 + KV bindin
 
 cd services/ml
 uv sync --extra dev
-uv run pytest             # 21 tests, offline, no credentials
+uv run pytest             # 135 tests, offline, no credentials
+uv run hoopslab verify    # re-derives every checksum against the committed data
 ```
 
 No API keys. No network after the clone. See
@@ -180,6 +245,10 @@ Filled in with measured numbers as each phase lands. What can be said already:
 - **The game model is not a betting model.** It is expected to lose to the
   closing line, and the gap will be published. There is no bankroll, no Kelly
   sizing and no ROI curve in this repository.
+- **The EuroLeague match rate is 25.5%**, and that is the correct order of
+  magnitude rather than a shortfall: most EuroLeague players never play in the
+  NBA. What matters is that unmatched and ambiguously-matched players are
+  recorded as such and excluded from the modelling cohort, rather than guessed.
 - **Nothing here is causal.**
 
 ## Engineering notes
@@ -206,6 +275,12 @@ Things that are load-bearing rather than decorative:
   pointed at production. A bare `wrangler deploy` now fails loudly.
 - **A CI job asserts no endpoint serves data**, and that the fabricated ETL has
   not come back. The phase 0 guarantee is enforced, not promised.
+- **Ingestion is resumable and free to re-run.** Every fetch is content-addressed
+  and recorded in an append-only manifest, so an interrupted pull loses only the
+  request in flight, and rebuilding gold touches no source at all.
+- **`stats.nba.com` ingestion cannot run in CI** — it refuses datacenter IP
+  ranges, and Actions runners are on Azure. That is why gold is committed and
+  why the nightly cron was deleted rather than repaired.
 
 ## Licence
 

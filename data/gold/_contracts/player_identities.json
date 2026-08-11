@@ -1,0 +1,44 @@
+{
+  "columns": [
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "person_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "league",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "source_player_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "match_method",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.0,
+      "minimum": 0.3,
+      "name": "confidence",
+      "null_rate": 0.0
+    }
+  ],
+  "content_hash": "b6e96cae023aecc8aebdb469949bd5c2",
+  "contract_version": 1,
+  "n_columns": 5,
+  "n_rows": 6913,
+  "table": "player_identities"
+}

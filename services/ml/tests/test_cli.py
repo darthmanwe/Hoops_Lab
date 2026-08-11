@@ -46,17 +46,21 @@ def test_config_emits_valid_json() -> None:
     assert json.loads(result.stdout)["seed"] == 20260810
 
 
-def test_verify_exits_cleanly_when_there_is_no_gold_data_yet() -> None:
-    """Phase 0 ships no data. Saying so plainly beats inventing a green check."""
+def test_verify_passes_against_the_committed_snapshot() -> None:
+    """Gold is committed, so verification works on a clean clone with no network."""
     result = runner.invoke(app, ["verify"])
 
-    assert result.exit_code == 0
-    assert "phase 1" in result.stdout.lower()
+    assert result.exit_code == 0, result.stdout
+    assert "verified" in result.stdout.lower()
 
 
 def test_cli_exposes_no_modelling_commands_yet() -> None:
-    """Guards against advertising `train`/`predict` before a model exists."""
+    """Guards against advertising `train`/`predict` before a model exists.
+
+    `ingest` and `build` are deliberately absent from this list: they exist and
+    do what they say. The point is that a command appears only once it is real.
+    """
     result = runner.invoke(app, ["--help"])
 
-    for unimplemented in ("train", "predict", "backtest", "ingest"):
+    for unimplemented in ("train", "predict", "backtest", "translate"):
         assert unimplemented not in result.stdout

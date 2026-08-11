@@ -100,6 +100,25 @@ jobs:
       - run: uv sync --frozen --extra dev --python ${{ matrix.python }}
       - run: uv run pytest --cov --cov-report=term-missing
 
+  data-contract:
+    name: Committed gold matches its contracts
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv sync --frozen --extra dev
+      # No network, and no `ingest` extra installed. This is the check that
+      # makes the committed snapshot trustworthy: if a transform change alters
+      # the data behind a number in the README, the build fails rather than the
+      # number quietly moving.
+      - run: uv run hoopslab verify
+
   no-fabricated-data:
     name: No endpoint serves fabricated data
     runs-on: ubuntu-latest
