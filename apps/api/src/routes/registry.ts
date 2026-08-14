@@ -122,6 +122,13 @@ export const ENDPOINTS: readonly Endpoint[] = [
       "Players ranked by projected translated production, with intervals and what actually happened.",
   },
   {
+    path: "/players/{playerId}/report",
+    state: "live",
+    description:
+      "A grounded scouting report, served with the audit of how many of its numbers trace " +
+      "back to the evidence the model was given.",
+  },
+  {
     path: "/players/{playerId}/comps",
     state: "live",
     description:

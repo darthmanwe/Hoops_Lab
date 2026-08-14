@@ -8,6 +8,7 @@ import { modelsRoute } from "./routes/models";
 import { playersRoute } from "./routes/players";
 import { rolesRoute } from "./routes/roles";
 import { reconstructionRoute } from "./routes/reconstruction";
+import { reportsRoute } from "./routes/reports";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -44,6 +45,7 @@ app.route("/", healthRoute);
 app.route("/", playersRoute);
 app.route("/", modelsRoute);
 app.route("/", rolesRoute);
+app.route("/", reportsRoute);
 
 app.route("/", reconstructionRoute);
 

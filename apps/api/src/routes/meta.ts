@@ -11,11 +11,13 @@ export const metaRoute = new Hono<{ Bindings: Env }>();
 metaRoute.get("/", (c) =>
   c.json({
     service: "hoopslab-api",
-    status: "rebuilding",
+    status: "live",
     summary:
-      "Every analytics endpoint is withdrawn. The previous version served " +
-      "hardcoded constants as model output; they have been removed rather " +
-      "than left in place while real models are built.",
+      "Every served number comes from a fitted model or a measured column, and " +
+      "carries the version that produced it. Paths still marked pending are " +
+      "waiting on data this project does not yet have; paths marked gone " +
+      "measured something no public data supports, and say so instead of " +
+      "returning a plausible number.",
     counts: {
       live: ENDPOINTS.length - PENDING_ENDPOINTS.length - GONE_ENDPOINTS.length,
       pending: PENDING_ENDPOINTS.length,

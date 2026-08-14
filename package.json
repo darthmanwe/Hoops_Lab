@@ -34,6 +34,8 @@
     "ml:format:check": "uv run --project services/ml ruff format --check services/ml",
     "ml:type": "uv run --project services/ml mypy",
     "ml:test": "uv run --project services/ml pytest",
+    "ml:report": "uv run --project services/ml hoopslab report",
+    "demo:llm": "uv run --project services/ml hoopslab report-eval",
     "db:migrate": "wrangler d1 migrations apply hoopslab-dev --local --config apps/api/wrangler.toml --env dev",
     "db:load": "wrangler d1 execute hoopslab-dev --local --config apps/api/wrangler.toml --env dev --file data/d1/load.sql"
   },

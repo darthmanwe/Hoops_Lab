@@ -1,9 +1,11 @@
+import { ScoutingReport } from "../../../components/report";
 import { Card, Explanation, Metric, Provenance, Table } from "../../../components/ui";
 import type {
   CompRow,
   Identity,
   PersonSummary,
   PlayerSeason,
+  ScoutingReportResponse,
   ShootingRow,
   TranslationPrediction,
 } from "../../../lib/api";
@@ -25,11 +27,12 @@ type PlayerDetail = {
 export default async function PlayerPage({ params }: { params: Promise<{ personId: string }> }) {
   const { personId } = await params;
 
-  const [detail, translation, shooting, comps] = await Promise.all([
+  const [detail, translation, shooting, comps, report] = await Promise.all([
     apiGetOptional<PlayerDetail>(`/players/${personId}`),
     apiGetOptional<TranslationPrediction[]>(`/players/${personId}/translation`),
     apiGetOptional<ShootingRow[]>(`/players/${personId}/shooting`),
     apiGetOptional<CompRow[]>(`/players/${personId}/comps?limit=6`),
+    apiGetOptional<ScoutingReportResponse>(`/players/${personId}/report`),
   ]);
 
   if (isProblem(detail)) {
@@ -111,6 +114,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ personI
           <Explanation title={translation.title} detail={translation.detail} />
         </Card>
       )}
+
+      {!isProblem(report) ? <ScoutingReport data={report.data} /> : null}
 
       {!isProblem(shooting) ? (
         <Card

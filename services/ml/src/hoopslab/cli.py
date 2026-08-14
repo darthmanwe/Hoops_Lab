@@ -252,6 +252,129 @@ def fixture() -> None:
 
 
 @app.command()
+def report(
+    person_id: str = typer.Argument(..., help="Person id of a player who changed league."),
+    season: str = typer.Option(
+        None, "--season", help="Target season id, e.g. NBA_2018. Defaults to the earliest move."
+    ),
+    named: bool = typer.Option(
+        False,
+        "--named",
+        help="Include the real name. Groundedness is not independently verifiable in this mode.",
+    ),
+    refresh_cache: bool = typer.Option(
+        False, "--refresh-cache", help="Permit billed API calls to fill cache misses."
+    ),
+    max_calls: int = typer.Option(1, "--max-calls", help="Hard ceiling on billed calls."),
+) -> None:
+    """Write, or replay, one grounded scouting report.
+
+    Costs nothing by default: the response cache is committed, so a cache hit
+    needs neither a key nor a network. A miss without ``--refresh-cache`` is an
+    error rather than a silent charge.
+    """
+    from hoopslab.llm.cache import ResponseCache
+    from hoopslab.llm.client import CacheMiss, ReportGenerator
+    from hoopslab.llm.evidence import BundleSource, actual_outcome, build_bundle
+    from hoopslab.llm.groundedness import check_report
+
+    paths = DataPaths.discover()
+    source = BundleSource.load(paths)
+
+    target = season or _first_transition(source, person_id)
+    bundle = build_bundle(source, person_id, target, anonymized=not named)
+
+    generator = ReportGenerator(
+        ResponseCache(paths.llm_cache),
+        allow_api=refresh_cache,
+        max_calls=max_calls if refresh_cache else 0,
+    )
+
+    try:
+        cached = generator.generate(bundle)
+    except CacheMiss as exc:
+        console.print(f"[yellow]{exc}[/yellow]")
+        raise typer.Exit(code=1) from exc
+
+    grounded = check_report(cached.report, bundle)
+
+    console.print(f"[bold]{cached.report.headline}[/bold]\n")
+    for label, claim in (
+        ("Projection", cached.report.projection),
+        ("Uncertainty", cached.report.uncertainty),
+    ):
+        console.print(f"[bold]{label}[/bold]  {claim.text}")
+        console.print(f"  [dim]{' '.join(claim.fact_ids)}[/dim]")
+    for heading, claims in (("Strengths", cached.report.strengths), ("Risks", cached.report.risks)):
+        console.print(f"\n[bold]{heading}[/bold]")
+        for claim in claims:
+            console.print(f"  - {claim.text}")
+            console.print(f"    [dim]{' '.join(claim.fact_ids)}[/dim]")
+
+    console.print(f"\nconfidence: {cached.report.confidence}")
+    console.print(f"[bold]{grounded.provenance()}[/bold]")
+    for check in grounded.checks:
+        console.print(check.render())
+
+    # Held back from the bundle on purpose, so the report was written blind to
+    # it. Showing it here is the same move the model page makes: the claim and
+    # the check side by side.
+    outcome = actual_outcome(source, person_id, target)
+    if outcome:
+        console.print("\n[bold]What actually happened[/bold] (never shown to the model)")
+        for metric, value in outcome.items():
+            console.print(f"  {metric:<10} {value:.3f}")
+
+    console.print("\n" + generator.ledger.render())
+
+
+@app.command(name="report-eval")
+def report_eval(
+    per_direction: int = typer.Option(10, "--per-direction", help="Reports per move direction."),
+    named: bool = typer.Option(False, "--named", help="Evaluate without redacting the subject."),
+    refresh_cache: bool = typer.Option(
+        False, "--refresh-cache", help="Permit billed API calls to fill cache misses."
+    ),
+    max_calls: int = typer.Option(0, "--max-calls", help="Hard ceiling on billed calls."),
+) -> None:
+    """Score every report in the eval set for groundedness.
+
+    Deterministic and offline. The distractor line is the one to read first: a
+    groundedness rate means nothing unless swapping in another player's
+    evidence makes the same checks fail.
+    """
+    from hoopslab.llm.harness import run_harness
+
+    paths = DataPaths.discover()
+    result = run_harness(
+        paths,
+        anonymized=not named,
+        per_direction=per_direction,
+        allow_api=refresh_cache,
+        max_calls=max_calls if refresh_cache else 0,
+    )
+
+    console.print(result.render())
+    if not result.records:
+        console.print(
+            "\n[yellow]Nothing to score.[/yellow] Populate the response cache with "
+            "`hoopslab report-eval --refresh-cache --max-calls 30` and a key set."
+        )
+        raise typer.Exit(code=1)
+
+
+def _first_transition(source: object, person_id: str) -> str:
+    """The earliest scored move for a person, so --season is optional."""
+    matches = [key for key in source.transitions() if key[0] == person_id]  # type: ignore[attr-defined]
+    if not matches:
+        raise typer.BadParameter(
+            f"{person_id} has no scored league transition. Only observed moves clearing "
+            "the minutes floor have a projection."
+        )
+    return sorted(matches)[0][1]
+
+
+@app.command()
 def verify() -> None:
     """Check committed gold against its contracts and integrity rules.
 

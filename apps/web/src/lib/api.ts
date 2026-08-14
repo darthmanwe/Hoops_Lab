@@ -222,6 +222,39 @@ export type ShootingRow = {
   reportable: boolean;
 };
 
+export type ReportClaim = {
+  text: string;
+  /** Never empty: the schema the model answered under cannot express an uncited claim. */
+  fact_ids: string[];
+};
+
+export type ScoutingReportResponse = {
+  personId: string;
+  targetSeasonId: string;
+  direction: string;
+  /** True when the model was told the subject's name, which weakens the audit. */
+  named: boolean;
+  headline: string;
+  report: {
+    headline: string;
+    projection: ReportClaim;
+    uncertainty: ReportClaim;
+    strengths: ReportClaim[];
+    risks: ReportClaim[];
+    confidence: "low" | "moderate" | "high";
+  };
+  /** The exact text the model was given, so a reader can check a citation. */
+  evidence: string;
+  audit: {
+    grounded: boolean;
+    numbersTraced: number;
+    numbersTotal: number;
+    checks: { name: string; passed: boolean; detail: string }[];
+  };
+  reportModel: string;
+  generatedAt: string;
+};
+
 export type CompRow = {
   seasonId: string;
   rank: number;

@@ -13,7 +13,7 @@ describe("GET /", () => {
     expect(res.status).toBe(200);
 
     const body = (await res.json()) as { endpoints: { path: string }[]; status: string };
-    expect(body.status).toBe("rebuilding");
+    expect(body.status).toBe("live");
     expect(body.endpoints.map((e) => e.path).sort()).toEqual(ENDPOINTS.map((e) => e.path).sort());
   });
 

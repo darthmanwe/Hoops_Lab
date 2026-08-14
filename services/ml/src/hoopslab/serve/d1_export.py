@@ -54,6 +54,7 @@ TABLES_IN_LOAD_ORDER = (
     "archetype_definitions",
     "player_comps",
     "player_shooting",
+    "player_reports",
 )
 
 
@@ -139,6 +140,8 @@ def build_export(paths: DataPaths) -> ExportResult:
     roles = fit_roles(player_seasons)
     for table, columns, rows in _roles_rows(roles, persons):
         emit(table, columns, rows)
+
+    emit("player_reports", *_report_rows(paths, snapshot))
 
     out_dir = paths.data / "d1"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -551,6 +554,101 @@ def build_fixture(paths: DataPaths, out_path: Path, *, n_persons: int = 60) -> d
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(sql.transaction(statements), encoding="utf-8")
     return counts
+
+
+REPORT_COLUMNS = [
+    "person_id",
+    "target_season_id",
+    "direction",
+    "named",
+    "headline",
+    "claims",
+    "evidence",
+    "numbers_traced",
+    "numbers_total",
+    "grounded",
+    "checks",
+    "report_model",
+    "generated_at",
+    "snapshot_id",
+]
+
+
+def _report_rows(paths: DataPaths, snapshot: str) -> tuple[list[str], list[list[Any]]]:
+    """Serving rows for whatever scouting reports have actually been generated.
+
+    Empty until the response cache is populated, and empty is a correct answer:
+    the API's report route returns a problem document explaining that no report
+    exists for a player rather than inventing one. Nothing here can create a
+    report — it only exports what a model already wrote.
+
+    Each row carries its own audit. Serving the groundedness counts beside the
+    prose is the only reason prose belongs in this API at all.
+    """
+    from hoopslab.llm.cache import ResponseCache
+    from hoopslab.llm.evidence import BundleSource, build_bundle
+    from hoopslab.llm.groundedness import check_report
+
+    cache = ResponseCache(paths.llm_cache)
+    entries = cache.entries()
+    if not entries:
+        log.info("no cached scouting reports; player_reports will be empty")
+        return REPORT_COLUMNS, []
+
+    source = BundleSource.load(paths)
+    rows: list[list[Any]] = []
+
+    for entry in entries:
+        try:
+            bundle = build_bundle(
+                source,
+                entry.person_id,
+                entry.target_season_id,
+                anonymized=entry.anonymized,
+            )
+        except KeyError:
+            # The snapshot moved and this transition no longer scores. Dropping
+            # the row is right: a report whose evidence cannot be rebuilt cannot
+            # have its numbers checked, and an unauditable report is the one
+            # thing this table must never contain.
+            log.warning("dropping stale cached report for %s", entry.person_id)
+            continue
+
+        if bundle.digest() != entry.evidence_digest:
+            log.warning(
+                "dropping cached report for %s: the evidence changed since it was written",
+                entry.person_id,
+            )
+            continue
+
+        audit = check_report(entry.report, bundle)
+        rows.append(
+            [
+                entry.person_id,
+                entry.target_season_id,
+                bundle.direction,
+                not entry.anonymized,
+                entry.report.headline,
+                json.dumps(entry.report.model_dump(), separators=(",", ":"), ensure_ascii=False),
+                bundle.render(),
+                audit.n_traced,
+                len(audit.tokens),
+                audit.grounded,
+                json.dumps(
+                    [
+                        {"name": c.name, "passed": c.passed, "detail": c.detail}
+                        for c in audit.checks
+                    ],
+                    separators=(",", ":"),
+                    ensure_ascii=False,
+                ),
+                entry.model,
+                entry.created_at,
+                snapshot,
+            ]
+        )
+
+    return REPORT_COLUMNS, rows
 
 
 def _roles_rows(

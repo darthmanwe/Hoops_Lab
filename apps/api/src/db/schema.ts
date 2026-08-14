@@ -329,3 +329,49 @@ export const playerShooting = sqliteTable(
     index("idx_shooting_season").on(table.seasonId, table.spacingScore),
   ]
 );
+
+/**
+ * Grounded scouting reports, and the audit that says how far to trust each one.
+ *
+ * A report is model-written prose, which makes it the least verifiable thing
+ * this API serves — so it is the only thing served with its own audit attached.
+ * `numbersTraced` over `numbersTotal` is a count of numeric tokens in the prose
+ * that resolve to a fact in the evidence the model was given; `grounded` is
+ * whether every deterministic check passed. The UI renders those next to the
+ * text rather than in a footnote, because a reader deciding whether to believe
+ * a sentence needs the audit at the same moment as the sentence.
+ *
+ * `claims` is the structured report as JSON. It is stored whole rather than
+ * normalised into a claims table because it is written once, read whole, and
+ * never queried by claim — and D1 charges by the query, not by the row.
+ */
+export const playerReports = sqliteTable(
+  "player_reports",
+  {
+    personId: text("person_id")
+      .notNull()
+      .references(() => persons.personId),
+    targetSeasonId: text("target_season_id").notNull(),
+    direction: text("direction").notNull(),
+    /** True when the model was told the subject's name. See `anonymized`. */
+    named: integer("named", { mode: "boolean" }).notNull(),
+    headline: text("headline").notNull(),
+    /** The full `ScoutingReport` as JSON: claims, their fact ids, confidence. */
+    claims: text("claims").notNull(),
+    /** The evidence bundle the report was written from, rendered as text. */
+    evidence: text("evidence").notNull(),
+    numbersTraced: integer("numbers_traced").notNull(),
+    numbersTotal: integer("numbers_total").notNull(),
+    /** False when any deterministic check failed; `checks` says which. */
+    grounded: integer("grounded", { mode: "boolean" }).notNull(),
+    checks: text("checks").notNull(),
+    /** The model that wrote it, so a report is traceable to a generation. */
+    reportModel: text("report_model").notNull(),
+    generatedAt: text("generated_at").notNull(),
+    snapshotId: text("snapshot_id").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.personId, table.targetSeasonId, table.named] }),
+    index("idx_reports_grounded").on(table.grounded),
+  ]
+);

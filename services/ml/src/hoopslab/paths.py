@@ -64,6 +64,16 @@ class DataPaths:
         """Manual player-identity overrides that automated matching cannot resolve."""
         return self.data / "crosswalk"
 
+    @property
+    def llm_cache(self) -> Path:
+        """Committed model responses, so the demo and the evaluation cost nothing."""
+        return self.data / "llm_cache"
+
+    @property
+    def llm_labels(self) -> Path:
+        """Hand-labelled reports, the ground truth the LLM judge is scored against."""
+        return self.data / "llm_labels"
+
     @classmethod
     def discover(cls, start: Path | None = None) -> DataPaths:
         return cls(root=find_repo_root(start))

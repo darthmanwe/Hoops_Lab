@@ -57,6 +57,13 @@ dependencies = [
     # formula-API change, which statsmodels has made before.
     "statsmodels>=0.14,<0.16",
     "scikit-learn>=1.4,<2",
+    # The scouting-report layer. A runtime dependency rather than an extra
+    # because the schemas, the groundedness harness and the committed response
+    # cache are all part of the package's tested surface; only the calls that
+    # would be billed are gated, and those are gated by a flag, not by an
+    # import. Bounded below 1.0 because the SDK is pre-1.0 and
+    # `messages.parse` is a beta-adjacent surface that has moved before.
+    "anthropic>=0.69,<1",
 ]
 
 [project.optional-dependencies]
