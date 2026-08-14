@@ -11,7 +11,7 @@ from __future__ import annotations
 import polars as pl
 import pytest
 
-from hoopslab.transform import rates
+from hoopslab.transform import gold, rates
 
 
 def _frame(**columns: float) -> pl.DataFrame:
@@ -126,3 +126,53 @@ class TestRatio:
         result = frame.select(rates.ratio("a", "b").alias("r"))["r"]
         assert result.is_infinite().sum() == 0
         assert result.is_null().all()
+
+
+# ------------------------------------------------------- recovered ages
+
+
+def test_age_is_recovered_from_a_person_s_other_leagues() -> None:
+    """The G League reports no age, and the model needs one.
+
+    Every G League player-season came back with a null age, and the transition
+    frame drops rows without one — so all 90 transitions originating there were
+    discarded in silence, including the whole GL->NBA direction. Nothing raised;
+    the pairs were simply absent and the totals looked plausible. This is the
+    regression test for that.
+    """
+    frame = pl.DataFrame(
+        {
+            "person_id": ["p1", "p1", "p2"],
+            "league": ["NBA", "GL", "GL"],
+            "start_year": [2019, 2018, 2020],
+            "age": [25.0, None, None],
+        }
+    )
+
+    filled = gold.fill_missing_age(frame)
+    ages = {(row["person_id"], row["league"]): row["age"] for row in filled.iter_rows(named=True)}
+
+    # p1 is 25 in 2019, so 24 in 2018 — arithmetic from a known birth year.
+    assert ages[("p1", "GL")] == 24.0
+    assert ages[("p1", "NBA")] == 25.0
+    # p2 has no age anywhere. Leaving it null is the point: a fabricated
+    # covariate in the flagship model is worse than a smaller cohort.
+    assert filled.filter(pl.col("person_id") == "p2")["age"].item() is None
+
+
+def test_recovering_age_never_overwrites_a_reported_one() -> None:
+    frame = pl.DataFrame(
+        {
+            "person_id": ["p1", "p1"],
+            "league": ["NBA", "EL"],
+            "start_year": [2019, 2020],
+            "age": [25.0, 30.0],
+        }
+    )
+    assert gold.fill_missing_age(frame)["age"].to_list() == [25.0, 30.0]
+
+
+def test_recovery_is_a_no_op_before_identities_are_resolved() -> None:
+    """Called on a frame with no person_id, it must not invent a column."""
+    frame = pl.DataFrame({"league": ["GL"], "start_year": [2020], "age": [None]})
+    assert gold.fill_missing_age(frame).equals(frame)

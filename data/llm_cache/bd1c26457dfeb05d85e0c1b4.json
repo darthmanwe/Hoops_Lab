@@ -1,0 +1,104 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T17:03:06.583577+00:00",
+  "evidence_digest": "97924d961b5aa76432c24e3e8b7b1b774f461bba9cdf8159e05151f84d9c5740",
+  "key": "bd1c26457dfeb05d85e0c1b4",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1629740",
+  "report": {
+    "confidence": "low",
+    "headline": "A below-average-usage EuroLeague wing projects to an even smaller NBA role, and the model has nothing reliable to say about his shooting efficiency",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f18",
+        "f19",
+        "f32",
+        "f33"
+      ],
+      "text": "Projected usage in the NBA is 12.8%, down from 15.6% in the EuroLeague and roughly 1.35 standard deviations below the league's 20.1% average usage (sd 5.4%); this projection is informative because the model beats a trivial league-average baseline on usage (3.2% MAE vs 4.2%)."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f11",
+          "f12",
+          "f39",
+          "f38"
+        ],
+        "text": "His EuroLeague usage rate of 15.6% sat 0.97 standard deviations below the league average, a notably lower offensive role than the typical EL->NBA mover, whose cohort of 61 transitions averaged +0.46 sd above their own league's average before moving."
+      },
+      {
+        "fact_ids": [
+          "f13",
+          "f18",
+          "f19"
+        ],
+        "text": "Projected NBA usage of 12.8% is about 1.35 standard deviations below the league's 20.1% average (sd 5.4%), pointing to a fringe offensive role if the point estimate holds."
+      },
+      {
+        "fact_ids": [
+          "f02"
+        ],
+        "text": "He was 27.0 years old in the source season, older than the typical mover, leaving less developmental runway to grow into a larger role."
+      },
+      {
+        "fact_ids": [
+          "f24",
+          "f35",
+          "f36"
+        ],
+        "text": "The true shooting projection of 53.4% should not be treated as informative: the model's error on this metric (4.5%) is worse than simply predicting the league average (4.3%)."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f03",
+          "f04",
+          "f05",
+          "f06",
+          "f07"
+        ],
+        "text": "Played a consistent rotation role in the EuroLeague, logging 934 minutes across 36 games with per-75 marks of 10.1 points, 2.2 assists, and 5.6 rebounds."
+      },
+      {
+        "fact_ids": [
+          "f09"
+        ],
+        "text": "Protected the ball well for a lower-usage player, with a 13.3% turnover rate."
+      },
+      {
+        "fact_ids": [
+          "f08"
+        ],
+        "text": "Took 44.9% of his shot attempts from three, consistent with a floor-spacing offensive role."
+      },
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "Shot 55.8% true shooting in the source season, only 0.45 standard deviations below the EuroLeague average despite his modest offensive share."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f19",
+        "f35",
+        "f36"
+      ],
+      "text": "The 80% interval for projected usage (7.5%–18.2%) spans about two standard deviations of the NBA usage distribution, so the model can say this is a low-usage profile but not pin down where within that range he lands; the true shooting projection (53.4%) carries no information at all, since the model's error there (4.5%) is worse than simply guessing the league average (4.3%)."
+    }
+  },
+  "target_season_id": "NBA_2019",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1430,
+    "output_tokens": 2836
+  }
+}

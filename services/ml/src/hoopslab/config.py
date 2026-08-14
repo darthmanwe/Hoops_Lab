@@ -17,10 +17,30 @@ and fails loudly on a malformed value instead of silently yielding ``None``.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _env_file() -> Path | str:
+    """Locate ``.env`` at the repository root rather than the shell's cwd.
+
+    ``pydantic-settings`` resolves a relative ``env_file`` against the working
+    directory, so a bare ``".env"`` only works when the command happens to be
+    run from one particular folder — and silently does nothing everywhere else,
+    which reads as "my key is not being picked up" rather than as a path bug.
+    Falls back to the relative form when the package is installed outside a
+    checkout and there is no root to anchor on.
+    """
+    try:
+        from hoopslab.paths import find_repo_root
+
+        return find_repo_root() / ".env"
+    except FileNotFoundError:
+        return ".env"
+
 
 #: Every stochastic operation takes this seed explicitly. The value is
 #: arbitrary; what matters is that it never changes, because the committed
@@ -39,7 +59,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="HOOPSLAB_",
-        env_file=".env",
+        env_file=_env_file(),
         env_file_encoding="utf-8",
         extra="ignore",
     )

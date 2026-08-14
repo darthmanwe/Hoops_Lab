@@ -1,0 +1,104 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T17:01:08.134136+00:00",
+  "evidence_digest": "0c1303f7cb7a1356518ef59d2c4eadefcbb3124ed18dcb865349957e25adba5c",
+  "key": "daadcc12a59629df67de3173",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1627098",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage projected to compress toward NBA average (19.2%) from a EuroLeague usage 0.84 SD above league mean; efficiency projection carries no reliable signal",
+    "projection": {
+      "fact_ids": [
+        "f13",
+        "f18",
+        "f11",
+        "f12",
+        "f34"
+      ],
+      "text": "Projected NBA usage rate is 19.2%, close to the league average of 20.0% and down from the subject's EuroLeague usage of 23.9%, which sat 0.84 standard deviations above that league's mean; the EL->NBA usage slope of 0.575 indicates only about 57.5% of a player's above-league standing typically carries into the NBA."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f13",
+          "f18",
+          "f11"
+        ],
+        "text": "Projected NBA usage of 19.2% falls below the subject's EuroLeague usage of 23.9% and just under the receiving league's 20.0% average, reflecting the typical role compression seen when players move from Europe to the NBA."
+      },
+      {
+        "fact_ids": [
+          "f14",
+          "f15",
+          "f19"
+        ],
+        "text": "The 80% interval for usage (14.0%-24.4%) spans a range nearly two NBA usage standard deviations (5.3%) wide, meaning the model situates this player relative to peers but does not forecast a precise usage figure."
+      },
+      {
+        "fact_ids": [
+          "f24",
+          "f35",
+          "f36"
+        ],
+        "text": "The true shooting projection of 54.4% should not be relied upon: the model's out-of-fold error (4.5%) is worse than simply predicting the league average (4.3%), so this metric carries no reliable signal for this transition."
+      },
+      {
+        "fact_ids": [
+          "f09"
+        ],
+        "text": "Turnover rate in the source season was 16.3%, a cost that accompanied the high assist and usage numbers and may compound in a higher-talent environment."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f10",
+          "f06",
+          "f12",
+          "f11"
+        ],
+        "text": "In the EuroLeague source season the subject posted a 31.4% assist rate and 6.004 assists per 75 possessions, playmaking numbers that accompanied a usage rate 0.84 standard deviations above the league average (23.9% usage)."
+      },
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "Shooting efficiency was well above the EuroLeague norm, with a 61.2% true shooting percentage sitting 0.66 standard deviations above the league mean."
+      },
+      {
+        "fact_ids": [
+          "f08"
+        ],
+        "text": "The scoring diet leaned heavily on the three-point line, with 51.9% of shot attempts taken from three."
+      },
+      {
+        "fact_ids": [
+          "f38",
+          "f39"
+        ],
+        "text": "The historical cohort of 61 EL->NBA movers used to fit this estimate already sat 0.46 standard deviations above their own league's average, consistent with the subject's above-average source-season profile."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f16",
+        "f17",
+        "f19",
+        "f35",
+        "f36"
+      ],
+      "text": "The 80% prediction interval for usage runs 14.0%-24.4% and the 95% interval 11.3%-27.2%, spans of roughly 2 to 3 standard deviations of the NBA usage distribution (5.3%), so the model can rank this player against peers but cannot pin an individual outcome; the true shooting projection of 54.4% is less trustworthy still, since its out-of-fold error (4.5%) is worse than simply guessing the league average (4.3%)."
+    }
+  },
+  "target_season_id": "NBA_2016",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1432,
+    "output_tokens": 3162
+  }
+}

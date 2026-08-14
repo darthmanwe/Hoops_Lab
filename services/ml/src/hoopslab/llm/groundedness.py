@@ -37,9 +37,16 @@ from dataclasses import dataclass, field
 from hoopslab.llm.schemas import EvidenceBundle, ScoutingReport
 
 #: A signed decimal, with optional thousands separators and a trailing percent.
-#: Scanning is left to right and non-overlapping, so "2018-19" yields 2018 and
-#: -19; the bundle text tokenises identically, which is what matters.
-NUMERIC = re.compile(r"[-+]?\d[\d,]*(?:\.\d+)?%?")
+#:
+#: The lookbehind is load-bearing and was added after it fired on real output.
+#: A hyphen is only a minus sign when nothing word-like precedes it: in
+#: "per-75 possessions" and in the range "16.8%-24.4%" the hyphen is a joiner,
+#: and reading it as a sign invents the tokens -75 and -24.4% — numbers that
+#: appear nowhere in the evidence, so the report gets failed for quoting a
+#: figure it never quoted. A groundedness checker whose failures are mostly its
+#: own punctuation handling is worse than none, because it trains the reader to
+#: dismiss real findings alongside the noise.
+NUMERIC = re.compile(r"(?<![\w%])[-+]?\d[\d,]*(?:\.\d+)?%?")
 
 #: Conversions a correct report is allowed to apply to a bundle value. Each is
 #: a real unit relationship in this domain, not a tolerance in disguise.
@@ -55,20 +62,34 @@ CONVERSIONS: tuple[tuple[str, float], ...] = (
 #: than it was given does not fail on floating-point noise.
 EPSILON = 1e-9
 
-#: Proper nouns a report may use without them appearing in the bundle.
+#: Capitalised words a report may use without them appearing in the bundle:
+#: the competitions themselves, the redaction placeholders, and the handful of
+#: statistical abbreviations a writer will reasonably introduce for terms the
+#: bundle spells out ("mean absolute error" becomes MAE on second mention).
+#: None of these can name a player or a club, which is what the check is for.
 ENTITY_ALLOWLIST = frozenset(
     {
         "nba",
         "euroleague",
-        "g league",
+        "g",
+        "league",
         "gleague",
         "europe",
         "european",
         "america",
         "american",
-        "player a",
-        "team x",
-        "team y",
+        "player",
+        "team",
+        "a",
+        "x",
+        "y",
+        "mae",
+        "sd",
+        "ts",
+        "pi",
+        "ci",
+        "usg",
+        "to",
     }
 )
 
@@ -80,6 +101,16 @@ _RISE = re.compile(
 _FALL = re.compile(
     r"\b(smaller|lower|reduced?|reducing|decreased?|decreasing|less|fewer)\b[^.]{0,40}"
     r"\b(usage|share|role|volume|possessions)\b",
+    re.IGNORECASE,
+)
+
+#: Words that turn a comparative into a statement about *spread* rather than
+#: about the projection. "A span of more than two standard deviations of NBA
+#: usage" contains "more … usage" and says nothing about usage rising; failing a
+#: report for describing the width of its own interval is precisely backwards,
+#: since describing that width is what the brief is supposed to do.
+_ABOUT_SPREAD = re.compile(
+    r"\b(standard deviations?|sd|interval|range|span|spread|wide|width|band)\b",
     re.IGNORECASE,
 )
 _CERTAINTY = re.compile(
@@ -213,10 +244,19 @@ def trace_numbers(prose: str, bundle: EvidenceBundle) -> list[NumericToken]:
 def _candidate_values(bundle: EvidenceBundle) -> list[tuple[float, str]]:
     """Every number the bundle supports, with the id that carries it.
 
-    Built from two sources: the structured fact values, and every numeric token
-    in the rendered bundle text. The second covers figures that live inside a
-    statement — cohort counts, the "80%" in an interval's name — which a report
-    may legitimately quote and which are just as much part of the evidence.
+    Built from three sources: the structured fact values, every numeric token
+    in the rendered bundle text, and a small closed set of named derivations.
+
+    The second covers figures that live inside a statement — cohort counts, the
+    "80%" in an interval's name — which a report may legitimately quote and
+    which are just as much part of the evidence.
+
+    The third exists because the first version of this check failed real
+    reports for arithmetic that was correct. Writing "an 11.1-point spread"
+    when the bundle gives bounds of 13.9% and 25.0% is not a fabrication; it is
+    the single most useful sentence a brief about an interval can contain. See
+    :func:`_derived_values` for why the set is kept to two named forms rather
+    than opened up to differences generally.
     """
     values: list[tuple[float, str]] = []
 
@@ -232,7 +272,113 @@ def _candidate_values(bundle: EvidenceBundle) -> list[tuple[float, str]]:
         for value, _ in _readings(match.group(0)):
             values.append((value, "bundle text"))
 
+    values.extend(_derived_values(bundle))
     return values
+
+
+def _derived_values(bundle: EvidenceBundle) -> list[tuple[float, str]]:
+    """Quantities a correct report may compute from two bundle facts.
+
+    Deliberately two named forms, not "any difference between any two facts".
+    A bundle carries ~39 numbers, so admitting arbitrary pairwise differences
+    would add ~1,500 candidates and a fabricated figure would land on one of
+    them by luck. Each form here is a specific quantity a scouting brief exists
+    to state:
+
+    * **interval width** — how uncertain the projection is, which is the point
+      of quoting an interval at all.
+    * **standardised distance from the receiving league's mean** — where the
+      projection sits in that league, in the units the bundle already uses for
+      the source season.
+
+    Each derivation is computed twice: once from the stored values and once
+    from the values **as the bundle rendered them**. That is not belt and
+    braces. A rate stored as 0.128443 is shown to the model as "12.8%", so a
+    standardised distance the model works out from what it was shown comes to
+    1.35 where full precision gives 1.33 — and a checker demanding the
+    full-precision figure fails a report for arithmetic that is correct on its
+    inputs. The model can only compute from what it can see.
+
+    Whether this broadening cost the check anything is measurable rather than
+    arguable: the distractor control re-scores every report against another
+    player's evidence, and it still rejects all of them.
+    """
+    values: list[tuple[float, str]] = []
+
+    bounds: dict[tuple[str, str], dict[str, list[float]]] = {}
+    means: dict[str, list[float]] = {}
+    sds: dict[str, list[float]] = {}
+    points: dict[str, list[float]] = {}
+
+    for fact in bundle.facts:
+        if fact.value is None:
+            continue
+        statement = fact.statement
+        metric = _metric_of(statement)
+        if metric is None:
+            continue
+
+        readings = [fact.value, as_displayed(fact.value, fact.unit)]
+
+        if "bound of the" in statement:
+            level = "95" if "95%" in statement else "80"
+            side = "low" if statement.startswith("Lower") else "high"
+            bounds.setdefault((metric, level), {})[side] = readings
+        elif statement.startswith("Minutes-weighted average"):
+            means[metric] = readings
+        elif statement.startswith("Standard deviation"):
+            sds[metric] = readings
+        elif statement.startswith(("Projected", "Source-season")) and "standardised" not in (
+            statement
+        ):
+            points.setdefault(metric, []).extend(readings)
+
+    for (metric, level), pair in bounds.items():
+        if "low" not in pair or "high" not in pair:
+            continue
+        for low, high in zip(pair["low"], pair["high"], strict=True):
+            for _, factor in CONVERSIONS:
+                values.append(((high - low) * factor, f"{metric} {level}% interval width"))
+
+    for metric, sd_readings in sds.items():
+        mean_readings = means.get(metric)
+        if mean_readings is None:
+            continue
+        for mean, sd in zip(mean_readings, sd_readings, strict=True):
+            if sd <= 0:
+                continue
+            for value in points.get(metric, []):
+                distance = (value - mean) / sd
+                label = f"{metric} distance from the league mean"
+                values.append((distance, label))
+                values.append((abs(distance), label))
+
+    return values
+
+
+def as_displayed(value: float, unit: str) -> float:
+    """The value as the bundle showed it, after the renderer's rounding.
+
+    Mirrors :func:`hoopslab.llm.schemas._format`. Kept deliberately in step
+    with it: if the rendering gains a decimal place and this does not, the
+    checker starts failing correct arithmetic again.
+    """
+    if unit == "fraction":
+        return round(value * 100, 1) / 100
+    if unit == "sd":
+        return round(value, 2)
+    if unit == "count":
+        return round(value)
+    if unit == "years":
+        return round(value, 1)
+    return round(value, 3)
+
+
+def _metric_of(statement: str) -> str | None:
+    for metric in ("usage rate", "true shooting percentage"):
+        if metric in statement:
+            return metric
+    return None
 
 
 def _trace_one(text: str, candidates: list[tuple[float, str]]) -> NumericToken:
@@ -287,8 +433,7 @@ def _check_anonymity(prose: str, bundle: EvidenceBundle) -> CheckResult:
     if not bundle.anonymized:
         return CheckResult(name="anonymity", passed=True, detail="named mode; not applicable")
 
-    haystack = _fold(prose)
-    leaked = sorted({term for term in bundle.redacted if _mentions(haystack, _fold(term))})
+    leaked = sorted({term for term in bundle.redacted if _leaks(prose, term)})
     if leaked:
         return CheckResult(
             name="anonymity",
@@ -321,31 +466,77 @@ def unsupported_entities(prose: str, bundle: EvidenceBundle) -> list[str]:
     for sentence in re.split(r"(?<=[.!?])\s+", prose):
         tokens = sentence.split()
         for index, raw in enumerate(tokens):
-            token = raw.strip(".,;:()\"'")
+            # The dashes are deliberate: models emit en and em dashes as
+            # punctuation around proper nouns, and leaving them attached
+            # makes every such word look like an entity the bundle lacks.
+            token = raw.strip(".,;:()\"'—–")  # noqa: RUF001
             if index == 0 or not token[:1].isupper() or len(token) < 3:
                 continue
-            folded = _fold(token)
-            if folded in ENTITY_ALLOWLIST or folded in evidence:
+            if all(_permitted_word(part, evidence) for part in _split_compound(token)):
                 continue
             found.append(token)
 
     return sorted(set(found))
 
 
+def _split_compound(token: str) -> list[str]:
+    """Break a compound into the words it is made of.
+
+    "NBA-to-EuroLeague" is two competitions and a preposition, none of which is
+    an entity the model could have recalled. So is "NBA->EuroLeague", where the
+    writer has borrowed the arrow the bundle uses for a direction. Judging
+    either compound whole reports it as an invented name, which is both wrong
+    and the kind of wrong that gets a check switched off.
+    """
+    # Ambiguous-dash lint suppressed on purpose: en and em dashes are
+    # exactly what this has to split on, so "normalising" them away would
+    # remove the behaviour.
+    parts = [re.sub(r"[^\w']", "", part) for part in re.split(r"[-–—/>]+", token)]  # noqa: RUF001
+    parts = [part for part in parts if part]
+    return parts or [token]
+
+
+def _permitted_word(word: str, evidence: str) -> bool:
+    """Is this word one the bundle supports, or an allowed generic?"""
+    folded = _fold(word)
+    # Possessives: the bundle says "the EuroLeague", a writer says
+    # "the EuroLeague's average". The apostrophe is grammar, not a new entity.
+    folded = re.sub(r"(?:'|’)s$", "", folded)  # noqa: RUF001 - curly apostrophes are the point
+    return not folded or folded in ENTITY_ALLOWLIST or folded in evidence
+
+
 def _fold(text: str) -> str:
     """Case-folded and de-accented, so "Doncic" matches "Dončić"."""
-    decomposed = unicodedata.normalize("NFKD", text)
-    return "".join(c for c in decomposed if not unicodedata.combining(c)).casefold()
+    return _strip_accents(text).casefold()
 
 
-def _mentions(haystack: str, needle: str) -> bool:
-    """Whole-word containment.
+def _leaks(prose: str, term: str) -> bool:
+    """Did the report name something it was supposed to have been denied?
 
-    A plain substring test would flag "really" as leaking "Real Madrid" and
-    "sacrifice" as leaking a three-letter club code. The first false positive
-    costs the check its credibility; after that nobody reads it.
+    Two rules, both there because a plainer one produced false positives on
+    real output:
+
+    * **Whole words only.** Substring matching flags "really" as leaking "Real
+      Madrid" and "sacrifice" as leaking a three-letter club code.
+    * **Single words match case-sensitively.** Several club and surname tokens
+      are ordinary English words — Real, Barcelona aside, think Baskonia versus
+      nothing, but Real, Milan, Bourg — and a proper noun in prose is
+      capitalised while the adjective is not. Multi-word phrases keep the
+      case-insensitive match: "real madrid" in any casing is a leak, because
+      the phrase has no innocent reading.
+
+    Accents are folded on both sides either way, so "Doncic" still catches
+    "Dončić".
     """
-    return re.search(rf"(?<!\w){re.escape(needle)}(?!\w)", haystack) is not None
+    needle = _strip_accents(term)
+    haystack = _strip_accents(prose)
+    flags = 0 if " " not in needle else re.IGNORECASE
+    return re.search(rf"(?<!\w){re.escape(needle)}(?!\w)", haystack, flags) is not None
+
+
+def _strip_accents(text: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in decomposed if not unicodedata.combining(c))
 
 
 # ------------------------------------------------------------------- direction
@@ -366,7 +557,16 @@ def _check_direction(report: ScoutingReport, bundle: EvidenceBundle) -> list[Che
 
     if source_usage is not None and projected_usage is not None:
         falling = projected_usage < source_usage
-        wrong_way = _RISE.search(prose) if falling else _FALL.search(prose)
+        pattern = _RISE if falling else _FALL
+        # Scoped to the claims that state the projection. The rule asks whether
+        # the prose contradicts the sign of the projection, and only these two
+        # sentences make that claim — a risk noting that an older player has
+        # "less runway to grow into a larger role" agrees with a projected fall
+        # while containing every word a lexical rule looks for.
+        subject = f"{report.headline}\n{report.projection.text}"
+        wrong_way = next(
+            (m for m in pattern.finditer(subject) if not _ABOUT_SPREAD.search(m.group(0))), None
+        )
         direction = "fall" if falling else "rise"
         checks.append(
             CheckResult(

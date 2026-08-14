@@ -1,0 +1,93 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T17:01:27.034927+00:00",
+  "evidence_digest": "ebb806cbd5efefef7e042b8a1dc89d4e5d86323f13beeccd52e7d9f0dc3b9fc2",
+  "key": "3da7a7e8268cafecc4c31414",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_202327",
+  "report": {
+    "confidence": "low",
+    "headline": "Projected NBA usage falls to 14.7%, well below league average, while the shooting projection is unreliable and should be ignored",
+    "projection": {
+      "fact_ids": [
+        "f13",
+        "f11",
+        "f18"
+      ],
+      "text": "The model projects a usage rate of 14.7% in the NBA, down from an 18.2% usage rate in the 2016-17 EuroLeague season and below the NBA's minutes-weighted average of 20.1%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f11",
+          "f13",
+          "f18",
+          "f19",
+          "f16"
+        ],
+        "text": "Usage is projected to shrink from 18.2% in the EuroLeague to 14.7% in the NBA, roughly a full standard deviation below the NBA average of 20.1%, with a 95% interval extending as low as 6.9%."
+      },
+      {
+        "fact_ids": [
+          "f24",
+          "f35",
+          "f36"
+        ],
+        "text": "The true shooting projection of 54.8% carries no real information: the model underperforms a simple league-average baseline on this metric (4.5% error vs 4.3%), so actual NBA efficiency is essentially unknown from this data."
+      },
+      {
+        "fact_ids": [
+          "f38",
+          "f02"
+        ],
+        "text": "The estimate rests on only 61 historical EL->NBA transitions, and the subject was already 29 years old in the source season, an older profile than typical for this kind of move."
+      },
+      {
+        "fact_ids": [
+          "f08"
+        ],
+        "text": "Shot selection in the EuroLeague was almost entirely inside the arc (0.4% of attempts from three), which is a departure from typical NBA spacing demands."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "Posted a strong 60.9% true shooting mark in the source season, +0.60 standard deviations above the EuroLeague average."
+      },
+      {
+        "fact_ids": [
+          "f07",
+          "f10"
+        ],
+        "text": "Combined solid rebounding (8.738 per 75 possessions) with playmaking (13.0% assist rate) on limited touches."
+      },
+      {
+        "fact_ids": [
+          "f09"
+        ],
+        "text": "Kept turnovers low at an 11.0% turnover rate."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f19",
+        "f24",
+        "f35",
+        "f36"
+      ],
+      "text": "The 80% prediction interval for usage runs from 9.6% to 19.9%, a span of over 10 percentage points against a league usage standard deviation of 5.2% — nearly two full standard deviations wide, so the model can say this player projects below average but cannot pin down where within that range he lands. The true shooting projection of 54.8% cannot be trusted at all: the model's out-of-fold error (4.5%) is worse than the trivial league-average baseline (4.3%) for this metric."
+    }
+  },
+  "target_season_id": "NBA_2017",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1430,
+    "output_tokens": 1579
+  }
+}

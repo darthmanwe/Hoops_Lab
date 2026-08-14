@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
@@ -38,6 +37,7 @@ from hoopslab.llm.client import (
     DEFAULT_MAX_RETRIES,
     DEFAULT_TIMEOUT_S,
     UsageLedger,
+    resolve_api_key,
     resolve_model,
     usage_from,
 )
@@ -150,7 +150,7 @@ def judge_report(
     if client is None:
         import anthropic
 
-        key = os.environ.get("ANTHROPIC_API_KEY")
+        key = resolve_api_key()
         if not key:
             raise ValueError("ANTHROPIC_API_KEY is not set; the judge cannot run without it.")
         client = anthropic.Anthropic(

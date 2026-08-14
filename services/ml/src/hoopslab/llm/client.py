@@ -44,12 +44,23 @@ log = logging.getLogger(__name__)
 DEFAULT_REPORT_MODEL = "claude-sonnet-5"
 DEFAULT_JUDGE_MODEL = "claude-opus-5"
 
-DEFAULT_MAX_TOKENS = 2048
+#: Room for a full report plus slack. Measured rather than guessed: a typical
+#: report is ~1,700 output tokens, but at 2,048 and at 4,096 real responses were
+#: truncated mid-JSON and rejected by the schema. The ceiling has to clear the
+#: longest output the schema permits — four strengths and four risks, each with
+#: its own text and citations — not the median one.
+DEFAULT_MAX_TOKENS = 8192
 DEFAULT_TIMEOUT_S = 120.0
 DEFAULT_MAX_RETRIES = 4
 
-#: USD per million tokens, input and output. Kept beside the code that uses it
-#: so a pricing change is a one-line diff with a visible blame line.
+#: USD per million tokens, input and output, at published list rates. Kept
+#: beside the code that uses it so a pricing change is a one-line diff with a
+#: visible blame line.
+#:
+#: Promotional rates are deliberately not modelled. Sonnet 5 carries an
+#: introductory discount, so the figures this produces are an upper bound on
+#: what was actually billed — the safe direction for a number quoted in a
+#: README, and the wrong direction to guess in.
 PRICING_USD_PER_MTOK: dict[str, tuple[float, float]] = {
     "claude-opus-5": (5.00, 25.00),
     "claude-sonnet-5": (3.00, 15.00),
@@ -172,6 +183,19 @@ def resolve_model(explicit: str | None, env_var: str, default: str) -> str:
     return explicit or os.environ.get(env_var) or default
 
 
+def resolve_api_key() -> str | None:
+    """The key, from the environment or the repository's ``.env``.
+
+    Read at call time and through the same settings object the ``config``
+    command prints, so "the CLI says my key is set" and "the CLI can use my
+    key" cannot disagree. The test session neutralises both sources — see
+    ``tests/conftest.py`` — so this path is unreachable under a bare pytest.
+    """
+    from hoopslab.config import load_settings
+
+    return os.environ.get("ANTHROPIC_API_KEY") or load_settings().anthropic_api_key
+
+
 def usage_from(response: object, model: str, kind: str) -> UsageRecord:
     usage = getattr(response, "usage", None)
 
@@ -248,13 +272,25 @@ class ReportGenerator:
         client = self._ensure_client()
         self._calls += 1
 
-        response = client.messages.parse(  # type: ignore[attr-defined]
-            model=self.model,
-            max_tokens=self.max_tokens,
-            system=system_blocks(),
-            messages=[{"role": "user", "content": user_turn(bundle)}],
-            output_format=ScoutingReport,
-        )
+        try:
+            response = client.messages.parse(  # type: ignore[attr-defined]
+                model=self.model,
+                max_tokens=self.max_tokens,
+                system=system_blocks(),
+                messages=[{"role": "user", "content": user_turn(bundle)}],
+                output_format=ScoutingReport,
+            )
+        except ValidationError as exc:
+            # `messages.parse` validates before returning, so a truncated
+            # response raises here and the `stop_reason` branch below never
+            # runs. Without this, one over-long report aborts a thirty-report
+            # run with a traceback about JSON — which reads as a bug in the
+            # schema rather than as "raise max_tokens".
+            raise GenerationRefused(
+                f"response was not parseable, most likely truncated at "
+                f"max_tokens={self.max_tokens}: {_first_line(exc)}"
+            ) from exc
+
         record = usage_from(response, self.model, "report")
         self.ledger.add(record)
 
@@ -291,10 +327,11 @@ class ReportGenerator:
 
         import anthropic
 
-        key = os.environ.get("ANTHROPIC_API_KEY")
+        key = resolve_api_key()
         if not key:
             raise ValueError(
-                "ANTHROPIC_API_KEY is not set. Everything except cache refresh runs without it."
+                "ANTHROPIC_API_KEY is not set, in the environment or in the repository's "
+                ".env. Everything except cache refresh runs without it."
             )
         self._client = anthropic.Anthropic(
             api_key=key, timeout=DEFAULT_TIMEOUT_S, max_retries=DEFAULT_MAX_RETRIES
@@ -304,3 +341,8 @@ class ReportGenerator:
 
 class GenerationRefused(RuntimeError):
     """The API answered, but with nothing usable."""
+
+
+def _first_line(exc: Exception) -> str:
+    """One line of a Pydantic error, which is otherwise a paragraph per field."""
+    return str(exc).splitlines()[0].strip()

@@ -1,0 +1,97 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T17:01:49.466856+00:00",
+  "evidence_digest": "11842711648957065692a5c4ca3602bdf2e8234c5f4288cc75b7d7f9294a8d8f",
+  "key": "9170837eae9aa7a7c6203d66",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_203995",
+  "report": {
+    "confidence": "moderate",
+    "headline": "Usage projected to fall from 26.6% in the EuroLeague to 20.4% in the NBA — essentially league-average — while the shooting-efficiency projection carries no signal at all.",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f18"
+      ],
+      "text": "The model projects a usage rate of 20.4% in the NBA, down from 26.6% in the source EuroLeague season, landing almost exactly on the NBA's minutes-weighted average usage of 20.1%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f09"
+        ],
+        "text": "A 16.8% turnover rate in the source season could be a bigger liability if paired with a diminished playmaking role in the NBA."
+      },
+      {
+        "fact_ids": [
+          "f24",
+          "f35",
+          "f36"
+        ],
+        "text": "The true shooting projection of 56.0% is not usable evidence: the model underperforms a simple league-average guess on this metric (4.5% error vs. 4.3% for the baseline)."
+      },
+      {
+        "fact_ids": [
+          "f14",
+          "f15",
+          "f32",
+          "f33"
+        ],
+        "text": "The usage projection, while better than a trivial baseline, still carries an 80% interval spanning 14.8% to 26.0%, meaning the model can say the role will likely shrink but not price it precisely."
+      },
+      {
+        "fact_ids": [
+          "f03",
+          "f04"
+        ],
+        "text": "The source season itself was a fairly thin sample of 970 minutes across 31 games, which is the base the projection is built from."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f12"
+        ],
+        "text": "The subject carried an elite offensive role in the EuroLeague, with usage standing 1.26 standard deviations above the league average."
+      },
+      {
+        "fact_ids": [
+          "f10",
+          "f06"
+        ],
+        "text": "Playmaking numbers were strong: a 29.3% assist rate and 6.162 assists per 75 possessions."
+      },
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "Scoring efficiency in the source season was essentially at the EuroLeague average on a true shooting basis (59.1%, +0.01 sd), despite a heavy shot-creation role."
+      },
+      {
+        "fact_ids": [
+          "f08"
+        ],
+        "text": "A high share of shot attempts (56.8%) came from three, suggesting a shot profile suited to spacing in a reduced role."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f19",
+        "f35",
+        "f36"
+      ],
+      "text": "The 80% prediction interval for usage runs from 14.8% to 26.0%, a span of more than two standard deviations of NBA usage (5.6%), covering everything from a bench-level role to a clear high-usage role; the true shooting projection should not be trusted at all, since the model's 4.5% error is worse than the 4.3% error of simply guessing the league average."
+    }
+  },
+  "target_season_id": "NBA_2023",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1430,
+    "output_tokens": 1934
+  }
+}

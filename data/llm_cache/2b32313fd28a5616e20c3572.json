@@ -1,0 +1,92 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T17:02:11.908917+00:00",
+  "evidence_digest": "635e45d29245006f4aa65135c8c3fe86e4818915d0cacc84157eb5a7ad3f9f5f",
+  "key": "2b32313fd28a5616e20c3572",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_203499",
+  "report": {
+    "confidence": "low",
+    "headline": "EuroLeague playmaker projected toward a near-league-average NBA usage role, but the shooting efficiency projection carries no signal",
+    "projection": {
+      "fact_ids": [
+        "f13",
+        "f14",
+        "f15",
+        "f18",
+        "f19"
+      ],
+      "text": "Usage rate is projected at 19.9% in the NBA, essentially matching the league's minutes-weighted average of 20.1%, with an 80% prediction interval of 14.7% to 25.0% — a span that covers nearly the full width of a single standard deviation of NBA usage (5.2%) on either side."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f09"
+        ],
+        "text": "Turnover rate was elevated at 18.6% in the source season."
+      },
+      {
+        "fact_ids": [
+          "f22",
+          "f23",
+          "f24",
+          "f29"
+        ],
+        "text": "True shooting was already below the EuroLeague average (53.7%, -0.55 sd), and the raw NBA projection of 52.9% sits further below the target league's 55.7% average — though this specific projection is not reliable given the model's performance on this metric."
+      },
+      {
+        "fact_ids": [
+          "f14",
+          "f15",
+          "f19"
+        ],
+        "text": "The 80% prediction interval for usage rate (14.7% to 25.0%) spans almost two full standard deviations of NBA usage variation, so the model can rank this player against peers but cannot pin down an individual value."
+      },
+      {
+        "fact_ids": [
+          "f38",
+          "f39"
+        ],
+        "text": "The estimate rests on 61 historical EL->NBA transitions among players who, conditional on making the move, already sat +0.46 sd above their own league's average — a moderate cohort size that limits precision."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f10",
+          "f06"
+        ],
+        "text": "Posted a 32.5% assist rate and 7.058 assists per 75 possessions in the EuroLeague, indicating a heavy playmaking role."
+      },
+      {
+        "fact_ids": [
+          "f11",
+          "f12"
+        ],
+        "text": "Carried a EuroLeague usage rate of 24.4%, about +0.96 standard deviations above that league's average, showing a significant offensive role before the move."
+      },
+      {
+        "fact_ids": [
+          "f05",
+          "f08"
+        ],
+        "text": "Scored 16.268 points per 75 possessions with a shot profile leaning heavily on threes (41.4% of attempts)."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f24",
+        "f35",
+        "f36"
+      ],
+      "text": "The true shooting projection of 52.9% should not be treated as informative: the model's out-of-fold error on this metric (4.5%) is larger than the error from simply guessing the league average (4.3%), meaning it loses to a trivial baseline."
+    }
+  },
+  "target_season_id": "NBA_2017",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1430,
+    "output_tokens": 2032
+  }
+}

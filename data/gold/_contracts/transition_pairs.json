@@ -40,7 +40,7 @@
       "maximum": 34.0,
       "minimum": 18.0,
       "name": "source_age",
-      "null_rate": 0.217391
+      "null_rate": 0.0
     },
     {
       "dtype": "String",
@@ -82,7 +82,7 @@
       "maximum": 36.0,
       "minimum": 19.0,
       "name": "target_age",
-      "null_rate": 0.357488
+      "null_rate": 0.0
     },
     {
       "dtype": "String",
@@ -99,7 +99,7 @@
       "null_rate": 0.0
     }
   ],
-  "content_hash": "0dd8e9966a906dadc2680d31e038ef40",
+  "content_hash": "dac9c26421579c53d915ce8196f893a5",
   "contract_version": 1,
   "n_columns": 14,
   "n_rows": 414,

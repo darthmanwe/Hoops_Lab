@@ -33,6 +33,55 @@ MIN_TARGET_MINUTES = 300
 MAX_GAP_SEASONS = 2
 
 
+def fill_missing_age(player_seasons: pl.DataFrame) -> pl.DataFrame:
+    """Recover age for leagues whose source does not report it.
+
+    ``leaguedashplayerstats`` returns no AGE column for the G League, so every
+    one of its 4,463 player-seasons carried a null age. Age is a covariate in
+    the translation model, and the transition frame drops rows without one — so
+    all 90 transitions *originating* in the G League were silently discarded,
+    including the entire GL→NBA direction the G League was ingested to provide.
+    Nothing failed; the pairs simply were not there, and the count looked
+    plausible.
+
+    The recovery is arithmetic, not imputation. These are the same people under
+    another league's id, and a person's birth year is already resolved from the
+    leagues that do report age, so ``start_year - birth_year`` is the age — with
+    the same ±1 ambiguity every season-grain age carries, since a season spans
+    two calendar years.
+
+    A person with no age anywhere still has none afterwards. That is correct:
+    inventing one would put a fabricated covariate into the flagship model,
+    which is the failure this project exists to have removed.
+    """
+    if "age" not in player_seasons.columns or "person_id" not in player_seasons.columns:
+        return player_seasons
+
+    implied = (
+        player_seasons.filter(pl.col("age").is_not_null() & pl.col("person_id").is_not_null())
+        .with_columns((pl.col("start_year") - pl.col("age")).alias("_implied"))
+        .group_by("person_id")
+        # Median over the seasons that do report age: a single mistyped age
+        # should not move a career's worth of derived ones.
+        .agg(pl.median("_implied").alias("_person_birth_year"))
+    )
+
+    filled = player_seasons.join(implied, on="person_id", how="left").with_columns(
+        pl.coalesce(
+            pl.col("age"),
+            pl.col("start_year").cast(pl.Float64) - pl.col("_person_birth_year"),
+        ).alias("age")
+    )
+
+    recovered = int(filled["age"].is_not_null().sum()) - int(
+        player_seasons["age"].is_not_null().sum()
+    )
+    if recovered:
+        log.info("recovered age for %d player-seasons from person-level birth years", recovered)
+
+    return filled.drop("_person_birth_year")
+
+
 def build_player_seasons(
     players: pl.DataFrame,
     teams: pl.DataFrame,
@@ -60,6 +109,8 @@ def build_player_seasons(
         on=["season_id", "source_team_id"],
         how="left",
     )
+
+    joined = fill_missing_age(joined)
 
     enriched = joined.with_columns(
         rates.true_shooting_pct().alias("ts_pct"),
