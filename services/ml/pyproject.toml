@@ -45,7 +45,7 @@ dependencies = [
     "pandas>=2.1,<3",
     # Data contracts. Still pre-1.0 and the DataFrameModel API moves between
     # minors, so the range is deliberately narrow.
-    "pandera>=0.20,<0.30",
+    "pandera>=0.32.1,<0.33",
     "httpx>=0.27,<1",
     "tenacity>=8.2,<10",
     # numpy 2 changed the C ABI that scipy, statsmodels and pyarrow compile
