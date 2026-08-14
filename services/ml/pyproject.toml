@@ -29,7 +29,7 @@ dependencies = [
     # Bounded below 1.0 because typer is still pre-1.0 and has changed its
     # annotation handling across minors.
     "typer>=0.15,<1",
-    "rich>=13,<15",
+    "rich>=15.0.0,<16",
     # v1 and v2 are different libraries; everything here uses the v2 API.
     "pydantic>=2.7,<3",
     "pydantic-settings>=2.2,<3",
