@@ -1,0 +1,8 @@
+{
+  "key": "2d2bf8a33e83106fbdd960e9",
+  "states_unsupported_number": true,
+  "notes": "Says the player 'already sat well above their own league average usage' and cites the selection fact. The bundle gives the source usage standing as -0.97 sd - well BELOW. The sign is reversed and the reversed reading is then used to support a claim about the selection cohort.",
+  "labelled_by": "claude-opus-5 reading each report against its evidence bundle",
+  "person_id": "nba_1628539",
+  "direction": "GL->NBA"
+}

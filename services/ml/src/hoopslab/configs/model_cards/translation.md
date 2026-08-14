@@ -47,8 +47,15 @@ Committed gold, built from public sources:
 | EuroLeague | 2007–2024 | 5,606          |
 | G League   | 2015–2024 | 4,463          |
 
-**Transition pairs: 414 observed**, of which 324 have both sides qualified and
-enter the fit. A pair requires ≥400 minutes in the source league, ≥300 in the
+**Transition pairs: 414 observed**, all of which enter the fit.
+
+An earlier build fitted only 324 of them. `leaguedashplayerstats` returns no
+AGE column for the G League, age is a covariate here, and the transition frame
+drops rows without one — so every pair _originating_ in the G League was
+discarded in silence. Age is now recovered from the same person's seasons in
+leagues that do report it, which is arithmetic rather than imputation; the
+2,129 G League seasons belonging to people who never played elsewhere still
+have no age, and still contribute no pairs. A pair requires ≥400 minutes in the source league, ≥300 in the
 target, a gap of one or two seasons, and no appearance in the target league
 during the source season.
 
@@ -77,9 +84,9 @@ subsequently did.
 
 ## Method
 
-Two stages, because almost nothing can be estimated from ~96 pairs.
+Two stages, because almost nothing can be estimated from a few hundred pairs.
 
-**Stage 1 — ordinary season-to-season dynamics.** Fitted on 7,285 consecutive
+**Stage 1 — ordinary season-to-season dynamics.** Fitted on 7,680 consecutive
 _same-league_ season pairs: next-season standing regressed on current standing,
 a quadratic in age, and log minutes. This is where aging and mean reversion
 come from, and it is large.
@@ -109,34 +116,34 @@ performance, something is leaking and the headline number is measuring the leak.
 
 ## Results
 
-Out-of-fold, in rate units, n = 277 evaluated pairs.
+Out-of-fold, in rate units, n = 367 evaluated pairs.
 
 | Metric    | MAE        | 95% CI (cluster bootstrap) | Best baseline        | Verdict                      |
 | --------- | ---------- | -------------------------- | -------------------- | ---------------------------- |
-| `usg_pct` | **0.0317** | [0.0291, 0.0346]           | 0.0417 (league mean) | **beats it by 24.0%**        |
-| `ts_pct`  | 0.0448     | [0.0407, 0.0492]           | 0.0431 (league mean) | **loses by 3.9% — unusable** |
+| `usg_pct` | **0.0332** | [0.0306, 0.0357]           | 0.0428 (league mean) | **beats it by 22.4%**        |
+| `ts_pct`  | 0.0471     | [0.0433, 0.0512]           | 0.0470 (league mean) | **loses by 0.3% — unusable** |
 
 All four baselines, `usg_pct`:
 
 | Baseline                       | MAE    | Model better by |
 | ------------------------------ | ------ | --------------- |
-| League mean                    | 0.0417 | 24.0%           |
-| Stage-1 persistence, no league | 0.0532 | 40.3%           |
-| z-preservation                 | 0.0553 | 42.5%           |
-| Folk ×0.75 rule                | 0.0859 | 63.0%           |
+| League mean                    | 0.0428 | 22.4%           |
+| Stage-1 persistence, no league | 0.0505 | 34.3%           |
+| z-preservation                 | 0.0527 | 37.1%           |
+| Folk ×0.75 rule                | 0.0749 | 55.7%           |
 
-Shuffled-target controls: 0.0461 for usage, 0.0514 for true shooting. Both are
+Shuffled-target controls: 0.0427 for usage, 0.0523 for true shooting. Both are
 worse than the fitted model and close to the league-mean baseline, which is
 what a clean pipeline looks like.
 
-**Estimated compression.** Shared slope β = **0.743** for usage, 0.657 for true
+**Estimated compression.** Shared slope β = **0.724** for usage, 0.690 for true
 shooting. A slope below one means standing within a league compresses on the
 way across.
 
 ### The model does not work for true shooting
 
 On the corrected cohort it is **worse than predicting the league average**
-(0.0448 against 0.0431). It should not be used for that metric, and the API
+(0.0471 against 0.0470). It should not be used for that metric, and the API
 says so: `model_evaluations.beats_best_baseline` is served as `false`, so a
 consumer can tell without reading this page.
 
@@ -150,21 +157,23 @@ is the more flattering and less honest presentation.
   persistence for that metric has R² = 0.30 against 0.74 for usage; shooting
   efficiency is mostly year-to-year noise.
 - **The direction-specific slopes disagree, and by more than before.** For
-  usage, EL→NBA is 0.575 and NBA→EL is 0.977, a gap of 0.40. The shared-slope
+  usage, EL→NBA is 0.579 and NBA→EL is 0.982, a gap of 0.40. The shared-slope
   restriction is therefore doing substantial work, and a meaningful part of the
   estimated compression is direction-specific rather than a property of the
   leagues alone. On the smaller, correctly matched cohort this is the largest
   open question about the estimate.
 - **The folk ×0.75 rule is worse than predicting the league average.** Worth
   knowing, and the reason it is included as a baseline at all.
-- **Stage-1 persistence alone is worse than the league mean** for usage (0.0515
-  vs 0.0419). Applying same-league dynamics to a cross-league move without an
+- **Stage-1 persistence alone is worse than the league mean** for usage (0.0505
+  vs 0.0428). Applying same-league dynamics to a cross-league move without an
   offset actively misleads, which is the clearest evidence that the league term
   is load-bearing rather than decorative.
 - **Small and uneven folds.** Some target seasons contribute only a handful of
   pairs; fold sizes are recorded in the run log.
-- **G League ages are inferred** from the same person's NBA observation, since
-  the bio endpoint has no G League equivalent.
+- **G League ages are derived, not reported.** The source has no AGE column for
+  that league, so age comes from the same person's seasons elsewhere. Anyone
+  who never played outside the G League has no age and contributes no pair —
+  2,129 seasons, and a real limit on the cohort rather than a rounding note.
 
 ## Selection
 

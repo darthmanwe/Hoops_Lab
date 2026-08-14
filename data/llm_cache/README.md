@@ -28,7 +28,7 @@ Test fixtures live in `services/ml/tests/` and are named as fixtures.
 npm run ml -- report-eval --refresh-cache --max-calls 30
 ```
 
-The ceiling is checked *before* each request, so the run cannot overspend it
+The ceiling is checked _before_ each request, so the run cannot overspend it
 even if something loops. The measured token cost and prompt-cache hit rate are
 printed at the end.
 

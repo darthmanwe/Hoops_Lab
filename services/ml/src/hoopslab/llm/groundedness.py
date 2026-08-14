@@ -290,6 +290,11 @@ def _derived_values(bundle: EvidenceBundle) -> list[tuple[float, str]]:
     * **standardised distance from the receiving league's mean** — where the
       projection sits in that league, in the units the bundle already uses for
       the source season.
+    * **the projected change** — the gap between the source-season value and
+      the projection, which is the single thing a brief about a league move
+      exists to state. "Usage drops by 6.7 points, from 26.6% to 19.9%" cites
+      both endpoints correctly and quotes a third number that is their
+      difference.
 
     Each derivation is computed twice: once from the stored values and once
     from the values **as the bundle rendered them**. That is not belt and
@@ -339,6 +344,17 @@ def _derived_values(bundle: EvidenceBundle) -> list[tuple[float, str]]:
         for low, high in zip(pair["low"], pair["high"], strict=True):
             for _, factor in CONVERSIONS:
                 values.append(((high - low) * factor, f"{metric} {level}% interval width"))
+
+    for metric, readings in points.items():
+        # Two point estimates per metric — the source season and the
+        # projection — so this is one meaningful difference, not a combinatorial
+        # sweep over every pair of facts in the bundle.
+        for i, first in enumerate(readings):
+            for second in readings[i + 1 :]:
+                change = first - second
+                for _, factor in CONVERSIONS:
+                    values.append((change * factor, f"{metric} projected change"))
+                    values.append((abs(change) * factor, f"{metric} projected change"))
 
     for metric, sd_readings in sds.items():
         mean_readings = means.get(metric)
@@ -496,13 +512,28 @@ def _split_compound(token: str) -> list[str]:
     return parts or [token]
 
 
+#: Shortest prefix that may stand in for a word the evidence does contain.
+#: Five characters is long enough that no club or surname in this data collides
+#: with a competition name, and short enough to cover ordinary inflection.
+MIN_STEM = 5
+
+
 def _permitted_word(word: str, evidence: str) -> bool:
     """Is this word one the bundle supports, or an allowed generic?"""
     folded = _fold(word)
     # Possessives: the bundle says "the EuroLeague", a writer says
     # "the EuroLeague's average". The apostrophe is grammar, not a new entity.
     folded = re.sub(r"(?:'|’)s$", "", folded)  # noqa: RUF001 - curly apostrophes are the point
-    return not folded or folded in ENTITY_ALLOWLIST or folded in evidence
+    if not folded or folded in ENTITY_ALLOWLIST or folded in evidence:
+        return True
+
+    # An inflected form of a word the evidence uses is not a new entity: the
+    # bundle says "League", a writer says "G-Leaguer". Matching on a stem
+    # handles the class rather than accumulating one allowlist entry per
+    # suffix, and cannot admit a club or surname — "Panathinaikos" has no
+    # five-character prefix anywhere in the evidence, and neither does any
+    # redacted name, which the separate leak check tests for directly.
+    return len(folded) > MIN_STEM and folded[:MIN_STEM] in evidence
 
 
 def _fold(text: str) -> str:

@@ -1,0 +1,51 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T20:51:46.532993+00:00",
+  "evidence_digest": "c062e4caf05e8af4e453b873e45525e583a56dda7cb80f27e5b70f8bb1879e73",
+  "key": "9bbd8dabd419a7dc4957191e",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_203499",
+  "report": {
+    "confidence": "moderate",
+    "headline": "EuroLeague playmaker projected for a near-average NBA usage role, but the shooting projection is not trustworthy",
+    "projection": {
+      "fact_ids": ["f11", "f13", "f14", "f15", "f18", "f19", "f32", "f33"],
+      "text": "Usage rate is projected to fall to 19.4% in the NBA from 24.4% in the EuroLeague, landing almost exactly at the NBA average of 20.1% (sd 5.2%). This projection is informative: the model's mean absolute error of 3.3% beats the trivial league-mean baseline's 4.3% on this metric, though the 80% interval (14.2% to 24.7%) still spans roughly two NBA standard deviations."
+    },
+    "risks": [
+      {
+        "fact_ids": ["f09"],
+        "text": "Turnover rate was elevated at 18.6% in the EuroLeague, a concern for ball-handling responsibility even in a reduced NBA role."
+      },
+      {
+        "fact_ids": ["f22", "f23", "f24", "f35", "f36"],
+        "text": "True shooting was already below the EuroLeague average (53.7%, -0.55 sd), and the NBA projection of 53.0% carries no real information because the model's error (4.7%) matches the trivial league-mean baseline (4.7%) on this metric."
+      },
+      {
+        "fact_ids": ["f13", "f16", "f18"],
+        "text": "Even the central usage projection (19.4%) sits below the NBA average (20.1%), and the 95% interval extends down to 11.4%, leaving meaningful downside risk to his on-court role."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": ["f06", "f10"],
+        "text": "Heavy involvement as a passer in the EuroLeague, posting 7.058 assists per 75 possessions and a 32.5% assist rate."
+      },
+      {
+        "fact_ids": ["f11", "f12", "f13", "f14", "f15"],
+        "text": "Usage sat well above the EuroLeague average (+0.96 sd) at 24.4%, indicating a genuinely ball-dominant role rather than a marginal one, and the model still projects him to retain a usage share near the NBA average (19.4%, 80% interval 14.2%-24.7%)."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": ["f14", "f15", "f19", "f24", "f35", "f36"],
+      "text": "The 80% prediction interval for usage rate, 14.2% to 24.7%, covers about two standard deviations of the NBA usage distribution (sd 5.2%), so the model can rank this player against peers but not pin down his exact role. The true shooting projection of 53.0% should not be read as informative at all: the model's error there (4.7%) is no better than the trivial league-mean baseline (4.7%), meaning it loses to simply guessing the league average."
+    }
+  },
+  "target_season_id": "NBA_2017",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1430,
+    "output_tokens": 2279
+  }
+}

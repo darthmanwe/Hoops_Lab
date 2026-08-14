@@ -1,0 +1,8 @@
+{
+  "key": "b9410ddf142611fd9c7a2319",
+  "states_unsupported_number": false,
+  "notes": "Every quantity traces to a bundle fact and is used for what that fact measures.",
+  "labelled_by": "claude-opus-5 reading each report against its evidence bundle",
+  "person_id": "nba_1627936",
+  "direction": "GL->NBA"
+}

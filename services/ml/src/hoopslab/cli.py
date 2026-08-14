@@ -363,6 +363,51 @@ def report_eval(
         raise typer.Exit(code=1)
 
 
+@app.command(name="report-prune")
+def report_prune(
+    delete: bool = typer.Option(False, "--delete", help="Actually remove the stale responses."),
+) -> None:
+    """List, or remove, cached reports whose evidence has since changed.
+
+    A committed response cache is an asset until the data moves underneath it,
+    at which point it holds confident prose about numbers that are no longer
+    true. The export already refuses to serve those; this is what stops them
+    accumulating on disk where someone might read one and believe it.
+    """
+    from hoopslab.llm.cache import ResponseCache
+    from hoopslab.llm.client import ReportGenerator
+    from hoopslab.llm.evidence import BundleSource, build_bundle
+
+    paths = DataPaths.discover()
+    cache = ResponseCache(paths.llm_cache)
+    if len(cache) == 0:
+        console.print("Cache is empty.")
+        return
+
+    source = BundleSource.load(paths)
+    generator = ReportGenerator(cache)
+
+    live: dict[str, str] = {}
+    for entry in cache.entries():
+        try:
+            bundle = build_bundle(
+                source, entry.person_id, entry.target_season_id, anonymized=entry.anonymized
+            )
+        except KeyError:
+            continue
+        live[generator.key_for(bundle)] = bundle.digest()
+
+    stale = cache.prune(live, dry_run=not delete)
+    if not stale:
+        console.print(f"[green]All {len(cache)} cached responses match current evidence.[/green]")
+        return
+
+    verb = "removed" if delete else "stale (re-run with --delete)"
+    console.print(f"[yellow]{len(stale)} {verb}[/yellow]")
+    for entry in stale:
+        console.print(f"  {entry.key}  {entry.person_id} -> {entry.target_season_id}")
+
+
 def _first_transition(source: object, person_id: str) -> str:
     """The earliest scored move for a person, so --season is optional."""
     matches = [key for key in source.transitions() if key[0] == person_id]  # type: ignore[attr-defined]

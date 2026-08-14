@@ -230,3 +230,40 @@ def test_model_ids_resolve_at_call_time(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setenv("HOOPSLAB_REPORT_MODEL", "claude-haiku-4-5")
     assert resolve_model(None, "HOOPSLAB_REPORT_MODEL", "claude-sonnet-5") == "claude-haiku-4-5"
     assert resolve_model("explicit", "HOOPSLAB_REPORT_MODEL", "claude-sonnet-5") == "explicit"
+
+
+# ------------------------------------------------------------------- pruning
+
+
+def test_pruning_finds_responses_whose_evidence_moved(tmp_path: Path) -> None:
+    """Committed prose about numbers that have since changed is the hazard.
+
+    The export already refuses to serve a stale response. Pruning is what stops
+    one sitting in the repository where a reader would take it at face value.
+    """
+    cache = ResponseCache(tmp_path)
+    fresh = CachedResponse(
+        key="fresh",
+        model="claude-sonnet-5",
+        created_at=now_iso(),
+        person_id="p1",
+        target_season_id="NBA_2018",
+        anonymized=True,
+        evidence_digest="digest-a",
+        report=make_report(),
+        usage={},
+    )
+    moved = CachedResponse(**{**fresh.__dict__, "key": "moved", "evidence_digest": "digest-old"})
+    vanished = CachedResponse(**{**fresh.__dict__, "key": "vanished"})
+    for entry in (fresh, moved, vanished):
+        cache.put(entry)
+
+    live = {"fresh": "digest-a", "moved": "digest-b"}  # "vanished" no longer scores
+
+    stale = cache.prune(live, dry_run=True)
+    assert {e.key for e in stale} == {"moved", "vanished"}
+    assert len(cache) == 3, "a dry run must not delete anything"
+
+    cache.prune(live, dry_run=False)
+    assert len(cache) == 1
+    assert cache.get("fresh") is not None

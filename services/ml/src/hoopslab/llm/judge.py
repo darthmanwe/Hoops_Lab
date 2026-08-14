@@ -9,17 +9,31 @@ without the second:
   dimension that has a right answer — did the report state a number the
   evidence does not support.
 
-The expected finding is that the judge is *worse* than the regex in
-:mod:`hoopslab.llm.groundedness` at catching fabricated numbers, because the
-regex has the evidence and the judge has to read it. That is worth publishing.
-An LLM judge earns its cost on the dimensions arithmetic cannot reach —
-calibration language, whether a claim's cited facts actually support it — and
-pretending it is also the fabrication detector is how eval harnesses end up
-measuring their own optimism.
+**This module was written predicting that the judge would lose to the regex in
+:mod:`hoopslab.llm.groundedness`, and the measurement said otherwise.** On 30
+labelled reports the judge scored κ = +0.78 and the regex κ = +0.00. The
+prediction is recorded here rather than quietly deleted, because the reason it
+was wrong is the useful part.
 
-The judge is a different, stronger model than the writer. Self-judging is a
-known-biased measurement and a weaker judge cannot see what a stronger writer
-got wrong.
+The two detectors answer different questions. The regex asks *is this number in
+the evidence?* Across 1,027 numeric tokens the answer was yes every time —
+these reports fabricate nothing — so it has nothing to flag and κ = 0 is not a
+failure but a definition: a detector with no positives cannot agree with the
+labels beyond chance. The judge asks *is this number used for what it
+measures?*, which the regex cannot express at all. Every error in these reports
+was of the second kind: a standing of -0.97 sd described as "well above
+average", a projection of 15.5% called "below 15.0%".
+
+So the honest conclusion is not that one beats the other. It is that arithmetic
+settles provenance and cannot settle meaning, and a harness that reports only
+the traceability figure will read 100% while the prose contains a reversed sign.
+
+Both are reported together for that reason, and neither is reported without
+Cohen's κ against labelled ground truth beside it.
+
+The judge is a different model from the writer — Opus grading Sonnet.
+Self-judging is a known-biased measurement and a weaker judge cannot see what a
+stronger writer got wrong.
 """
 
 from __future__ import annotations
@@ -142,9 +156,17 @@ def judge_report(
     model: str | None = None,
     ledger: UsageLedger | None = None,
     client: object | None = None,
-    max_tokens: int = 1024,
+    max_tokens: int = 8192,
 ) -> JudgeVerdict:
-    """Grade one brief. Makes a billed call; never runs by default."""
+    """Grade one brief. Makes a billed call; never runs by default.
+
+    ``max_tokens`` looks generous for a verdict of four integers and a boolean,
+    and is not. The judge runs on Opus 5, where adaptive thinking is on unless
+    you disable it, and ``max_tokens`` caps thinking and answer together — at
+    1,024 the entire budget went to reasoning and the response carried no
+    parseable verdict at all. Reading the evidence carefully is the judge's
+    whole job, so the budget belongs here rather than the thinking.
+    """
     model = resolve_model(model, "HOOPSLAB_JUDGE_MODEL", DEFAULT_JUDGE_MODEL)
 
     if client is None:
@@ -173,6 +195,16 @@ def judge_report(
     )
     if ledger is not None:
         ledger.add(usage_from(response, model, "judge"))
+
+    stop_reason = getattr(response, "stop_reason", None)
+    if stop_reason in {"refusal", "max_tokens"}:
+        # Named explicitly because the generic message ("input should be a
+        # valid dictionary … input_value=None") sends you looking for a schema
+        # bug when the cause is a budget the thinking consumed.
+        raise RuntimeError(
+            f"judge returned no verdict (stop_reason={stop_reason}); "
+            f"max_tokens={max_tokens} covers thinking and answer together"
+        )
 
     parsed = getattr(response, "parsed_output", None)
     if isinstance(parsed, JudgeVerdict):

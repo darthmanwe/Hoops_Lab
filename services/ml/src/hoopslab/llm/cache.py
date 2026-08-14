@@ -137,6 +137,29 @@ class ResponseCache:
     def __len__(self) -> int:
         return len(list(self.directory.glob("*.json"))) if self.directory.is_dir() else 0
 
+    def prune(self, live_digests: dict[str, str], *, dry_run: bool = True) -> list[CachedResponse]:
+        """Find, and optionally delete, responses whose evidence has moved on.
+
+        A committed cache is an asset until the data changes underneath it, at
+        which point it becomes a directory of confident prose about numbers
+        that are no longer true. The export already refuses to serve those, so
+        nothing incorrect reaches the API — but leaving them on disk invites
+        someone to read one and believe it.
+
+        ``live_digests`` maps a response key to the digest of the evidence
+        rebuilt from current gold. A key that is absent is stale too: its
+        transition no longer scores at all.
+        """
+        stale = [
+            entry
+            for entry in self.entries()
+            if live_digests.get(entry.key) != entry.evidence_digest
+        ]
+        if not dry_run:
+            for entry in stale:
+                self.path_for(entry.key).unlink(missing_ok=True)
+        return stale
+
 
 def now_iso() -> str:
     return datetime.now(UTC).isoformat()

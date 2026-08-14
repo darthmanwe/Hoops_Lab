@@ -1,0 +1,59 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T20:59:39.698097+00:00",
+  "evidence_digest": "ad78885f15352dd6b2f66d3e3063e346fc6ec552de945bc0c3a492e20b8b1bb5",
+  "key": "2d2bf8a33e83106fbdd960e9",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1628539",
+  "report": {
+    "confidence": "low",
+    "headline": "Projected to a marginal NBA role, with the shooting-efficiency forecast unreliable by the model's own admission",
+    "projection": {
+      "fact_ids": ["f14", "f12", "f19"],
+      "text": "Usage rate is projected at 11.9% in the NBA, down from 15.5% in the 2018-19 G League season and well below the 20.1% minutes-weighted NBA average that season."
+    },
+    "risks": [
+      {
+        "fact_ids": ["f14", "f21", "f22"],
+        "text": "Projected NBA usage of 11.9% is below both the z-preservation baseline (14.7%, what the same relative standing would imply) and close to the naive 0.75x-scaling folk rule (11.6%), suggesting a shrunken, low-usage role is the model's central expectation rather than an artifact of one method."
+      },
+      {
+        "fact_ids": ["f36", "f37", "f25"],
+        "text": "The true shooting projection (56.4%) cannot be treated as informative: the model's out-of-fold error (4.7%) is identical to that of simply predicting the league mean, meaning it offers no edge over a trivial guess for this metric."
+      },
+      {
+        "fact_ids": ["f06", "f10", "f08"],
+        "text": "Source-season playmaking indicators were modest — 1.747 assists per 75 possessions and a 7.0% assist rate — with over two-thirds of shot attempts coming from three, pointing to a specialized, low-usage offensive profile even before accounting for the league jump."
+      },
+      {
+        "fact_ids": ["f39", "f11"],
+        "text": "The estimate rests on only 45 historical GL->NBA transitions and two full seasons elapsed between the source season and the move, both of which widen the uncertainty around any single projection."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": ["f23", "f24"],
+        "text": "Source-season true shooting was 61.0%, a full standard deviation above the G League average that year."
+      },
+      {
+        "fact_ids": ["f13", "f40"],
+        "text": "The player already sat well above their own league's average usage entering the move, consistent with the typical selection effect for players who make this transition (players who move average +0.27 sd above their league)."
+      },
+      {
+        "fact_ids": ["f35", "f33", "f34"],
+        "text": "For usage rate specifically, the fitted GL->NBA slope of 0.529 indicates roughly half of a player's standing above the G League average tends to carry over to the NBA, and the model beats a trivial league-mean baseline on this metric (3.3% error vs. 4.3%)."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": ["f15", "f16", "f20", "f25", "f36", "f37"],
+      "text": "The 80% prediction interval for usage runs from 6.4% to 17.4% — a span of roughly two standard deviations of NBA usage (5.5%) — so the model can say this player projects below average but cannot pin down where within a wide low-usage band; the true shooting projection of 56.4% should not be trusted at all, since the model's error there (4.7%) is no better than simply guessing the league mean."
+    }
+  },
+  "target_season_id": "NBA_2020",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1438,
+    "output_tokens": 1417
+  }
+}
