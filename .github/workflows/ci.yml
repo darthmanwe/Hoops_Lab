@@ -166,3 +166,29 @@ jobs:
             echo "::error::data/etl was reintroduced. It contained 723 lines of hardcoded statistics."
             exit 1
           fi
+
+  groundedness:
+    name: Scouting reports are grounded
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv sync --frozen --extra dev
+      # Re-scores every committed report against evidence rebuilt from
+      # committed gold. No API key, no network, no cost — which is the point:
+      # a groundedness figure that can only be re-measured by spending money
+      # is a figure nobody will re-measure, so it stops being checked and
+      # starts being folklore.
+      #
+      # This also catches a subtler failure than a bad report. If a transform
+      # change moves the data, the rebuilt evidence no longer matches what the
+      # model was shown, every response is dropped as stale, and the run has
+      # nothing to score — so prose quietly describing superseded numbers
+      # fails the build instead of shipping.
+      - run: uv run hoopslab report-eval --per-direction 10
