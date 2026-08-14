@@ -1,0 +1,63 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T20:58:56.234162+00:00",
+  "evidence_digest": "eddf6327511f9a08df4ab2847df375afcf816606570f87666dfa8efba617a6f6",
+  "key": "9cb6cc6fc32dddd32a244b54",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_203585",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage projected to shrink to 13.8% in the NBA, well below league norms, while the shooting-efficiency projection carries no real signal.",
+    "projection": {
+      "fact_ids": ["f11", "f13", "f14", "f15", "f16", "f17", "f18", "f19"],
+      "text": "Usage rate is projected at 13.8% in the NBA, down from 16.9% in the G League, with an 80% interval of 8.5% to 19.0% and a 95% interval of 5.7% to 21.8%, against an NBA average of 20.0% (SD 5.3%)."
+    },
+    "risks": [
+      {
+        "fact_ids": ["f11", "f13", "f18", "f19"],
+        "text": "Projected usage of 13.8% is a clear drop from the 16.9% share held in the G League and sits well below the NBA's 20.0% average (SD 5.3%)."
+      },
+      {
+        "fact_ids": ["f14", "f15", "f19"],
+        "text": "The 80% prediction interval for usage spans 8.5% to 19.0%, roughly two standard deviations of the NBA distribution, so the model can rank players but not pin down an individual role."
+      },
+      {
+        "fact_ids": ["f24", "f35", "f36"],
+        "text": "The true shooting projection ties the trivial league-average baseline on error (4.7% vs 4.7%), meaning it should not be used to judge likely shooting efficiency."
+      },
+      {
+        "fact_ids": ["f38"],
+        "text": "The estimate is built on only 45 historical G League to NBA transitions, a thin cohort."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": ["f05", "f06", "f07"],
+        "text": "Produced 15.2 points, 2.2 assists, and 5.1 rebounds per 75 possessions in the source G League season."
+      },
+      {
+        "fact_ids": ["f22", "f23"],
+        "text": "Shot efficiently in the G League, posting a 61.6% true shooting percentage that stood 1.10 SD above that league's average."
+      },
+      {
+        "fact_ids": ["f09", "f10"],
+        "text": "Combined a low 9.4% turnover rate with a 9.7% assist rate."
+      },
+      {
+        "fact_ids": ["f39"],
+        "text": "Belongs to a pool of movers who, conditional on making the move, already sat about 0.27 SD above their own league's average."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": ["f24", "f35", "f36"],
+      "text": "The true shooting percentage projection of 53.7% is not trustworthy: its 4.7% out-of-fold error is no better than simply guessing the league average, so it carries no information about likely shooting efficiency."
+    }
+  },
+  "target_season_id": "NBA_2016",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1416,
+    "output_tokens": 2132
+  }
+}

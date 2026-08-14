@@ -1,0 +1,55 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T20:58:33.782204+00:00",
+  "evidence_digest": "2c0745b2c961486ac15753e56b500a58498f7848a91014ff52ff3480f02fc6d9",
+  "key": "a5f984d69b6d7ae03a13f7cd",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_2756",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage rate projected to climb from 19.5% in the NBA to 23.9% in the EuroLeague, but the true-shooting projection carries no information",
+    "projection": {
+      "fact_ids": ["f11", "f13", "f18"],
+      "text": "The model projects a usage rate of 23.9% in the EuroLeague, up from 19.5% in the source NBA season, against a EuroLeague average of 20.3%."
+    },
+    "risks": [
+      {
+        "fact_ids": ["f24", "f35", "f36"],
+        "text": "The true-shooting projection of 54.7% should not be trusted: the model's out-of-fold error (4.7%) is no better than the trivial league-mean baseline (4.7%) for this metric, so it carries no information beyond simply guessing the league average."
+      },
+      {
+        "fact_ids": ["f37", "f36"],
+        "text": "The true-shooting slope of 0.534 implies only about half of his shooting standing relative to the NBA is expected to carry over, but since the model underperforms the baseline here, this figure should not be read as a reliable forecast."
+      },
+      {
+        "fact_ids": ["f02", "f12", "f23", "f39", "f38"],
+        "text": "He was 27 years old and posted a below-average source-season profile (-0.11 sd usage, -0.52 sd true shooting) among players selected for this move, who themselves sat -0.31 sd above their league's average, an unusual case worth flagging for a cohort of 115 historical transitions."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": ["f13", "f34"],
+        "text": "The projected usage increase tracks a slope of 0.982 on usage alone, meaning the model estimates this player retains almost all of his standing relative to his own league when moving to the EuroLeague."
+      },
+      {
+        "fact_ids": ["f08"],
+        "text": "He took 44.0% of his shot attempts from three in the source season, indicating a perimeter-oriented shot profile."
+      },
+      {
+        "fact_ids": ["f09", "f10"],
+        "text": "A 9.4% turnover rate alongside a 13.1% assist rate in the source season suggests efficient decision-making relative to his ball-handling load."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": ["f14", "f15", "f16", "f17", "f19"],
+      "text": "The 80% prediction interval for usage runs from 19.5% to 28.4%, a span of roughly two standard deviations of the EuroLeague usage distribution (sd 4.4%); the 95% interval widens further to 17.1%-30.7%. The model can rank this player relative to peers but cannot pin down his individual usage."
+    }
+  },
+  "target_season_id": "EL_2011",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1444,
+    "output_tokens": 2112
+  }
+}

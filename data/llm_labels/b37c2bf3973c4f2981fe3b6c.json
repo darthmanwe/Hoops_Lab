@@ -1,0 +1,8 @@
+{
+  "key": "b37c2bf3973c4f2981fe3b6c",
+  "states_unsupported_number": true,
+  "notes": "Writes '1.93 standard deviations above the NBA average (64.7%)'. 64.7% is the subject own source-season true shooting, not the NBA average; the parenthetical attaches it to the wrong quantity.",
+  "labelled_by": "claude-opus-5 reading each report against its evidence bundle",
+  "person_id": "nba_2735",
+  "direction": "NBA->EL"
+}

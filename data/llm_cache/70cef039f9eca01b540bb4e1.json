@@ -1,0 +1,59 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T20:59:53.008587+00:00",
+  "evidence_digest": "935afba78894628a20ed0466e322e9c10cddc3e8e3b8738ba9a796b3aee83baa",
+  "key": "70cef039f9eca01b540bb4e1",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1628035",
+  "report": {
+    "confidence": "low",
+    "headline": "Projected to a below-average NBA role after a two-year gap, with a usage forecast that beats naive baselines but a shooting forecast that does not",
+    "projection": {
+      "fact_ids": ["f14", "f19", "f20", "f15", "f16", "f22"],
+      "text": "The model projects a 15.5% usage rate in the NBA, below the league average of 20.0% (SD 5.2%) and below the 15.0% a simple 0.75x-of-production rule would suggest; the 80% interval runs from 10.3% to 20.7%, spanning roughly two-fifths of the league's usage spread."
+    },
+    "risks": [
+      {
+        "fact_ids": ["f14", "f19", "f21"],
+        "text": "Projected usage of 15.5% falls well short of both the NBA average (20.0%) and the z-preservation baseline of 19.9%, implying a materially smaller offensive role than the subject's standing in the G League would suggest on its own."
+      },
+      {
+        "fact_ids": ["f35"],
+        "text": "The fitted slope for usage rate is only 0.529, meaning historically only about half of a player's relative standing in the G League carries over to NBA usage for this transition type."
+      },
+      {
+        "fact_ids": ["f17", "f18"],
+        "text": "The 95% interval for usage rate is wide, from 7.5% to 23.5%, nearly the full plausible range for an NBA rotation player, reflecting substantial individual-level uncertainty even though the model ranks players usefully in aggregate."
+      },
+      {
+        "fact_ids": ["f11", "f39"],
+        "text": "Two full seasons elapsed between the source G League season and the NBA move, and the estimate rests on only 45 historical GL->NBA transitions, both of which widen the uncertainty around applying this projection to an individual case."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": ["f05", "f07", "f03", "f04", "f12", "f13"],
+        "text": "In the source G League season, the subject produced 17.54 points and 10.859 rebounds per 75 possessions over 1,525 minutes across 50 games, with a usage rate of 19.9% that was almost exactly league-average (-0.02 sd)."
+      },
+      {
+        "fact_ids": ["f23", "f24"],
+        "text": "True shooting in the source season was 57.3%, +0.36 sd above the G League average, suggesting above-average scoring efficiency prior to the move."
+      },
+      {
+        "fact_ids": ["f40", "f38", "f39"],
+        "text": "The players who historically made this exact GL->NBA transition sat +0.27 sd above their own league's average before moving, and the fitted slope for true shooting (0.798) is high, meaning a large share of standing typically carries across for this metric — though as noted, the model's shooting forecast is not itself trustworthy for this bundle."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": ["f33", "f34", "f36", "f37", "f25", "f26", "f27"],
+      "text": "The usage projection carries real information: its out-of-fold error of 3.3% beats the best trivial baseline's 4.3% over 367 held-out transitions. The true shooting projection does not: its out-of-fold error of 4.7% is no better than the trivial league-mean baseline's 4.7%, so the 53.9% true shooting figure should not be treated as informative despite its stated 80% interval of 48.1% to 59.8%."
+    }
+  },
+  "target_season_id": "NBA_2018",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1438,
+    "output_tokens": 1078
+  }
+}

@@ -1,0 +1,408 @@
+{
+  "columns": [
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "season_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "league",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2024.0,
+      "minimum": 2000.0,
+      "name": "start_year",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "source_player_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "player_name",
+      "null_rate": 0.000269
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "normalized_name",
+      "null_rate": 0.000269
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "match_key",
+      "null_rate": 0.000269
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "source_team_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "team_name",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 85.0,
+      "minimum": 1.0,
+      "name": "gp",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 3484.07,
+      "minimum": 0.0,
+      "name": "minutes",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2832.0,
+      "minimum": 0.0,
+      "name": "pts",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2173.0,
+      "minimum": 0.0,
+      "name": "fga",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 978.0,
+      "minimum": 0.0,
+      "name": "fgm",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1028.0,
+      "minimum": 0.0,
+      "name": "fg3a",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 402.0,
+      "minimum": 0.0,
+      "name": "fg3m",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 972.0,
+      "minimum": 0.0,
+      "name": "fta",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 756.0,
+      "minimum": 0.0,
+      "name": "ftm",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 440.0,
+      "minimum": 0.0,
+      "name": "oreb",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 894.0,
+      "minimum": 0.0,
+      "name": "dreb",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1247.0,
+      "minimum": 0.0,
+      "name": "reb",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 925.0,
+      "minimum": 0.0,
+      "name": "ast",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 464.0,
+      "minimum": 0.0,
+      "name": "tov",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 229.0,
+      "minimum": 0.0,
+      "name": "stl",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 307.0,
+      "minimum": 0.0,
+      "name": "blk",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 344.0,
+      "minimum": 0.0,
+      "name": "pf",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 44.0,
+      "minimum": 15.0,
+      "name": "age",
+      "null_rate": 0.095484
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "person_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.0,
+      "minimum": 0.7,
+      "name": "confidence",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 23099.523333,
+      "minimum": 2.7,
+      "name": "team_minutes",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 8374.0,
+      "minimum": 0.0,
+      "name": "team_fga",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 4010.0,
+      "minimum": 0.0,
+      "name": "team_fgm",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2952.0,
+      "minimum": 0.0,
+      "name": "team_fta",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1537.0,
+      "minimum": 0.0,
+      "name": "team_tov",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.5,
+      "minimum": 0.0,
+      "name": "ts_pct",
+      "null_rate": 0.009867
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.470032,
+      "minimum": 0.0,
+      "name": "usg_pct",
+      "null_rate": 9e-05
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "name": "tov_rate",
+      "null_rate": 0.007893
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "name": "fg3a_rate",
+      "null_rate": 0.010809
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 8.0,
+      "minimum": 0.0,
+      "name": "ft_rate",
+      "null_rate": 0.010809
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 209.032258,
+      "minimum": 0.0,
+      "name": "pts_per_75",
+      "null_rate": 4.5e-05
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 34.83871,
+      "minimum": 0.0,
+      "name": "ast_per_75",
+      "null_rate": 4.5e-05
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 92.307692,
+      "minimum": 0.0,
+      "name": "reb_per_75",
+      "null_rate": 4.5e-05
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 36.610169,
+      "minimum": 0.0,
+      "name": "tov_per_75",
+      "null_rate": 4.5e-05
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2.687648,
+      "minimum": 0.0,
+      "name": "ast_pct",
+      "null_rate": 0.000493
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2007.0,
+      "minimum": 1960.0,
+      "name": "birth_year",
+      "null_rate": 0.095484
+    },
+    {
+      "dtype": "Int32",
+      "maximum": 2024.0,
+      "minimum": 2000.0,
+      "name": "season_order",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Boolean",
+      "maximum": null,
+      "minimum": null,
+      "name": "qualified",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 0.571,
+      "minimum": 0.0,
+      "name": "official_usg_pct",
+      "null_rate": 0.451585
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.5,
+      "minimum": 0.0,
+      "name": "official_ts_pct",
+      "null_rate": 0.451585
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "name": "official_ast_pct",
+      "null_rate": 0.451585
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 0.5,
+      "minimum": 0.0,
+      "name": "official_oreb_pct",
+      "null_rate": 0.451585
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "name": "official_dreb_pct",
+      "null_rate": 0.451585
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 30.619904,
+      "minimum": -5.187301,
+      "name": "z_usg_pct",
+      "null_rate": 9e-05
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 18.933534,
+      "minimum": -11.210606,
+      "name": "z_ts_pct",
+      "null_rate": 0.009867
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 28.772022,
+      "minimum": -2.044863,
+      "name": "z_ast_pct",
+      "null_rate": 0.000493
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 24.168845,
+      "minimum": -3.722183,
+      "name": "z_tov_rate",
+      "null_rate": 0.007893
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 43.293396,
+      "minimum": -4.311509,
+      "name": "z_pts_per_75",
+      "null_rate": 4.5e-05
+    }
+  ],
+  "content_hash": "fd6279a2033d61fb20bce26183c76281",
+  "contract_version": 1,
+  "n_columns": 57,
+  "n_rows": 22297,
+  "table": "player_seasons"
+}

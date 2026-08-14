@@ -42,6 +42,6 @@ a {
 
 .basketball-texture {
   background-image:
-    radial-gradient(circle at 30% 30%, rgba(243,146,55,0.14), transparent 32%),
-    radial-gradient(circle at 70% 65%, rgba(63,136,255,0.14), transparent 36%);
+    radial-gradient(circle at 30% 30%, rgba(243, 146, 55, 0.14), transparent 32%),
+    radial-gradient(circle at 70% 65%, rgba(63, 136, 255, 0.14), transparent 36%);
 }

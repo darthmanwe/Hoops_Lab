@@ -1,0 +1,359 @@
+{
+  "measured_at": "2026-08-14",
+  "n_reports": 30,
+  "report_model": "claude-sonnet-5",
+  "judge_model": "claude-opus-5",
+  "labels": {
+    "produced_by": "claude-opus-5, reading each report against its evidence bundle",
+    "caveat": "These are not human labels. The labeller and the judge are the same model family, so the agreement below is between two readings by related models and is expected to run higher than agreement with an independent human would. Treat kappa here as an upper bound, and the three flagged reports as the durable finding.",
+    "n_flagged": 3
+  },
+  "agreement": {
+    "judge": {
+      "kappa": 0.783,
+      "accuracy": 0.967
+    },
+    "regex": {
+      "kappa": 0.0,
+      "accuracy": 0.9
+    }
+  },
+  "rubric_means": {
+    "support": 3.23,
+    "numeric_accuracy": 3.8,
+    "calibration": 3.23,
+    "usefulness": 3.2
+  },
+  "interpretation": "The regex traced 1027/1027 numeric tokens, so it raised no flags and cannot agree with the labels beyond chance. Every error found was a correctly quoted number used for the wrong quantity, which the regex cannot express and the judge caught in 2 of 3 cases. The one it missed was an ambiguous parenthetical, the most debatable of the three.",
+  "flagged": [
+    {
+      "person_id": "nba_1628539",
+      "direction": "GL->NBA",
+      "note": "Says the player 'already sat well above their own league average usage' and cites the selection fact. The bundle gives the source usage standing as -0.97 sd - well BELOW. The sign is reversed and the reversed reading is then used to support a claim about the selection cohort.",
+      "judge_agreed": true,
+      "regex_agreed": false
+    },
+    {
+      "person_id": "nba_1628035",
+      "direction": "GL->NBA",
+      "note": "Says the 15.5% projection is 'below the 15.0% a simple 0.75x rule would suggest'. Both figures are in the bundle (projection 15.48%, folk rule 14.96%), but 15.5 is above 15.0, so the comparison is inverted.",
+      "judge_agreed": true,
+      "regex_agreed": false
+    },
+    {
+      "person_id": "nba_2735",
+      "direction": "NBA->EL",
+      "note": "Writes '1.93 standard deviations above the NBA average (64.7%)'. 64.7% is the subject own source-season true shooting, not the NBA average; the parenthetical attaches it to the wrong quantity.",
+      "judge_agreed": false,
+      "regex_agreed": false
+    }
+  ],
+  "per_report": {
+    "judge": {
+      "de1ae7489ed3db841e42376f": false,
+      "46d78eb50f3831bf0c951797": false,
+      "b2f3b804b34361bbad7d93d2": false,
+      "2ce70e16ac887f46bd31ad66": false,
+      "9bbd8dabd419a7dc4957191e": false,
+      "416f07b724bd2e4962ae4141": false,
+      "3ba04da7850b62adc0218353": false,
+      "c2f639f07b53e542c69b2afc": false,
+      "fa43ef02b1660d6f7d4c9ac2": false,
+      "8bcc868414e6f44953f4bf97": false,
+      "18bc22dfe476e1a43a5477d5": false,
+      "b37c2bf3973c4f2981fe3b6c": false,
+      "1c714feb3cb5986814bec21e": false,
+      "ca14fdca7bef7b8cfb8c4792": false,
+      "365663212822296cca7fea91": false,
+      "e8ecac4a3f96ac312d38eb8b": false,
+      "154c9cf66ac5a816cc9aed7c": false,
+      "f8d646d40386533330e015e4": false,
+      "c63848ad830c5f9445902dff": false,
+      "a5f984d69b6d7ae03a13f7cd": false,
+      "9cb6cc6fc32dddd32a244b54": false,
+      "84761a752dc1b35c6d023b17": false,
+      "2d2bf8a33e83106fbdd960e9": true,
+      "70cef039f9eca01b540bb4e1": true,
+      "b9410ddf142611fd9c7a2319": false,
+      "06c6bc819025663ac0215fed": false,
+      "85e22b97f18f67d27337ba2d": false,
+      "eb01e18af9e51672dd67f3b1": false,
+      "f3a153227a50b5968f2d4242": false,
+      "42e260d1fc1cd981bc8b6282": false
+    },
+    "regex": {
+      "de1ae7489ed3db841e42376f": false,
+      "46d78eb50f3831bf0c951797": false,
+      "b2f3b804b34361bbad7d93d2": false,
+      "2ce70e16ac887f46bd31ad66": false,
+      "9bbd8dabd419a7dc4957191e": false,
+      "416f07b724bd2e4962ae4141": false,
+      "3ba04da7850b62adc0218353": false,
+      "c2f639f07b53e542c69b2afc": false,
+      "fa43ef02b1660d6f7d4c9ac2": false,
+      "8bcc868414e6f44953f4bf97": false,
+      "18bc22dfe476e1a43a5477d5": false,
+      "b37c2bf3973c4f2981fe3b6c": false,
+      "1c714feb3cb5986814bec21e": false,
+      "ca14fdca7bef7b8cfb8c4792": false,
+      "365663212822296cca7fea91": false,
+      "e8ecac4a3f96ac312d38eb8b": false,
+      "154c9cf66ac5a816cc9aed7c": false,
+      "f8d646d40386533330e015e4": false,
+      "c63848ad830c5f9445902dff": false,
+      "a5f984d69b6d7ae03a13f7cd": false,
+      "9cb6cc6fc32dddd32a244b54": false,
+      "84761a752dc1b35c6d023b17": false,
+      "2d2bf8a33e83106fbdd960e9": false,
+      "70cef039f9eca01b540bb4e1": false,
+      "b9410ddf142611fd9c7a2319": false,
+      "06c6bc819025663ac0215fed": false,
+      "85e22b97f18f67d27337ba2d": false,
+      "eb01e18af9e51672dd67f3b1": false,
+      "f3a153227a50b5968f2d4242": false,
+      "42e260d1fc1cd981bc8b6282": false
+    },
+    "rubric": {
+      "de1ae7489ed3db841e42376f": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 4,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable to the bundle and used for what they measure: 18.8% is quoted as the projection (not an interval bound), 24.9% as the source usage, the 80% band 13.1\u201324.4% is correctly described as slightly more than twice the 5.6% receiving-league sd, and both MAE/baseline pairs (3.3 vs 4.3; 4.7 vs 4.7) are reported correctly. Calibration is the brief's strongest feature \u2014 it asserts the usage projection only modestly (noting the thin margin over the league-mean baseline) and explicitly declares the 58.4% TS figure untrustworthy per f36, matching the evidence; the overall 'low' confidence label is defensible given the interval width and n=61. Support is mostly sound, but two claims lean on nearby rather than supporting facts: age 27.0 (f02) is bundled into the sentence explaining why the 95% interval widens, which age does not cause, and the 12.4% assist rate is offered as support for a 'well above-average offensive role' when it is a modest figure with no league context given. The brief also slightly softens f36 ('no better than' rather than 'worse than, should not be trusted'), though it still reaches the right conclusion. Usefulness is good but incomplete: it never engages the z-preservation baselines (25.3% usage, 63.6% TS), which are the most informative contrast to the 18.8% projection and would tell a reader that the model is projecting a substantial loss of standing relative to holding rank; the 0.579 slope is cited but not connected to that gap. Excess decimal precision (21.636, 8.433) is faithful to the bundle but adds no value."
+      },
+      "46d78eb50f3831bf0c951797": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 4,
+        "usefulness": 4,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable and correctly used: 18.7% projection vs 23.9% source and 20.0% league mean; both intervals quoted correctly; the 80% span of 10.6 points is correctly computed and correctly described as ~2 sd of the 5.3% NBA spread; 3.3% vs 4.3% usage error and the 4.7% tie for TS are stated accurately, including that the TS model is not better than the league-mean baseline. Calibration is strong: the headline and risk section explicitly quarantine the TS projection while reporting usage with appropriately hedged confidence, and the small cohort (61) is surfaced. Support is slightly weaker: 'elite playmaking' rests on a raw assist rate with no league-relative standardisation in the bundle, and 'scored efficiently at volume' cites only points per 75, which measures volume not efficiency. Useful and concrete overall, though it ignores the z-preservation baselines (24.5%, 58.4%), the fitted slopes, and the selection effect (+0.46 sd), which would have sharpened the read."
+      },
+      "b2f3b804b34361bbad7d93d2": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable and correctly labelled: 14.4% projection with correct 80% (9.1-19.6%) and 95% (6.4-22.4%) intervals, 18.2% source usage, 20.1% league mean, 55.0% TS projection, matching 4.7% model and baseline errors, 3.3% vs 4.3% usage errors, and the rebound/assist/assist-rate/TS/z-score/age/minutes figures. The claim that the 80% usage interval spans 'roughly two standard deviations' of the 5.2% target distribution checks out (10.5 vs 10.4 points). Support is mostly sound, but two claims stretch: the three-point share (0.4%) is asserted to be 'a profile associated with the typical drop in role' shown in the usage projection, a causal link the bundle does not make, and saying the 55.0% figure is 'effectively just the NBA average (55.7%) restated' goes slightly beyond what the equal-error fact establishes. Calibration is decent \u2014 it correctly refuses the TS projection and stresses interval width \u2014 but the overall label 'low' undersells the usage side that the brief itself shows beats the trivial baseline, and it ignores the cohort size (61 transitions), the selection effect (+0.46 sd), and the slope. Usefulness is solid but would be stronger had it compared the 14.4% projection against the z-preservation baseline (17.9%) and folk rule (13.6%), which is the most decision-relevant contrast available and is absent."
+      },
+      "2ce70e16ac887f46bd31ad66": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable and correctly used: 26.6% source usage, 19.9% projection, 20.1% league mean, the 6.7pp drop is exact arithmetic, both intervals are quoted with the right bounds and labelled as intervals, and the 80% width (11.3pp) is fairly described as roughly two NBA standard deviations (5.6%). The TS side is handled well: 59.1% -> 56.3% against a 58.1% league average, with an explicit and correct statement that the 4.7% model error does not beat the 4.7% league-mean baseline, so the projection is uninformative. Support is mostly sound but has soft spots: 'Efficient scoring for the shot-creation load carried' sits awkwardly against the cited +0.01 sd (exactly EuroLeague average) it quotes in the same sentence; calling the usage projection 'a rank estimate, not a point estimate' is not something the bundle says; and f39 (mover selection effect, generic) is treated as a usage-specific mover average. Calibration is the main shortfall: the brief never mentions that the usage model's 3.3% out-of-fold error beats the 4.3% league-mean baseline over 367 transitions, nor the 61-transition cohort, and instead over-hedges usage into 'covers most of the plausible NBA usage range' and an overall 'low' confidence. The TS caveat justifies low confidence there, but usage is the better-supported half and deserved a firmer read. Still concrete and actionable: specific usage landing point, interval widths, the playmaking/turnover pairing, and the shot-mix figure."
+      },
+      "9bbd8dabd419a7dc4957191e": {
+        "support": 4,
+        "numeric_accuracy": 4,
+        "calibration": 4,
+        "usefulness": 4,
+        "states_unsupported_number": false,
+        "reasoning": "Every figure cited matches the bundle exactly: usage 24.4% -> 19.4%, 80% interval 14.2-24.7%, NBA mean 20.1% with sd 5.2%, usage MAE 3.3% vs 4.3% baseline, TS 53.7% (-0.55 sd) -> 53.0%, TS MAE 4.7% vs 4.7% baseline, 95% lower bound 11.4%, assist figures 7.058 and 32.5%, turnover 18.6%. The interval-width-to-sd comparison ('about two standard deviations', 10.5/5.2) is computed correctly rather than fudged, and the projection is presented as the central estimate rather than a bound. Calibration is the brief's strongest feature: it asserts the usage projection with appropriate confidence because the model beats the trivial baseline, while explicitly declaring the true shooting projection uninformative because the model matches/loses to the league-mean baseline, and it repeats that caveat in the risks rather than quietly reusing 53.0% as a real forecast. Support is generally clean; the one soft spot is calling 18.6% turnover 'elevated' when the bundle supplies no turnover baseline, a qualitative stretch rather than a numeric one. Omissions cost a little usefulness: the 61-transition sample size (f38), the selection-effect caveat (f39), the z-preservation baseline of 25.1% (f20), and the 0.579 slope go unmentioned, and the 25.1% baseline in particular would have sharpened the discussion of whether 19.4% is conservative. Still, a reader can act on this: near-average NBA usage role, wide but rankable interval, ignore the shooting number."
+      },
+      "416f07b724bd2e4962ae4141": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Every figure quoted (23.5%, 18.1%, +0.71 sd, 20.0%, 5.2%, 12.9-23.3%, 10.1-26.1%, 53.2%, 47.4-59.0%, 56.0%, 23.7%, 0.579, 61, +0.46 sd, 4.7% vs 4.7%) matches the bundle exactly, and the projection is used as a projection rather than an interval endpoint; the '80% span is roughly two NBA standard deviations' claim checks out (10.4/5.2). Support is mostly clean: each claim cites facts that actually bear on it, and the risk section correctly ties the usage shortfall to the 0.579 carry-over slope and the z-preservation baseline. Two soft spots: the 'productive scoring line ... on 55.2% TS' strength ignores f23, which places that efficiency 0.52 sd BELOW the EuroLeague average, so the claim is friendlier than the bundle warrants; and 'low 12.5% turnover rate' has no cited benchmark. Calibration is good on the shooting side \read the the TS projation, which it correctly flags as no better than guessing the league mean, but the brief never surfaces f32/f33 \the babaselineline foff usage (3.3% MAE vs 4.3% for league mean), then stamps overall confidence 'low' \that unde-selllssthe theonly par oft odel that actually works. Useful and specific overall \tt aeader could act on the usage range and would rightly ignore the TS number \tt hough omitting the usage error metric leaves the reader without the one figure that justifies trusting it."
+      },
+      "3ba04da7850b62adc0218353": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are accurate throughout: 12.6% projection with the 15.6% source usage, the ~1.4 sd gap below the 20.1% NBA mean (7.5/5.4 = 1.39) is computed correctly, the 80% span of 10.9 points is correctly described as roughly two league sd, and the 95% interval, the 3.3% vs 4.3% usage MAE comparison, and the 4.7%/4.7% true-shooting tie are all reproduced faithfully. Critically, the brief handles the split evidence well: it reports usage assertively-but-bounded because the model beats its baseline there, and explicitly disclaims the true-shooting figure because f36 says the model loses to league mean. Support is mostly sound, with a few soft interpretive leaps: calling 13.3% turnovers 'modest' has no benchmark in the bundle, and 'a profile that fits ... the kind that translates most directly across leagues' is asserted from f08 alone with nothing in the bundle about three-point translation. Calibration is slightly damaged by overstatement in the other direction \u2014 the 95% interval (4.3-20.9%) is described as 'spanning nearly the entire observed range of NBA usage rates' and used to claim a marginal role cannot be distinguished from 'below-replacement,' which is more alarm than the ~3 sd width warrants \u2014 and the blanket 'low' confidence undersells a usage projection whose model demonstrably outperforms the trivial baseline. Usefulness is good but incomplete: it omits the z-preservation baseline (14.8%) and folk-rule (11.7%) comparators, the fitted slope (0.579), and the cohort size (61 transitions), all of which a reader would want to judge how much weight the 12.6% deserves; it does deploy the conditional-selection caveat from f39 effectively. No unsupported quantities."
+      },
+      "c2f639f07b53e542c69b2afc": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable and correctly used: 19.4% projection (not the 13.8% lower bound), 25.7% source usage, 20.1% league mean, the 11.3-point 80% band correctly characterised as ~2 league SDs (11.3/5.6), 26.2% z-preservation, 0.579 slope rendered as 'about 58%', 61 transitions, +0.46 sd selection caveat. The TS handling is exemplary \u2014 it explicitly refuses to treat 59.0% as informative because the 4.7% out-of-fold error ties the league-mean baseline, and it repeats that when comparing against the 58.1% NBA mean. Support is mostly tight, though the turnover claim ('not accompanied by excessive giveaways') is an unsupported judgment: the bundle gives 15.2% with no comparator or league distribution for turnover rate, so the cited facts do not license the evaluative conclusion. Calibration is good on the efficiency side but the brief never surfaces f32/f33 \u2014 the usage model's 3.3% error beating the 4.3% league-mean baseline \u2014 which is the single strongest piece of evidence for trusting the usage read; declaring overall confidence 'low' without engaging that leaves the usage projection under-credited relative to what the bundle supports. Same omission slightly limits usefulness, since a reader cannot tell how much better than trivial the usage number actually is, but the brief is otherwise concrete and directly actionable: trust the role projection as a rank, discard the efficiency projection."
+      },
+      "fa43ef02b1660d6f7d4c9ac2": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "All quoted figures match the bundle exactly and are used for what they measure: 24.7% source usage (f11), 19.5% projection (f13), 20.1% league average (f18), the 14.6\u201324.3% 80% band (f14/f15), and the 4.7% vs 4.7% MAE comparison (f35/f36). The derived claims are also arithmetically sound \u2014 the 9.7-point 80% band is indeed about two 4.8-point SDs, and 19.5% is well within one SD of 20.1%. The brief correctly flags that the true shooting projection should not be trusted, which is the single most important calibration point in the bundle. Weaknesses: it never mentions that the usage model does beat its trivial baseline (3.3% vs 4.3%, f32/f33), so a blanket 'low' confidence slightly undersells the one projection that is defensible; it also omits the cohort size of 61 transitions (f38), the z-preservation baseline of 25.1% (f20), the folk-rule value of 18.5% (f21), and the +0.46 sd selection effect (f39), all of which would sharpen a reader's sense of how much regression to expect and why. One claim overreaches mildly: calling 56.5% TS 'efficient scoring' when the same sentence concedes it is only +0.06 sd, i.e. exactly league average. Otherwise concrete and actionable."
+      },
+      "8bcc868414e6f44953f4bf97": {
+        "support": 4,
+        "numeric_accuracy": 3,
+        "calibration": 4,
+        "usefulness": 4,
+        "states_unsupported_number": false,
+        "reasoning": "Every figure quoted (28.9%, +1.85 sd, 23.3%, 20.0%, 18.0-28.5%, 15.3-31.3%, 3.3% vs 4.3%, 55.3%, 49.5-61.2%, 46.4-64.2%, 4.7% vs 4.7%, 61 transitions, +0.46 sd, 61.2% TS, +0.39 sd, 29.8%, 5.97, 6.727, 15.0%, 33 games, 856 minutes, 50.0%, age 18.0) matches the bundle exactly, and the point estimate is used as the projection rather than an interval bound. The one numeric flaw is interpretive: the 80% usage interval (10.5 points wide) is described as 'spanning most of a single NBA usage standard deviation (5.2%),' when it is roughly two standard deviations \\u2014 an understatement that also contradicts the risks section, which correctly calls the intervals wide relative to 5.2%. Support is strong: each claim cites facts that actually bear on it, including the correct pairing of usage with the z-score and of the TS projection with its MAE-vs-baseline comparison; only the 'may not translate against NBA rim protection' inference from a 50% three-point share is loose, and it is framed as a risk. Calibration is the brief's best feature \\u2014 it explicitly refuses to trust the true shooting projection because the model ties the league-mean baseline, retains appropriate but not paralysing confidence in usage where the model beats the baseline, and flags the conditional-on-selection nature of the +0.46 sd cohort figure. Usefulness is high and specific, though it leaves the z-preservation baseline (29.7%), the folk 0.75 rule (21.6%), and the fitted slope (0.579) unused, which would have sharpened the reader's sense of how much the model discounts the source usage."
+      },
+      "18bc22dfe476e1a43a5477d5": {
+        "support": 3,
+        "numeric_accuracy": 3,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "All quoted figures match the bundle exactly (16.1%, 22.2%, 20.4%, 18.0-26.4%, 15.8-28.6%, SD 4.2%, 3.3% vs 4.3%, 4.7% vs 4.7%, 0.982, 12.2%, 49.0%, -0.82 sd, -0.31 sd, 115), and the interval-width-to-SD comparison (8.4/4.2 = two SDs) is computed correctly. The central weakness is the strengths bullet attributing the projected rise to the 0.982 slope: with the subject 0.82 sd BELOW league average, near-total preservation of standing implies roughly the z-preservation value of 17.0% (f20), not 22.2%. So the slope is cited as if it supported a jump to above-average usage when it actually points the other way. Relatedly, the brief never confronts f20 or f21, the two baselines that most sharply challenge a 22.2% projection for a below-average-usage player \u2014 a notable omission for actionability. Handling of the true shooting projection is exemplary: it correctly flags that the model ties the league-mean baseline and labels the number uninformative rather than reporting it assertively. Overall confidence 'low' is defensible though slightly pessimistic about the usage projection, which the brief itself says beats a trivial baseline; 'moderate for usage, none for TS' would have been sharper. No fabricated quantities."
+      },
+      "b37c2bf3973c4f2981fe3b6c": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Every figure quoted matches the bundle exactly: 22.1% projection, 15.3% source usage and -0.97 sd, 17.6-26.5 and 15.3-28.8 intervals, 20.6%/4.4% league context, 3.3% vs 4.3% MAE, 64.7%/+1.93 sd, 63.6% projection with 4.7%/4.7% MAE, 70.9% z-preservation, slopes 0.982 and 0.534, 115 transitions, -0.31 sd, 2,274 minutes/76 games. The derived claims are also correct (8.9-point band \\u2248 two league sds; 22.1 is 1.5 above 20.6). Calibration is largely sound: the brief correctly demotes the true shooting projection because the model only ties the league-mean baseline, and hedges usage as a band rather than a point estimate while noting the model does beat its baseline. Two weaknesses. First, listing the 0.982 usage slope as a strength implying 'a central rather than marginal role' is a misapplication for a player who sat 0.97 sd BELOW league average usage \\u2014 near-full carryover of below-average standing argues against the 22.1% figure, not for it, so that claim does not really follow from f34. Second, the brief never engages with f20 (z-preservation 16.3%) or f21 (folk rule 11.5%), both of which sit far below the projection and are the most obvious tension in the bundle; the reader is left unaware that the headline projection contradicts the standing-preserving baseline. Age (f02) and the shot-profile facts (f08-f10) are also unused. Still specific and actionable on the numbers it does cover."
+      },
+      "1c714feb3cb5986814bec21e": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "All quoted figures match the bundle exactly: 21.2% source usage, 25.0% projection, 20.6%/4.4% EuroLeague mean and SD (and the derived '~1 SD above mean' is arithmetically right), both intervals, both MAE pairs, TS 54.0%/+0.02 sd/58.4%, and the -0.31 sd selection figure is read correctly as below-average. Interval widths expressed in SDs (2 SD at 80%, ~3 SD at 95%) are accurate. The central call \u2014 assert usage direction, explicitly refuse the TS projection because MAE ties the league-mean baseline \u2014 is exactly the right reading of f35/f36. Support slips slightly: calling +0.23 sd 'an established high-usage role' and describing the subject as a 'high-usage wing' overstates a barely-above-average usage z, and the claim of 'no multi-year track record' is an inference about bundle silence rather than an evidenced fact. Calibration is broadly sound, though the overall 'low' label undersells a usage estimate that beats the trivial baseline on 367 held-out transitions with 115 same-direction moves, and the brief never confronts the tension between the near-unity slope (0.982) and a projection well above the z-preservation baseline of 21.6% \u2014 omitting f20, f21, and f34 also costs some usefulness, since a reader gets no comparison against the naive anchors."
+      },
+      "ca14fdca7bef7b8cfb8c4792": {
+        "support": 4,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers all check out against the bundle: 18.4% source usage, 23.0% projection, 20.3% league mean, both intervals quoted correctly, and the 13.6-point 95% span is indeed ~3.1 EuroLeague sd. The MAE comparisons are used correctly and for what they measure \u2014 the usage model beating league_mean (3.3% vs 4.3%) is presented as signal, while the TS projection (4.7% vs 4.7% baseline) is explicitly flagged as untrustworthy, which is the single most important reading of this bundle. Claims track the facts they cite; the only soft spot is the age-30 risk, where 'older end for translating production' is a generic inference layered on f02 rather than something the bundle establishes. Calibration is good on the TS side and mostly good on usage, though labelling overall confidence 'low' slightly undersells a usage projection that beats the trivial baseline and rests on 115 transitions. Usefulness is solid but incomplete: it never confronts the sharpest tension in the bundle \u2014 the 23.0% projection sits well above the z-preservation baseline of 18.8% (f20) even though the fitted usage slope is 0.982 (f34), and the folk 0.75 rule gives 13.8% (f21). A reader is also given no role detail (18.1% three-point share, 3.5 assists and 5.9 rebounds per 75, -0.33 sd source usage standing) that would make the projected role increase concrete."
+      },
+      "365663212822296cca7fea91": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 4,
+        "usefulness": 4,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable to the bundle and used for what they measure: source usage 20.9% and +0.15 sd, projection 25.1%, both intervals, EL mean/sd 20.2%/4.7%, TS 49.0%/-1.46 sd, projected TS 54.0%, slope 0.534, cohort -0.31 sd, and both MAE-vs-baseline pairs (3.3 vs 4.3; 4.7 vs 4.7). The interval-width-to-sd comparisons check out (9.5 vs 9.4; 14.5 vs 14.1). Calibration is the brief's strength: it asserts the usage projection where the model beats the trivial baseline, and explicitly refuses to trust the TS projection where the model ties/loses to league_mean, while still flagging the wide usage interval and the atypical mover cohort. Support is slightly weaker than the rest: the 'secure ball-handling to build an expanded role around' inference goes a little past a bare turnover rate, and 'most of that shortfall would not simply wash out' overstates a 0.534 slope (barely half carries). It also ignores the tension between the near-unity usage slope (0.982) and the z-preservation baseline of 20.9% versus a 25.1% point estimate, and never uses f20/f21, which a careful analyst would have reconciled. Still concrete and actionable throughout."
+      },
+      "e8ecac4a3f96ac312d38eb8b": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all faithful to the bundle: 20.1%\u219224.6% usage, EL mean 20.5%, 80% interval 20.4\u201328.7 (span 8.3 \u2248 2.0 sd of 4.1), 95% 18.2\u201330.9, TS 59.3%, MAE 3.3 vs 4.3 baseline for usage and 4.7 vs 4.7 for TS, slopes 0.982 and 0.534, 115 transitions, cohort -0.31 sd, and the derived 'two standard deviations' is computed correctly. No invented figures. Support is mostly sound, with two flaws: the claim that the 0.982 usage slope 'supports the projected rise above the EuroLeague average' is a mis-inference \u2014 with the subject at +0.02 sd, near-full carryover implies roughly the z-preservation value of 20.6% (f20), not 24.6%, so the cited fact undercuts rather than supports the projected jump; and describing 1,824 minutes over 82 games (22 mpg) with average usage as 'high-volume perimeter production' overreaches. The single best-calibrated element is the explicit refusal to use the TS projection because the model loses to the league-mean baseline. Calibration is otherwise reasonable but slightly muddled: labelling everything 'low' understates a usage model that beats its trivial baseline over 367 transitions, and the brief never confronts the biggest tension in the bundle \u2014 the projection sits ~4 points above both the z-preservation baseline (20.6%) and far above the folk rule (15.1%), which a careful reader would want flagged. Usefulness is solid and concrete (clear split between a usable usage number and an unusable efficiency number, plus the cohort-selection caveat), but omitting the baseline comparisons leaves the reader without the sharpest check on the headline figure."
+      },
+      "154c9cf66ac5a816cc9aed7c": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "All quoted figures match the bundle exactly: usage 18.3% -> 22.8%, 80% interval 18.7-27.0%, 95% interval 16.5-29.2%, league mean 20.3% / sd 4.2%, TS 52.2% -> 56.6%, z-scores -0.34 and -0.37, MAEs 3.3% vs 4.3% and 4.7% vs 4.7%, 367 held-out transitions, cohort selection -0.31 sd, two-season gap. The derived claim that the 80% usage interval spans 'roughly two standard deviations' (8.3/4.2 = 1.98) is correct arithmetic. The brief correctly and prominently flags that the true-shooting model loses to the league-mean baseline and should not be used \u2014 the single most important calibration point in the bundle. Weaknesses: a couple of qualitative strengths are inferences beyond the cited facts (12.1% turnover called 'low' with no comparator in the bundle; a 62.8% three-point share asserted to 'translate well to a floor-spacing role' \u2014 no fact about translation of shot profile exists). It also omits the z-preservation baseline (18.9%) and the folk 0.75 rule (13.8%), which matter because the 22.8% projection implies a role increase well above simply holding standing, and the fitted usage slope of 0.982 would have supported that discussion; this limits usefulness. Overall confidence label 'low' sits slightly awkwardly with the text's own (correct) statement that the usage projection is informative and beats the trivial baseline \u2014 'medium' with a carve-out for efficiency would have been better calibrated."
+      },
+      "f8d646d40386533330e015e4": {
+        "support": 4,
+        "numeric_accuracy": 4,
+        "calibration": 4,
+        "usefulness": 4,
+        "states_unsupported_number": false,
+        "reasoning": "Every figure quoted matches the bundle exactly: usage 21.2%\u219224.5% with correct 80% (20.4\u201328.7) and 95% (18.2\u201330.9) intervals, the derived 8.3-point span and its comparison to the 4.2% league sd are both correct, TS 50.4% / -0.73 sd, 55.9% projection, 4.7% vs 4.7% baseline error, 3.3% vs 4.3% usage error over 367 transitions, cohort n=115, and the -0.31 sd conditional selection figure. Claims are attached to facts that actually support them rather than merely adjacent ones (e.g., turnover rate paired with the usage increase, assist rate with playmaking load). Calibration is strong: the brief foregrounds that the true-shooting projection is uninformative because the model does not beat the league-mean baseline, refuses to draw efficiency conclusions from it, treats the usage projection as rank-level rather than point-precise given the wide interval, and settles on 'moderate' confidence. Minor missed opportunity: it does not confront the tension between the 24.5% projection and the z-preservation baseline of 21.3% (or the 0.982 slope), which would have sharpened the discussion, and the folk-rule figure is ignored. Still, the brief is concrete, correctly scoped, and directly actionable."
+      },
+      "c63848ad830c5f9445902dff": {
+        "support": 4,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "All figures check out against the bundle: usage 17.6%\u219223.1% (f11/f13), EL mean 20.0% (f18), 80% PI 18.6\u201327.6% which is indeed 2.0 SDs wide against SD 4.5% (f14/f15/f19), 95% PI 16.3\u201330.0% \u2248 3.0 SDs (f16/f17), usage MAE 3.3% vs baseline 4.3% (f32/f33), slope 0.982 (f34), TS 51.5% / -0.53 sd (f22/f23), TS MAE 4.7% equal to baseline 4.7% (f35/f36), assist rate 28.7% and 7.033 ast/75 (f06/f10), turnover 21.0% (f09), 115 transitions and -0.31 sd selection (f38/f39). No invented quantities and no interval bound quoted as a point estimate. Claims are attached to facts that actually support them; the only mildly interpretive step is calling 28.7% assist rate 'strong' without a cohort reference, and the 'modest selection margin' framing of a negative z-value is a bit loose. Calibration is mostly sound \u2014 it correctly refuses to use the TS projection and correctly credits the usage model for beating its baseline \u2014 but the overall 'low' label sits awkwardly against a usage projection the brief itself says has 'real weight', so it under-claims on the one dimension where the evidence is decent. Usefulness is good but incomplete: it never engages with the z-preservation baseline of 17.8% (f20) or the folk rule 13.2% (f21), and the projection of 23.1% is 5.3 points above z-preservation, which is the single most interesting tension in the bundle and goes unmentioned."
+      },
+      "a5f984d69b6d7ae03a13f7cd": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable and correctly labelled: 19.5% source usage (f11), 23.9% projection (f13), 20.3% league mean (f18), both intervals quoted accurately, the 8.9pp 80% span correctly described as roughly two EuroLeague sds (4.4%), and the TS error comparison (4.7% vs 4.7% league-mean baseline) is read exactly right. The strongest part of the brief is the explicit refusal to trust the 54.7% true-shooting projection, correctly grounded in f36 and consistently applied to the 0.534 slope as well. Support slips in two places. First, the claim that the projected usage increase 'tracks a slope of 0.982' misattributes the mechanism: with a slope near 1 and a source z of -0.11 sd, near-full preservation of standing implies roughly the z-preservation value (19.8%, f20, unmentioned), not 23.9%; the slope cited does not explain the +4.4pp jump, so it is a nearby fact rather than a supporting one. Second, calling a player at -0.11 sd usage and -0.52 sd TS an 'unusual case' against a cohort that averaged -0.31 sd is not supported \\u2014 he is close to typical for the selected cohort. On calibration, the brief handles the TS metric well but under-sells the usage side: it never mentions that the usage model beats its trivial baseline (3.3% vs 4.3%, f32/f33) over 367 transitions, and then labels overall confidence 'low', which is more hedged than the usage evidence warrants; omitting the z-preservation baseline also removes the reader's best check on whether the 23.9% figure is aggressive. Useful and specific on the numbers it does cover \\u2014 a reader learns which projection to act on and which to discard \\u2014 but the perimeter-profile and 'efficient decision-making' lines are generic filler, and the missing baseline comparisons cost actionability."
+      },
+      "9cb6cc6fc32dddd32a244b54": {
+        "support": 4,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Every figure quoted matches the bundle exactly (13.8%, 16.9%, 8.5\u201319.0%, 5.7\u201321.8%, 20.0%/5.3%, 53.7%, 4.7% vs 4.7%, 61.6%/+1.10 sd, 9.4%, 9.7%, 15.2/2.2/5.1 per 75, +0.27 sd, 45 transitions), and the derived remark that the 80% usage band is 'roughly two standard deviations' of the NBA distribution checks out (10.5 vs 5.3). Claims are tied to facts that actually support them; the only soft spot is listing a 9.7% assist rate as a 'strength' with no baseline to judge it against, and the +0.27 sd selection fact is framed as a strength when the bundle explicitly flags it as conditional on the move happening. Calibration is good on the shooting side \u2014 it correctly refuses to use the TS projection because the model ties the league-mean baseline \u2014 but the brief never mentions that the usage model does beat its trivial baseline (3.3% vs 4.3%, f32/f33), so labelling overall confidence 'low' slightly undersells the one projection that is defensible, even while the headline states it assertively. Usefulness is solid and concrete but leaves the most decision-relevant comparators unused: the z-preservation baseline of 16.5% and the folk 0.75 rule at 12.6% would have told a reader how much of the projected usage drop is model-specific, and the 0.529 usage slope goes unmentioned."
+      },
+      "84761a752dc1b35c6d023b17": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all accurate: 20.0% projection, 14.7\u201325.3% 80% interval, the correct arithmetic that the interval spans about two league SDs (10.6 vs 5.3), 25.0%/+1.10 sd source usage, 57.4%/+0.33 sd TS, 23.4% assist rate and 4.993 ast/75, the 0.529 slope, n=45, and 16.7% turnover rate. Crucially it uses f36 correctly: the TS model ties/does not beat the league-mean baseline (4.7% vs 4.7%) and it explicitly tells the reader not to trust 52.3% \u2014 the single most important calibration move available in this bundle. Support is mostly clean, with two soft spots: labelling the 16.7% turnover rate 'a data point of concern' has no comparative anchor anywhere in the bundle, and the inference that the model 'does not expect the role to collapse despite the typical shrinkage captured by the 0.529 slope' is a reasonable but not directly stated reading. Calibration is good on efficiency but slightly under-confident overall: the brief never mentions f32/f33, where the usage model's 3.3% MAE beats the 4.3% league-mean baseline, so the blanket 'low' confidence undersells the one metric the evidence actually supports. Usefulness is solid and specific, though it omits the two most informative comparisons in the bundle \u2014 the z-preservation baseline of 25.9% (which would show the model projecting well below simple standing preservation) and the 18.8% folk-rule figure \u2014 and never mentions the subject's age of 21.0 or the selection caveat in f39."
+      },
+      "2d2bf8a33e83106fbdd960e9": {
+        "support": 2,
+        "numeric_accuracy": 2,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": true,
+        "reasoning": "The brief is fluent and mostly well-anchored: usage projection (11.9% vs 15.5% source, 20.1% league average), the 80% interval (6.4\u201317.4%) compared sensibly to the 5.5% NBA sd, the z-preservation (14.7%) and 0.75x folk (11.6%) baselines, the 0.529 usage slope with 3.3% vs 4.3% baseline error, and the correct, prominent warning that the 56.4% TS projection is untrustworthy because its 4.7% error ties the league-mean baseline. Cohort size (45) and the two-season gap are flagged. The major failure is strength #2: it cites f13 (-0.97 sd) to claim the player 'already sat well above their own league's average usage,' which is the exact opposite of the evidence, and it conflates the subject's own z with the cohort-level +0.27 sd selection figure \u2014 a sign inversion that misleads the reader about the player's role profile. Additionally, 'over two-thirds of shot attempts coming from three' overstates the bundle's 65.9% (two-thirds is 66.7%). Calibration is otherwise strong \u2014 it separates the trustworthy usage forecast from the untrustworthy TS forecast and does not overclaim precision \u2014 though the blanket 'low' confidence slightly undersells the usage model's edge over the trivial baseline. Usefulness is good but dented by the false strength."
+      },
+      "70cef039f9eca01b540bb4e1": {
+        "support": 3,
+        "numeric_accuracy": 2,
+        "calibration": 3,
+        "usefulness": 4,
+        "states_unsupported_number": true,
+        "reasoning": "Nearly all figures are pulled correctly from the bundle (15.5% usage, 20.0%/5.2% league context, 10.3-20.7% and 7.5-23.5% intervals, 3.3% vs 4.3% usage MAE, 4.7% vs 4.7% TS MAE, slopes 0.529 and 0.798, +0.27 sd cohort, 45 transitions, 2-season gap), and the uncertainty section correctly and prominently flags that the true shooting projection loses to the league-mean baseline and should not be trusted \u2014 a real calibration strength. Two numeric problems: the projection text says 15.5% is 'below the 15.0% a simple 0.75x rule would suggest', which reverses the direction (15.5% is above 15.0%); and the claim that the 80% interval spans 'roughly two-fifths of the league's usage spread' is not supported \u2014 the interval is 10.4 points wide, exactly two league standard deviations (5.2%), so the fraction as stated does not follow from any bundle quantity. Support is otherwise tight, with facts cited for the claims they actually back (minor looseness in citing f39 alongside the slope claim). Calibration is good on the usage/TS split, though the blanket 'low' overall confidence slightly undersells a usage model that demonstrably beats its trivial baseline. Usefulness is high: concrete role forecast, explicit baseline comparisons, cohort size, and a clear instruction on which metric to ignore."
+      },
+      "b9410ddf142611fd9c7a2319": {
+        "support": 4,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Every figure quoted \u2014 usage 19.3% source vs 15.7% projected, 80% (10.5\u201320.9) and 95% (7.7\u201323.7) intervals, NBA mean 20.1% with sd 5.2%, TS 53.0% with its intervals, 4.7% vs 4.7% baseline error, assist rate 25.8%, 6.21 ast/75, TS 57.5% at +0.39 sd, 34.3% three-point share, 23.4% turnover rate, 45 transitions \u2014 matches the bundle exactly, and each is used for what it measures. The 'nearly a full standard deviation below average' gloss is a fair reading of the 0.85 sd gap and not a fabricated number. Claims map cleanly to the cited facts; the only soft spot is calling 23.4% turnovers 'high' with no comparator in the bundle. Calibration is mostly good \u2014 it correctly refuses to treat the TS projection as informative given the model ties the league-mean baseline \u2014 but it never cites f32/f33, where the usage model does beat its trivial baseline (3.3% vs 4.3%), and then labels overall confidence 'low', understating what the usage forecast actually supports. That omission also costs usefulness: the reader gets the interval but not the evidence that the usage number is worth acting on, and the selection effect (+0.27 sd, f39) and fitted slopes go unmentioned. Otherwise concrete and specific rather than generic."
+      },
+      "06c6bc819025663ac0215fed": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable and correctly used: 19.9% is quoted as the projection (not an interval bound), 26.1% source usage, 20.1% league mean, the 14.5-25.4 span is correctly computed as ~10.9 points, 4.7% vs 4.7% baseline for TS is exactly right, and 0.529 is rendered as 52.9% carryover appropriately. No fabricated figures. Support is mostly solid, with two soft spots: the claim that a 14.4% turnover rate plus 11.7% assist rate indicates 'efficient, low-mistake scoring usage' is an interpretive leap not grounded in any comparative fact, and the assertion that the projection 'does not directly account for' the two-season gap is an inference about model internals the bundle does not state. Calibration is good on the headline decision \u2014 it correctly refuses to trust the TS projection because the model ties the league-mean baseline, and it hedges usage by interval width relative to the 5.4% league SD. But it never mentions f33/f34, where the usage model beats its trivial baseline (3.3% vs 4.3%), and stamps overall confidence 'low', slightly under-selling the one metric the bundle says is informative. Usefulness is decent and concrete, though it omits the two benchmark alternatives that would sharpen the read: the z-preservation figure of 27.0% and the folk-rule 19.6% (which nearly agrees with the model), and it does not flag the selection caveat in f40."
+      },
+      "85e22b97f18f67d27337ba2d": {
+        "support": 4,
+        "numeric_accuracy": 4,
+        "calibration": 4,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Every figure cited checks out against the bundle: usage 22.6% -> 17.8%, 80% interval 12.5-23.0 (correctly described as a 10.5-point span, ~2 SD of the 5.2% league SD), 95% interval 9.8-25.8, league mean 20.0%, TS 58.7% (+0.52 sd) and 53.5% projection, usage MAE 3.3% vs 4.3% baseline, TS MAE 4.7% equal to the baseline over 367 transitions, cohort of 45. No invented or subtly-off numbers, and no interval bound is passed off as the point estimate. Support is clean: each claim rests on the facts it cites; the only slightly loose citation is f13 attached to the playmaking-compression risk, which is at least a plausible inference rather than a mere adjacency. Calibration is a strength: the brief distinguishes the usage projection (beats the league-mean baseline, so trusted directionally but not to a point) from the true-shooting projection (explicitly flagged as no better than guessing the league average, per f36), and an overall 'low' confidence is defensible given the 10.5-point 80% band and 45-transition cohort. Usefulness is good but not maximal: it ignores the z-preservation baseline (22.9% usage, 58.6% TS), the 0.75 folk rule (17.0%), the fitted slopes, and the selection-conditional +0.27 sd note, all of which would have sharpened the reader's sense of how much of the projected usage drop is model-specific versus mechanical. Reporting 20.062 and 9.922 to three decimals is verbatim but needlessly precise."
+      },
+      "eb01e18af9e51672dd67f3b1": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable to the bundle and used for what they measure: 14.4% is the projection (not the interval bound), the z-score derivation ((14.4-20.1)/5.2 \u2248 -1.1 sd) is correct, the 80% interval width is correctly translated into ~2 sd of the receiving league, and the true-shooting error comparison (4.7% vs 4.7% league-mean baseline) is stated exactly as the bundle does. Source-season stats (13.182 reb/75, 3.014 ast/75, 12.4% assist rate, 0.7% three share, 16.9% TOV, 44 games, 1,469 minutes) are quoted verbatim. Support is mostly sound, with two soft spots: 'consistent with the general pattern of shrinking roles on the move up' is an unsupported generalisation not tied to the fitted slope (f34, uncited), and 'strong rebounding' is an unstandardised raw rate presented as a strength without any cohort reference. The risks section also says 'roughly a full standard deviation' where the projection section correctly said 1.1 \u2014 a mild internal inconsistency rather than an error. Calibration is decent \u2014 the brief correctly refuses to draw an efficiency conclusion and flags the wide usage interval \u2014 but the global 'low' confidence label undersells the usage projection, which the bundle says beats its best trivial baseline (3.3% vs 4.3%); that MAE comparison is never reported, nor is the 45-transition cohort size, which is the strongest single reason for caution. Usefulness is solid and specific, but it omits the z-preservation baseline (17.7%), which disagrees sharply with the 14.4% projection and would be the most decision-relevant tension for a reader, and it omits the folk-rule figure and the subject's age."
+      },
+      "f3a153227a50b5968f2d4242": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "Numbers are all traceable to the bundle and used for what they measure: 14.1% as the point projection (not the interval bound), 17.6% source usage, 20.1% league mean, the 8.8\u201319.3 span correctly computed as ~10.5 points and correctly described as roughly two league SDs (5.2%), 45 transitions, 4.7% vs 4.7% for the TS model against the league-mean baseline. Support is mostly clean, with two soft spots: f39 is a cohort-level selection statistic and calling +0.27 sd 'consistent with the subject's own standing' glosses over the fact that the subject's usage z is -0.50 (only the TS z of +0.19 is near it); and 'the source-season sample is limited' is an editorial characterisation of 1,463 minutes / 50 games that the bundle does not establish. Calibration is decent \u2014 it correctly refuses to use the TS projection and flags the interval width \u2014 but it never cites f32/f33, where the usage model beats the trivial baseline (3.3% vs 4.3%), and so labels the whole brief 'low' confidence when the usage half of the evidence is the stronger half; the headline's 'below league average' assertion also sits slightly firmly next to an interval that reaches 19.3%. Usefulness is solid: a reader learns which number to act on and which to discard, though the z-preservation baseline (17.5%) and the 0.529 slope are left on the table, which would have sharpened the 'usage falls' story."
+      },
+      "42e260d1fc1cd981bc8b6282": {
+        "support": 3,
+        "numeric_accuracy": 4,
+        "calibration": 3,
+        "usefulness": 3,
+        "states_unsupported_number": false,
+        "reasoning": "All quoted figures (25.0%, 19.2%, 14.0-24.5%, 11.2-27.3%, 20.1%, sd 5.2%, 53.6%, 4.7% vs 4.7%, 45 transitions, 43 games, 1,451 minutes, 26.1%, 11.9%, 5.779, 20.886, 57.4%, +0.32, +1.10, 33.9%) match the bundle exactly, and the interval-width-to-sd comparison (10.5 vs ~10.4) is correctly computed and correctly labelled as an interval, not a point estimate. The central calibration judgement is right: it flags the true shooting projection as no better than the league-mean baseline and refuses to lean on it, while treating usage as the more reliable of the two. Weaknesses: it never cites the usage model's own error (3.3% vs 4.3% baseline, f33/f34), which is the single fact that would justify the usage projection's credibility, so the blanket 'low' confidence is slightly under-confident on the metric that actually works. It also ignores the z-preservation baseline (25.8%) and folk rule (18.8%), both of which bracket the projection informatively, plus the two-season gap (f11) and the selection-effect caveat (f40) \u2014 all material omissions for a reader deciding what to do. Internal contradiction on turnover rate: 'a modest 11.9% turnover rate' in strengths versus 'a relatively high turnover rate of 11.9%' in risks, and calling 33.9% of shots from three 'heavy reliance' with unexplained variance implications is an interpretive stretch rather than a supported inference."
+      }
+    }
+  }
+}

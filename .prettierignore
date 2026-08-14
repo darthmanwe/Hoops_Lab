@@ -1,0 +1,23 @@
+node_modules/
+.next/
+.wrangler/
+dist/
+build/
+coverage/
+package-lock.json
+uv.lock
+
+# Generated. Regenerate with `npm run gen`, never hand-edit.
+contracts/openapi.json
+apps/web/src/lib/api/generated/
+apps/api/migrations/
+docs/data-dictionary.md
+
+# Written by `hoopslab train`. These are the audit trail for every reported
+# number, so they are committed but never hand-edited or reformatted.
+services/ml/runs/
+
+# Binary snapshots.
+data/gold/
+data/bronze/
+data/silver/

@@ -1,0 +1,8 @@
+{
+  "key": "70cef039f9eca01b540bb4e1",
+  "states_unsupported_number": true,
+  "notes": "Says the 15.5% projection is 'below the 15.0% a simple 0.75x rule would suggest'. Both figures are in the bundle (projection 15.48%, folk rule 14.96%), but 15.5 is above 15.0, so the comparison is inverted.",
+  "labelled_by": "claude-opus-5 reading each report against its evidence bundle",
+  "person_id": "nba_1628035",
+  "direction": "GL->NBA"
+}

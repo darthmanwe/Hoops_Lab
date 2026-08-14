@@ -2,11 +2,63 @@ name = "hoopslab-api"
 main = "src/index.ts"
 compatibility_date = "2026-02-25"
 
-[[d1_databases]]
+# Structured request logs are captured by Workers Logs, so there is no separate
+# logging service to run or pay for.
+[observability]
+enabled = true
+
+# No bindings are declared at the top level, deliberately. Previously the
+# production D1 and KV ids lived here, which meant `wrangler dev` and
+# `wrangler deploy` both pointed at the production database. With bindings
+# only under named environments, a bare `wrangler deploy` fails loudly instead
+# of silently writing to production.
+
+# --------------------------------------------------------------------------
+# dev — local only. `wrangler dev --env dev` runs against a miniflare-managed
+# SQLite file, so this id is never resolved remotely.
+# --------------------------------------------------------------------------
+[env.dev]
+vars = { APP_ENV = "dev", DATA_SNAPSHOT = "" }
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "hoopslab-dev"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+[[env.dev.kv_namespaces]]
+binding = "CACHE"
+id = "00000000000000000000000000000000"
+
+# --------------------------------------------------------------------------
+# staging — what pull-request previews bind to. Never production.
+# --------------------------------------------------------------------------
+[env.staging]
+vars = { APP_ENV = "staging", DATA_SNAPSHOT = "" }
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "hoopslab-staging"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "00000000000000000000000000000000"
+
+# --------------------------------------------------------------------------
+# production
+#
+# This database still holds the fabricated seed rows from the previous version.
+# Nothing can read them: every data route now returns 501 or 410. It is dropped
+# and recreated from real migrations in phase 3.
+# --------------------------------------------------------------------------
+[env.production]
+vars = { APP_ENV = "production", DATA_SNAPSHOT = "" }
+
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "hoopslab-db"
 database_id = "f942bd6f-366d-4173-9589-fe521d007334"
 
-[[kv_namespaces]]
+[[env.production.kv_namespaces]]
 binding = "CACHE"
 id = "932a10558aa04f7d96b218fe3d49de20"

@@ -1,0 +1,107 @@
+{
+  "columns": [
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "season_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "source_team_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "league",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "team_name",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 85.0,
+      "minimum": 1.0,
+      "name": "team_gp",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 23099.523333,
+      "minimum": 2.7,
+      "name": "team_minutes",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 8374.0,
+      "minimum": 0.0,
+      "name": "team_fga",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 4010.0,
+      "minimum": 0.0,
+      "name": "team_fgm",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2952.0,
+      "minimum": 0.0,
+      "name": "team_fta",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1537.0,
+      "minimum": 0.0,
+      "name": "team_tov",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 11109.0,
+      "minimum": 0.0,
+      "name": "team_pts",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2703.0,
+      "minimum": 0.0,
+      "name": "team_ast",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 1405.0,
+      "minimum": 0.0,
+      "name": "team_oreb",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 3639.0,
+      "minimum": 1.0,
+      "name": "team_dreb",
+      "null_rate": 0.0
+    }
+  ],
+  "content_hash": "be6e83e1965b05f2a0702476213ff61d",
+  "contract_version": 1,
+  "n_columns": 14,
+  "n_rows": 1433,
+  "table": "team_seasons"
+}

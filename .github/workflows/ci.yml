@@ -2,48 +2,193 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "revamp/**"]
   pull_request:
   workflow_dispatch:
 
+# Without this, pushing twice in quick succession runs both to completion and
+# the first result is meaningless.
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Belt and braces alongside the autouse fixture in tests/conftest.py:
+  # guarantees no test can reach the paid API even if one slipped past the
+  # marker gating.
+  ANTHROPIC_API_KEY: ""
+
 jobs:
-  validate:
+  js-quality:
+    name: JS lint, format, typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: .nvmrc
+          cache: npm
+      # `npm ci` rather than `npm install`: it fails when package.json and the
+      # lockfile disagree, which is the enforcement the previous pipeline
+      # lacked while six dependencies were pinned to "latest".
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run type
 
-      - name: Install API deps
-        working-directory: apps/api
-        run: npm install
-
-      - name: API typecheck
-        working-directory: apps/api
-        run: npm run typecheck
-
-      - name: Install Web deps
-        working-directory: apps/web
-        run: npm install
-
-      - name: Build Web
-        working-directory: apps/web
-        run: npm run build
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+  js-test:
+    name: Worker tests (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Windows is in the matrix because it is the primary development
+        # machine and has already produced platform-specific path bugs.
+        os: [ubuntu-latest, windows-latest]
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          python-version: "3.11"
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Run tests in workerd
+        working-directory: apps/api
+        run: npx vitest run
 
-      - name: Install Poetry + ETL deps
-        working-directory: data/etl
+  py-quality:
+    name: Python lint, format, typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv sync --frozen --extra dev
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+
+  py-test:
+    name: Python tests (${{ matrix.os }}, py ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: services/ml
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv python install ${{ matrix.python }}
+      # `--frozen` fails rather than silently re-resolving, so the lockfile is
+      # the single source of truth for what CI actually tested.
+      - run: uv sync --frozen --extra dev --python ${{ matrix.python }}
+      # `--python` is required here as well as on the sync above. Without it,
+      # `uv run` honours services/ml/.python-version (3.12), rebuilds the
+      # virtualenv for that interpreter, and discards the matrix environment
+      # along with pytest itself — so the job fails with "program not found"
+      # rather than testing the version it claims to.
+      - run: uv run --frozen --extra dev --python ${{ matrix.python }} pytest --cov --cov-report=term-missing
+
+  data-contract:
+    name: Committed gold matches its contracts
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv sync --frozen --extra dev
+      # No network, and no `ingest` extra installed. This is the check that
+      # makes the committed snapshot trustworthy: if a transform change alters
+      # the data behind a number in the README, the build fails rather than the
+      # number quietly moving.
+      - run: uv run hoopslab verify
+
+  repro:
+    name: Reported metrics reproduce
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv sync --frozen --extra dev
+      # Refits every model from the committed data, with no network, and fails
+      # if any reported metric has moved. This is what makes the numbers in the
+      # README and the model card checkable rather than asserted: they cannot
+      # silently stop being true.
+      - run: uv run hoopslab train --verify
+
+  no-fabricated-data:
+    name: No endpoint serves fabricated data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # The phase 0 guarantee, enforced rather than asserted in prose. The
+      # suite includes a test that walks every registered route and requires a
+      # non-2xx response from anything not backed by real, fitted output.
+      - name: Assert every data route is withdrawn
+        working-directory: apps/api
+        run: npx vitest run test/routes.test.ts
+
+      - name: Assert the fabricated ETL has not returned
         run: |
-          pip install poetry
-          poetry install --no-interaction
+          if [ -d data/etl ]; then
+            echo "::error::data/etl was reintroduced. It contained 723 lines of hardcoded statistics."
+            exit 1
+          fi
 
-      - name: Run ETL artifact build
-        working-directory: data/etl
-        run: poetry run nightly --out ../../data/etl_out
+  groundedness:
+    name: Scouting reports are grounded
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv sync --frozen --extra dev
+      # Re-scores every committed report against evidence rebuilt from
+      # committed gold. No API key, no network, no cost — which is the point:
+      # a groundedness figure that can only be re-measured by spending money
+      # is a figure nobody will re-measure, so it stops being checked and
+      # starts being folklore.
+      #
+      # This also catches a subtler failure than a bad report. If a transform
+      # change moves the data, the rebuilt evidence no longer matches what the
+      # model was shown, every response is dropped as stale, and the run has
+      # nothing to score — so prose quietly describing superseded numbers
+      # fails the build instead of shipping.
+      - run: uv run hoopslab report-eval --per-direction 10

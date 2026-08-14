@@ -1,0 +1,107 @@
+{
+  "columns": [
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "person_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "source_league",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "source_season_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Int32",
+      "maximum": 2023.0,
+      "minimum": 2005.0,
+      "name": "source_season_order",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2309.245,
+      "minimum": 405.383333,
+      "name": "source_minutes",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 34.0,
+      "minimum": 18.0,
+      "name": "source_age",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "player_name",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "target_league",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "target_season_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Int32",
+      "maximum": 2024.0,
+      "minimum": 2007.0,
+      "name": "target_season_order",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2317.74,
+      "minimum": 302.083333,
+      "name": "target_minutes",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 36.0,
+      "minimum": 19.0,
+      "name": "target_age",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "direction",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "Int32",
+      "maximum": 2.0,
+      "minimum": 1.0,
+      "name": "gap_seasons",
+      "null_rate": 0.0
+    }
+  ],
+  "content_hash": "dac9c26421579c53d915ce8196f893a5",
+  "contract_version": 1,
+  "n_columns": 14,
+  "n_rows": 414,
+  "table": "transition_pairs"
+}

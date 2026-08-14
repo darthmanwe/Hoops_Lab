@@ -1,53 +1,76 @@
-# Deployment (Cloudflare Free)
+# Deployment
 
-## 1) Deploy API Worker
+> **Phase 0 status.** The API deploys and answers `/` and `/health`. Every
+> analytics endpoint returns `501` or `410`. There is no data load step,
+> because there is no data — the previous one uploaded hand-written constants.
 
-From `apps/api`:
+## Environments
 
-```powershell
-npm install
-npx wrangler deploy
+Bindings are declared per environment in `apps/api/wrangler.toml`, with none at
+the top level. `wrangler deploy` without `--env` therefore fails rather than
+targeting production, which is what the previous configuration did silently.
+
+| Environment  | D1                 | Purpose               |
+| ------------ | ------------------ | --------------------- |
+| `dev`        | local miniflare    | `wrangler dev`, tests |
+| `staging`    | `hoopslab-staging` | Pull-request previews |
+| `production` | `hoopslab-db`      | Live                  |
+
+`hoopslab-dev` and `hoopslab-staging` are created in phase 3 alongside the
+first real migrations; their ids are placeholders until then.
+
+## Deploy the API
+
+```bash
+npm ci
+npx wrangler deploy --env production --config apps/api/wrangler.toml
 ```
 
-Save output URL:
-- `https://hoopslab-api.<subdomain>.workers.dev`
+## Migrations
 
-## 2) Create or Update D1 schema
+Phase 3 replaces `data/schema/schema.sql` with numbered migrations applied by
+`wrangler d1 migrations apply`, which tracks what has been applied.
 
-From `apps/api`:
+The current file is a single `CREATE TABLE IF NOT EXISTS` script. That is not a
+migration system: re-running it after a schema change is a **silent no-op**, so
+adding a column or a constraint to an existing table does nothing and reports
+success. Do not add to it.
 
-```powershell
-npx wrangler d1 execute hoopslab-db --file ../../data/schema/schema.sql
+## Deploy the web app
+
+> The committed Pages configuration does not work. `apps/web/wrangler.toml`
+> points at `.vercel/output/static`, which is `@cloudflare/next-on-pages`
+> output, but that package is not a dependency of this project and never was.
+> Phase 5 migrates to `@opennextjs/cloudflare`; Cloudflare Pages is in
+> maintenance mode and `next-on-pages` is the deprecated path.
+
+Environment variable once the Worker is deployed:
+
+```
+NEXT_PUBLIC_API_BASE=https://hoopslab-api.<subdomain>.workers.dev
 ```
 
-## 3) Run ETL artifact and upload data
+## GitHub Actions secrets
 
-From `data/etl`:
+| Secret                  | Needed for                                                                                                |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | Deploys and D1 operations                                                                                 |
+| `CLOUDFLARE_ACCOUNT_ID` | Same. The previous nightly workflow documented this as required and then omitted it from the job's `env`. |
 
-```powershell
-poetry install
-poetry run nightly --out ../../data/etl_out
-```
+`BALLDONTLIE_API_KEY` has been removed. It was threaded through
+`.env.example`, `.dev.vars.example`, the Worker's `Env` type and the ETL
+config, and **no code ever read it**.
 
-From `apps/api`:
+## What is not automated
 
-```powershell
-npx wrangler d1 execute hoopslab-db --file ../../data/etl_out/d1_upload.sql
-```
+Nightly ingestion is deliberately gone rather than fixed.
 
-## 4) Deploy Web (Cloudflare Pages)
+`stats.nba.com` refuses connections from datacenter IP ranges, and GitHub
+Actions runners are hosted on Azure. The old workflow could never have worked;
+it also called `wrangler d1 execute` with neither `--remote` nor `--local`, so
+it would not have reached the production database even if the fetch had
+succeeded.
 
-Cloudflare Pages settings:
-- Root directory: `apps/web`
-- Build command: `npm install && npm run build`
-- Framework preset: Next.js
-- Deploy command: `true` (or `npm run deploy`, which is a no-op in this repo)
-
-Environment variable:
-- `NEXT_PUBLIC_API_BASE=https://hoopslab-api.<subdomain>.workers.dev`
-
-## 5) GitHub Actions secrets needed
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `BALLDONTLIE_API_KEY` (optional)
+Ingestion is therefore an **operator-local** task. The reproducible artefact is
+the committed data snapshot, and refreshes arrive as a pull request with a diff
+summary, so every production data change has an author, a review and a CI run.

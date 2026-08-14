@@ -1,0 +1,37 @@
+{
+  "columns": [
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "person_id",
+      "null_rate": 0.0
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "display_name",
+      "null_rate": 0.001122
+    },
+    {
+      "dtype": "Float64",
+      "maximum": 2007.0,
+      "minimum": 1960.0,
+      "name": "birth_year",
+      "null_rate": 0.247054
+    },
+    {
+      "dtype": "String",
+      "maximum": null,
+      "minimum": null,
+      "name": "leagues",
+      "null_rate": 0.0
+    }
+  ],
+  "content_hash": "24fc98cd7c0d411a0c40cb5d35c8a43b",
+  "contract_version": 1,
+  "n_columns": 4,
+  "n_rows": 5347,
+  "table": "persons"
+}

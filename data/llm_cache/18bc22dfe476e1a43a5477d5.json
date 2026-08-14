@@ -1,0 +1,59 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-14T20:54:32.369478+00:00",
+  "evidence_digest": "3bbb4918124bad35862baeddf57fa92fdd165b2717d8fe9b4e55d8f5b213f377",
+  "key": "18bc22dfe476e1a43a5477d5",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_202341",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage projected to climb above the EuroLeague average, but the shooting projection carries no signal",
+    "projection": {
+      "fact_ids": ["f11", "f13", "f18"],
+      "text": "Usage rate is projected to rise from 16.1% in the 2013-14 NBA season to 22.2% in the EuroLeague, above the league's minutes-weighted average of 20.4%."
+    },
+    "risks": [
+      {
+        "fact_ids": ["f24", "f35", "f36"],
+        "text": "The true shooting projection of 56.3% should not be trusted: its held-out error (4.7% MAE) is no better than simply guessing the EuroLeague average, so it carries no information about this player."
+      },
+      {
+        "fact_ids": ["f14", "f15", "f16", "f17", "f19"],
+        "text": "Even for usage, the 80% interval (18.0%-26.4%) and 95% interval (15.8%-28.6%) are wide relative to the league's spread (SD 4.2%), covering a large swath of plausible EuroLeague roles."
+      },
+      {
+        "fact_ids": ["f12", "f39"],
+        "text": "The player's NBA usage rate sat 0.82 standard deviations below the league average, a notably lower starting point than the -0.31 sd average for players who historically made this same move, making the comparison less typical of the fitted cohort."
+      },
+      {
+        "fact_ids": ["f38"],
+        "text": "The estimate rests on 115 historical NBA-to-EuroLeague transitions, a moderate but not extensive sample."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": ["f13", "f18", "f34"],
+        "text": "Usage rate is projected to rise to 22.2%, above the EuroLeague average of 20.4%, driven by a fitted slope of 0.982 — meaning almost all of the player's standing above their NBA peers is expected to carry over."
+      },
+      {
+        "fact_ids": ["f32", "f33"],
+        "text": "The usage rate model beats a trivial league-mean baseline (3.3% MAE vs 4.3%), so this particular projection carries real signal."
+      },
+      {
+        "fact_ids": ["f09", "f08"],
+        "text": "In the source season the player combined a low turnover rate (12.2%) with a heavily three-point-oriented shot profile (49.0% of attempts from three)."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": ["f14", "f15", "f19", "f35", "f36"],
+      "text": "The 80% prediction interval for usage rate (18.0%-26.4%) spans roughly two standard deviations of the EuroLeague usage distribution (SD 4.2%), so the model can rank this player relative to peers but cannot pin down an individual value; the true shooting projection (56.3%) should be treated as uninformative since the model's error there (4.7% MAE) is no better than a league-mean baseline (4.7%)."
+    }
+  },
+  "target_season_id": "EL_2014",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1444,
+    "output_tokens": 2529
+  }
+}

@@ -1,20 +1,27 @@
 # Node
 node_modules/
 .next/
+.open-next/
 dist/
 build/
+coverage/
 .wrangler/
+*.tsbuildinfo
 
 # Python
 __pycache__/
 *.pyc
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
+*.egg-info/
 
 # Env and secrets
 .env
 .env.local
 .env.*.local
+.dev.vars
 
 # OS/editor
 .DS_Store
@@ -22,6 +29,18 @@ Thumbs.db
 .idea/
 .vscode/
 
-# ETL outputs
-data/etl_out/
-/manual_setup.md
+# Data lake: bronze (raw API payloads) and silver (typed intermediates) are
+# regenerable from `npm run ingest` and are far too large to commit. Only
+# data/gold/ is committed, so that a clean clone reproduces every reported
+# number with no network access.
+data/bronze/
+data/silver/
+data/external/
+services/ml/runs/scratch/
+services/ml/reports/scratch/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+data/d1/
