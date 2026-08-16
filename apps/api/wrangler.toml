@@ -7,16 +7,22 @@ compatibility_date = "2026-02-25"
 [observability]
 enabled = true
 
-# Pin the local port rather than letting wrangler find a free one.
+# Pin the local port, and pick an unusual one.
 #
-# Without this, wrangler silently moves to the next free port when 8787 is
-# taken — by another project's dev server, or by a previous run that did not
-# shut down. The web app's default API base is 8787, so the two drift apart and
-# the browser shows "Not Found" from whatever unrelated service now answers
-# there. Binding explicitly means a clash fails immediately with "address in
-# use", which is a diagnosable error rather than a misleading page.
+# Two separate problems, both seen on the machine this was developed on.
+#
+# Without an explicit port, wrangler silently moves to the next free one when
+# its default is taken. The web app's API base is a constant, so the two drift
+# apart and the browser fills with "Not Found" served by whatever unrelated
+# process now answers there. Binding explicitly turns that into "address in
+# use" at startup: a diagnosable error instead of a misleading page.
+#
+# 8787 is wrangler's default, which is exactly why it is not used here — every
+# other Workers project on a developer's machine wants it too. 8710 is paired
+# with the web app's 3710 so the two are obviously a set, and neither collides
+# with the usual squatters (3000, 5173, 8000, 8080, 8787).
 [dev]
-port = 8787
+port = 8710
 
 # No bindings are declared at the top level, deliberately. Previously the
 # production D1 and KV ids lived here, which meant `wrangler dev` and

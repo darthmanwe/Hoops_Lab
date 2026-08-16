@@ -10,7 +10,7 @@
 import { chromium } from "playwright";
 import fs from "node:fs";
 
-const WEB = process.env.WEB_BASE ?? "http://127.0.0.1:3100";
+const WEB = process.env.WEB_BASE ?? "http://127.0.0.1:3710";
 const OUT = process.argv[2] ?? "docs/screenshots";
 fs.mkdirSync(OUT, { recursive: true });
 

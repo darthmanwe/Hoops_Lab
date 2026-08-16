@@ -544,27 +544,32 @@ with no network and asserts every number in this README still holds.
 ```bash
 npm run db:migrate               # apply migrations to a local D1
 npm run db:load                  # load the committed snapshot (~192k rows)
-npm run dev                      # Worker API  -> http://127.0.0.1:8787
+npm run dev                      # Worker API  -> http://127.0.0.1:8710
 
 # in a second terminal
-npm run dev:web                  # Next.js app -> http://127.0.0.1:3000
+npm run dev:web                  # Next.js app -> http://127.0.0.1:3710
 ```
 
-The Worker port is pinned in `wrangler.toml`. If something else already holds
-8787 — another project's dev server is the usual culprit — wrangler fails with
-`address in use` rather than quietly moving to 8788 and leaving the web app
-talking to a stranger. To run against a different port or a deployed Worker,
-set `NEXT_PUBLIC_API_BASE` explicitly.
+Both ports are pinned, and both are deliberately unusual. 8787 is wrangler's
+default and 3000 is every Node dev server's, so on a machine running more than
+one project they are the first two ports to be taken — during development here,
+by another Workers app and by a local LLM UI respectively. A clash now fails at
+startup with `address in use` instead of quietly relocating the API and leaving
+the web app talking to a stranger.
+
+To point at a different port or a deployed Worker, set `NEXT_PUBLIC_API_BASE`.
+Note that Next inlines `NEXT_PUBLIC_*` at compile time, so change it _and_ clear
+`apps/web/.next`, or the old value survives the restart.
 
 ![The landing page: the question, what the model does and does not do, and the measured selection gap per direction](docs/screenshots/landing.png)
 
 ### Poke at the API
 
 ```bash
-curl http://127.0.0.1:8787/                        # every endpoint and its state
-curl http://127.0.0.1:8787/health                  # actually probes D1 and KV
-curl http://127.0.0.1:8787/players/nba_1629029/report   # a checked scouting report
-curl http://127.0.0.1:8787/leaderboards/gravity    # 410, and explains why it cannot exist
+curl http://127.0.0.1:8710/                        # every endpoint and its state
+curl http://127.0.0.1:8710/health                  # actually probes D1 and KV
+curl http://127.0.0.1:8710/players/nba_1629029/report   # a checked scouting report
+curl http://127.0.0.1:8710/leaderboards/gravity    # 410, and explains why it cannot exist
 ```
 
 ### Regenerate the screenshots

@@ -6,7 +6,7 @@
  * always show where a number came from.
  */
 
-export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8787").replace(
+export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8710").replace(
   /\/+$/,
   ""
 );

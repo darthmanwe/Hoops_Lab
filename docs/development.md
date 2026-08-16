@@ -42,7 +42,7 @@ cd services/ml && uv sync --extra dev   # Python environment
 | `npm run format:check`                | Prettier                                                     |
 | `npm run type`                        | `tsc --noEmit` for API and web                               |
 | `npm run test`                        | Worker tests, inside workerd, with real D1 and KV bindings   |
-| `npm run dev`                         | Worker on `127.0.0.1:8787`, bound to the **dev** environment |
+| `npm run dev`                         | Worker on `127.0.0.1:8710`, bound to the **dev** environment |
 | `npm run dev:web`                     | Next.js dev server                                           |
 | `npm run ml:test`                     | Python tests — offline, no credentials                       |
 | `npm run ml:lint` / `npm run ml:type` | ruff / mypy                                                  |
@@ -50,8 +50,8 @@ cd services/ml && uv sync --extra dev   # Python environment
 Smoke test the API:
 
 ```bash
-curl http://127.0.0.1:8787/          # service listing, generated from the registry
-curl http://127.0.0.1:8787/health    # probes D1 and KV for real
+curl http://127.0.0.1:8710/          # service listing, generated from the registry
+curl http://127.0.0.1:8710/health    # probes D1 and KV for real
 ```
 
 ## Environments
