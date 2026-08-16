@@ -550,9 +550,11 @@ npm run dev                      # Worker API  -> http://127.0.0.1:8787
 npm run dev:web                  # Next.js app -> http://127.0.0.1:3000
 ```
 
-If wrangler reports a different port (it picks the next free one), point the
-web app at it with `NEXT_PUBLIC_API_BASE=http://127.0.0.1:<port> npm run
-dev:web`.
+The Worker port is pinned in `wrangler.toml`. If something else already holds
+8787 — another project's dev server is the usual culprit — wrangler fails with
+`address in use` rather than quietly moving to 8788 and leaving the web app
+talking to a stranger. To run against a different port or a deployed Worker,
+set `NEXT_PUBLIC_API_BASE` explicitly.
 
 ![The landing page: the question, what the model does and does not do, and the measured selection gap per direction](docs/screenshots/landing.png)
 

@@ -7,6 +7,17 @@ compatibility_date = "2026-02-25"
 [observability]
 enabled = true
 
+# Pin the local port rather than letting wrangler find a free one.
+#
+# Without this, wrangler silently moves to the next free port when 8787 is
+# taken — by another project's dev server, or by a previous run that did not
+# shut down. The web app's default API base is 8787, so the two drift apart and
+# the browser shows "Not Found" from whatever unrelated service now answers
+# there. Binding explicitly means a clash fails immediately with "address in
+# use", which is a diagnosable error rather than a misleading page.
+[dev]
+port = 8787
+
 # No bindings are declared at the top level, deliberately. Previously the
 # production D1 and KV ids lived here, which meant `wrangler dev` and
 # `wrangler deploy` both pointed at the production database. With bindings

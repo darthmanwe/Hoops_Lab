@@ -93,6 +93,19 @@ export function isProblem(value: unknown): value is Problem {
   return typeof value === "object" && value !== null && "code" in value && "status" in value;
 }
 
+/**
+ * Turn a failed response into a problem document.
+ *
+ * The interesting case is a reply that is *not* from this API at all. Every
+ * HoopsLab error carries a `code`, so a bare status with no problem document
+ * almost always means `NEXT_PUBLIC_API_BASE` points somewhere else — another
+ * project's dev server on a port wrangler drifted away from, or nothing at all.
+ *
+ * Reporting that as "Not Found" would be this project's own original sin in
+ * miniature: a confident, specific message that is about the wrong thing
+ * entirely. A reader would go looking for a missing player. So the message
+ * names the address it actually called and says what is wrong with it.
+ */
 async function asProblem(response: Response): Promise<Problem> {
   try {
     const body = (await response.json()) as Problem;
@@ -100,12 +113,17 @@ async function asProblem(response: Response): Promise<Problem> {
   } catch {
     // fall through to a synthetic problem below
   }
+
   return {
     type: "about:blank",
-    title: response.statusText || "Request failed",
+    title: "That is not the HoopsLab API",
     status: response.status,
-    code: "UNEXPECTED_RESPONSE",
-    detail: `The API returned ${response.status} without a problem document.`,
+    code: "NOT_THE_API",
+    detail:
+      `A request to ${API_BASE} returned ${response.status} with no problem document. ` +
+      "Every error from this API carries one, so the address is most likely serving " +
+      "something else — check that the Worker is running and that NEXT_PUBLIC_API_BASE " +
+      "matches the port it bound.",
   };
 }
 
