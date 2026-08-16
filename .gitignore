@@ -44,3 +44,9 @@ test-results/
 playwright-report/
 blob-report/
 data/d1/
+
+# Next.js 16 regenerates these agent-rules files on every dev/build run. They
+# are tool scaffolding rather than project content, and committing them means
+# a diff every time anyone starts the dev server.
+apps/web/AGENTS.md
+apps/web/CLAUDE.md

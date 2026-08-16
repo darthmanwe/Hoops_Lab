@@ -51,5 +51,12 @@ export default [
     languageOptions: { globals: { ...globals.worker } },
   },
 
+  // Operator scripts are command-line tools whose output *is* their result.
+  // Warning on `console.log` there would be warning that they work.
+  {
+    files: ["scripts/**/*.mjs"],
+    rules: { "no-console": "off" },
+  },
+
   prettier,
 ];

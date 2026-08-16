@@ -63,31 +63,70 @@ def quote(text: str) -> str:
     return "'" + text.replace("\x00", "").replace("'", "''") + "'"
 
 
-def insert_many(
-    table: str, columns: Sequence[str], rows: Iterable[Sequence[Any]], *, chunk: int = 400
-) -> list[str]:
-    """Multi-row INSERT statements, chunked to keep each statement parseable.
+#: Bytes of VALUES text after which a statement is closed and a new one begun.
+#:
+#: D1 caps a single SQL statement at 100 KB — far below SQLite's own
+#: SQLITE_MAX_SQL_LENGTH of a megabyte, and the limit that actually bites. It
+#: reports the overrun as `statement too long: SQLITE_TOOBIG`, which points at
+#: the SQLite constant and sends you looking a factor of ten too high.
+#:
+#: 50 KB leaves room for the column list, and for one row that turns out much
+#: larger than the rows measured when this was tuned.
+MAX_STATEMENT_BYTES = 50_000
 
-    Chunking matters: a single INSERT with 22,000 value tuples is one enormous
-    statement that some clients refuse outright.
+
+def insert_many(
+    table: str,
+    columns: Sequence[str],
+    rows: Iterable[Sequence[Any]],
+    *,
+    chunk: int = 400,
+    max_bytes: int = MAX_STATEMENT_BYTES,
+) -> list[str]:
+    """Multi-row INSERT statements, chunked to keep each statement executable.
+
+    Chunked on **both** row count and byte size, because row count alone is a
+    proxy for size that fails exactly where it matters. Rows in this export
+    span three orders of magnitude: a `seasons` row is about 60 bytes, while a
+    `player_reports` row carries a whole rendered evidence bundle and runs to
+    ~4 KB. At 400 rows a statement the first is trivial and the second is 1.5 MB
+    — over SQLite's limit, so the load failed outright with
+    `statement too long: SQLITE_TOOBIG`.
+
+    The failure is worth noting for what it was not: the SQL was valid, the
+    tests passed, and the artefact was only unusable at the point of loading a
+    real database. A size cap on the generator is the fix; a bigger cap on the
+    consumer is not available.
     """
     statements: list[str] = []
     buffer: list[str] = []
+    buffered_bytes = 0
     column_list = ", ".join(f'"{c}"' for c in columns)
 
-    for row in rows:
-        buffer.append("(" + ", ".join(literal(v) for v in row) + ")")
-        if len(buffer) >= chunk:
+    def flush() -> None:
+        nonlocal buffer, buffered_bytes
+        if buffer:
             statements.append(
                 f"INSERT INTO {table} ({column_list}) VALUES\n" + ",\n".join(buffer) + ";"
             )
             buffer = []
+            buffered_bytes = 0
 
-    if buffer:
-        statements.append(
-            f"INSERT INTO {table} ({column_list}) VALUES\n" + ",\n".join(buffer) + ";"
-        )
+    for row in rows:
+        values = "(" + ", ".join(literal(v) for v in row) + ")"
+        # Flush *before* appending when this row would take the statement over,
+        # so a single oversized row lands alone rather than being appended to a
+        # statement that is already at the cap.
+        if buffer and buffered_bytes + len(values) > max_bytes:
+            flush()
 
+        buffer.append(values)
+        buffered_bytes += len(values) + 2  # the ",\n" joining it to the next
+
+        if len(buffer) >= chunk:
+            flush()
+
+    flush()
     return statements
 
 

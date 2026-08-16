@@ -1,40 +1,108 @@
 # HoopsLab
 
-Estimating how basketball production translates between the EuroLeague and the
-NBA — with the sample size, the selection bias, and the width of the error bars
-stated up front.
+**What happens to a basketball player's production when they change leagues?**
+
+An estimate of how production travels between the EuroLeague, the NBA and the
+G League — built on 414 real transfers, with the sample size, the selection
+bias and the width of the error bars stated on the front page rather than in a
+footnote.
 
 [![CI](https://github.com/darthmanwe/Hoops_Lab/actions/workflows/ci.yml/badge.svg)](https://github.com/darthmanwe/Hoops_Lab/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
+![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
+![Tests](https://img.shields.io/badge/tests-333%20offline-199e70)
+
+![Every observed EuroLeague to NBA transfer, with its projected usage rate, an 80% prediction interval, and what actually happened](docs/screenshots/hero-translation.png)
+
+_Every observed EuroLeague→NBA transfer since 2007. Source usage, the projected
+NBA usage with an 80% interval, and — where the move has already happened —
+what the player actually did. Dončić is the first row, and the model gets him
+wrong._
 
 ---
 
-> ## Status: phases 0-7 complete
->
-> **Real data, fitted models, an API that serves them with provenance, and a
-> grounded LLM layer whose groundedness is measured rather than asserted.**
->
-> An audit of the previous version found that every number it displayed came
-> from a Python literal. The ETL was 723 lines of hardcoded dictionaries for
-> four players and two games; the two API clients that would have fetched real
-> data were never imported by anything; there were no models, no tests, and no
-> data files. The web app presented those constants as model output.
->
-> Phase 0 removed all of it. Phase 1 replaced it with **22,297 real
-> player-seasons across three leagues** and a person-centric identity crosswalk.
-> Phase 2 fitted the translation model and measured its selection bias. Phase 3
-> put it behind a typed API where every prediction carries its interval, its
-> model version and the data snapshot it came from — and where the model
-> reports the metric it is **worse than useless** for. Phases 4 and 5 added
-> archetypes, empirical-Bayes shooting, and a TypeScript frontend that never
-> renders a missing value as zero. Phase 6 added scouting reports written by
-> Claude from a fixed evidence bundle, with every number checked back to its
-> source. Endpoints whose underlying quantity cannot exist from public data
-> still return `410` with the reason.
->
-> Progress is tracked in the [roadmap](#roadmap).
+## The short version
 
----
+A EuroLeague guard posts a 28% usage rate. He signs in the NBA. What should you
+expect?
+
+The folk answer is "multiply by about 0.75". That rule is **worse than ignoring
+the player entirely** — it loses to simply predicting the league average, and
+this repository measures by how much.
+
+The honest answer is harder, and it is the reason this is an inference problem
+rather than a prediction contest:
+
+1. **Only ~61 EuroLeague→NBA transfers** in eighteen seasons clear a usable
+   minutes threshold. That is the entire sample.
+2. **The players who move are not a random sample.** They are the ones good
+   enough to be offered a contract, and they sit **+0.46 standard deviations**
+   above their own league. Any estimate is conditional on the transfer having
+   happened.
+3. **Aging and mean reversion look exactly like league effects** unless you
+   separate them, which needs far more data than 61 pairs.
+
+HoopsLab handles all three, publishes what it gets wrong, and ships an
+interface where every number on screen carries the model version and data
+snapshot that produced it.
+
+|                     |                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------- |
+| **Usage rate**      | out-of-fold MAE **0.0332** — beats the best trivial baseline by **22.4%**         |
+| **True shooting**   | out-of-fold MAE **0.0471** — **loses** to the league average by 0.3%, and says so |
+| **Sample**          | 414 transfers, 22,297 player-seasons, three leagues, 2000–2025                    |
+| **Reproducibility** | every number refits from committed data with **no network**, on every push        |
+
+### What it gets wrong, on the front page
+
+Luka Dončić is the most visible transfer in the dataset, and the model misses
+him:
+
+| Metric        | EuroLeague 2017-18 | Projected (80% interval) | Actual NBA 2018-19             |
+| ------------- | ------------------ | ------------------------ | ------------------------------ |
+| Usage rate    | 28.9%              | 23.3% [18.0% – 28.5%]    | **30.1%** — above the interval |
+| True shooting | 61.2%              | 55.3% [49.5% – 61.2%]    | 54.5% — inside it              |
+
+He used _more_ possessions as a rookie than he had in Europe, which is the
+opposite of the compression the model estimates on average. That row is first
+in the table above, not buried in an appendix, because a projection tool that
+hides its misses is not a projection tool.
+
+## For a front office
+
+The output is a **ranking instrument, not a pricing instrument**, and the
+interface says which:
+
+- An 80% interval on projected usage spans roughly **two standard deviations of
+  the receiving league**. That is genuinely useful for sorting a shortlist of
+  targets and genuinely useless for setting a number on a contract. The
+  interval is presented as the result, not as a caveat attached to one.
+- **True shooting is not projectable** by this method — shooting efficiency is
+  mostly year-to-year noise (stage-1 R² of 0.30 against 0.74 for usage). The
+  API returns `beats_best_baseline: false` for that metric so a consumer learns
+  it from the data.
+- **Every historical comparable is one click away**, with what the model said
+  and what actually happened side by side. The claim and the check are never on
+  separate pages.
+
+![The model page publishing its own failure: true shooting loses to predicting the league average](docs/screenshots/model-verdict.png)
+
+_The model's own report card. It leads with the metric it fails at._
+
+## How it is built
+
+| Layer      | Stack                                                   | The constraint that shaped it                                                                                                                                                    |
+| ---------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modelling  | Python 3.12, polars, statsmodels, scikit-learn, pandera | 61 transfers in the flagship direction — a small-sample inference problem, so OLS with a cluster bootstrap over players rather than gradient boosting with no usable uncertainty |
+| Serving    | Cloudflare Workers, Hono, D1, Drizzle                   | 10 ms of CPU per request, so the Worker does **no arithmetic** — every served number is a column computed offline, which also removes train/serve skew by construction           |
+| Interface  | Next.js 16, TypeScript                                  | The previous version rendered missing data as `0.00`; the rewrite has no path that coerces a null to a number                                                                    |
+| LLM layer  | Anthropic SDK, Pydantic structured outputs              | Groundedness has to be checkable, so retrieval is a fixed `SELECT` and citations are enforced by the schema rather than requested in a prompt                                    |
+| Evaluation | pytest, hypothesis, vitest inside workerd               | Leakage assertions run **inside** the CV loop at runtime, not in a test that could pass while the splitter changed                                                               |
+
+333 tests, all offline and credential-free. CI runs Ubuntu and Windows across
+Node 22/24 and Python 3.11–3.13, and refits every model on each push to prove
+the numbers here still hold.
 
 ## Why this project exists
 
@@ -253,6 +321,8 @@ the design predicted: players move up because they were good, and down because
 they were not. That opposition is what makes the effect testable rather than
 merely acknowledged.
 
+![Selection gaps per direction, in standard deviations](docs/screenshots/selection.png)
+
 **And the test does not pass.** Fitting a separate slope per direction gives
 0.579 for EuroLeague→NBA and 0.982 for NBA→EuroLeague — a gap of 0.40.
 If one slope fitted both, the compression would be unlikely to be a selection
@@ -288,6 +358,10 @@ below the floor and is served with `reportable: false`, meaning read it as
 _unclassified_ rather than as a type. That flag is in the API payload, not just
 in this table.
 
+![Five archetype clusters, each shown with its bootstrap stability, and the unstable one flagged as unclassified](docs/screenshots/archetypes.png)
+
+_The interface refuses to name the cluster that does not survive resampling._
+
 **Shooting, replacing "gravity".** Gravity measures defensive attention and
 needs optical tracking data that no public source provides, so it is gone
 rather than renamed. What is computable is threat, and the statistical problem
@@ -301,6 +375,12 @@ is small samples:
 
 `shrinkage_weight` ships with every value, so a reader can see how much of a
 number is the player and how much is the league prior.
+
+![Per-season three-point shrinkage, with the weight placed on the player's own attempts](docs/screenshots/shrinkage.png)
+
+_Dončić's three-point record. His 16-attempt EuroLeague season is flagged
+`23% (mostly prior)` — the number shown is mostly the league, not the player,
+and the interface says so instead of presenting 31.3% as a measurement._
 [Model card](services/ml/src/hoopslab/configs/model_cards/roles.md).
 
 ## Grounded scouting reports
@@ -327,6 +407,13 @@ the clubs are `Team X`; naming any of them is an automatic failure.
 never in the bundle. The brief is written from the projection and its interval
 alone, and the outcome is shown beside it — the same separation this project
 uses everywhere between what a model claims and how it did.
+
+![A generated scouting report with 56 of 56 numbers traced to source and fact ids under every claim](docs/screenshots/scouting-report.png)
+
+_A report on the Dončić transfer. The model was never told whose season it was.
+Every claim carries the ids of the facts supporting it, and the badge is a
+count, not a promise: 56 numeric tokens in the prose, 56 traced back to the
+evidence bundle._
 
 ### Measured, on 30 anonymised reports
 
@@ -417,43 +504,75 @@ the build instead of shipping.
 
 ```
 apps/api/          Hono on Cloudflare Workers — serves precomputed columns
-apps/web/          Next.js — player, comparison and calibration views
-services/ml/       Python package `hoopslab` — ingest, features, models, eval
-data/gold/         Committed parquet + contract sidecars (phase 1)
+apps/web/          Next.js — translation explorer, model card, player pages
+services/ml/       Python package `hoopslab` — ingest, features, models, eval, llm
+data/gold/         Committed parquet + contract sidecars
+data/llm_cache/    Committed model responses, so the demo costs nothing
+data/llm_labels/   Hand-graded reports, the judge's ground truth
 data/bronze,silver Gitignored, regenerable
-docs/              Modelling notes, errors, deployment, development
+docs/adr/          Eight decision records
+docs/screenshots/  The images in this README, regenerated by a script
+scripts/           Screenshot capture
 ```
 
-## Quickstart
+## Run it yourself
+
+**No API keys. No network after the clone.** The analysis-ready data is
+committed, so everything below reproduces from a cold checkout.
 
 ```bash
 git clone https://github.com/darthmanwe/Hoops_Lab.git
-cd Hoops_Lab
-
-npm ci
-npm run test              # 102 Worker tests, inside workerd, real D1 + KV bindings
-
-cd services/ml
-uv sync --extra dev
-uv run pytest                  # 225 tests, offline, no credentials
-uv run hoopslab verify         # re-derives every checksum against committed data
-uv run hoopslab train          # refits the model and prints the results above
-uv run hoopslab train --verify # fails if any reported metric has moved
-uv run hoopslab report-eval    # re-scores 30 committed scouting reports; $0, no key
+cd Hoops_Lab && npm ci
 ```
 
-No API keys. No network after the clone. See
-[docs/development.md](docs/development.md) for the full task list and the
-Windows-specific notes.
-
-Try the API:
+### Verify the claims
 
 ```bash
-npm run dev
-curl http://127.0.0.1:8787/            # every endpoint and its current state
-curl http://127.0.0.1:8787/health      # actually probes D1 and KV
-curl http://127.0.0.1:8787/leaderboards/gravity   # 410, and explains why
+npm run test                     # 102 Worker tests, inside workerd, real D1 + KV
+npm run ml:test                  # 231 Python tests, offline, no credentials
+
+npm run ml -- verify             # re-derives every data checksum
+npm run ml -- train --verify     # refits the models; fails if a reported metric moved
+npm run demo:llm                 # re-scores 30 scouting reports; $0, no key needed
 ```
+
+`train --verify` is the one worth running. It refits from committed parquet
+with no network and asserts every number in this README still holds.
+
+### Bring up the full stack
+
+```bash
+npm run db:migrate               # apply migrations to a local D1
+npm run db:load                  # load the committed snapshot (~192k rows)
+npm run dev                      # Worker API  -> http://127.0.0.1:8787
+
+# in a second terminal
+npm run dev:web                  # Next.js app -> http://127.0.0.1:3000
+```
+
+If wrangler reports a different port (it picks the next free one), point the
+web app at it with `NEXT_PUBLIC_API_BASE=http://127.0.0.1:<port> npm run
+dev:web`.
+
+![The landing page: the question, what the model does and does not do, and the measured selection gap per direction](docs/screenshots/landing.png)
+
+### Poke at the API
+
+```bash
+curl http://127.0.0.1:8787/                        # every endpoint and its state
+curl http://127.0.0.1:8787/health                  # actually probes D1 and KV
+curl http://127.0.0.1:8787/players/nba_1629029/report   # a checked scouting report
+curl http://127.0.0.1:8787/leaderboards/gravity    # 410, and explains why it cannot exist
+```
+
+### Regenerate the screenshots
+
+```bash
+node scripts/screenshots.mjs docs/screenshots      # requires both servers running
+```
+
+See [docs/development.md](docs/development.md) for the full task list and the
+Windows-specific notes.
 
 ## Roadmap
 
