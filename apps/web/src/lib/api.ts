@@ -179,6 +179,29 @@ export type TranslationPrediction = {
   modelVersion: string;
 };
 
+export type HypotheticalProjection = {
+  personId: string;
+  displayName: string | null;
+  sourceSeasonId: string;
+  sourceLeague: string;
+  targetSeasonId: string;
+  direction: string;
+  metric: string;
+  sourceValue: number;
+  zSource: number;
+  predicted: number;
+  pi80Low: number;
+  pi80High: number;
+  pi95Low: number;
+  pi95High: number;
+  /** False means the model is extrapolating beyond where movers were observed. */
+  inSupport: boolean;
+  movedBefore: boolean;
+  minutes: number;
+  age: number | null;
+  modelVersion: string;
+};
+
 export type ModelVersion = {
   modelVersion: string;
   modelName: string;

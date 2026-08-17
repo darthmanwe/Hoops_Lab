@@ -122,6 +122,13 @@ export const ENDPOINTS: readonly Endpoint[] = [
       "Players ranked by projected translated production, with intervals and what actually happened.",
   },
   {
+    path: "/projections",
+    state: "live",
+    description:
+      "Projected production for players who have NOT changed league — the counterfactual " +
+      "the model exists to answer, with an out-of-support flag on every row.",
+  },
+  {
     path: "/players/{playerId}/report",
     state: "live",
     description:

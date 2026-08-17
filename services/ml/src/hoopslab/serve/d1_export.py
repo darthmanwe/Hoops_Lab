@@ -55,6 +55,7 @@ TABLES_IN_LOAD_ORDER = (
     "player_comps",
     "player_shooting",
     "player_reports",
+    "hypothetical_projections",
 )
 
 
@@ -142,6 +143,10 @@ def build_export(paths: DataPaths) -> ExportResult:
         emit(table, columns, rows)
 
     emit("player_reports", *_report_rows(paths, snapshot))
+    emit(
+        "hypothetical_projections",
+        *_hypothetical_rows(player_seasons, pairs, run["model_version"], snapshot),
+    )
 
     out_dir = paths.data / "d1"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -551,6 +556,19 @@ def build_fixture(paths: DataPaths, out_path: Path, *, n_persons: int = 60) -> d
     for table, columns, rows in _roles_rows(roles, persons_slice):
         emit(table, columns, rows)
 
+    # Same reasoning: projected on the whole population, then narrowed. The
+    # fixture must contain both supported and extrapolated rows, or the tests
+    # that assert the flag is served would pass without ever seeing it set.
+    hypo_columns, hypo_rows = _hypothetical_rows(
+        player_seasons, pairs_slice, run["model_version"], snapshot
+    )
+    keep = set(persons_slice["person_id"].to_list())
+    emit(
+        "hypothetical_projections",
+        hypo_columns,
+        [row for row in hypo_rows if row[0] in keep],
+    )
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(sql.transaction(statements), encoding="utf-8")
     return counts
@@ -649,6 +667,99 @@ def _report_rows(paths: DataPaths, snapshot: str) -> tuple[list[str], list[list[
         )
 
     return REPORT_COLUMNS, rows
+
+
+HYPOTHETICAL_COLUMNS = [
+    "person_id",
+    "source_season_id",
+    "source_season_order",
+    "source_league",
+    "target_season_id",
+    "direction",
+    "metric",
+    "source_value",
+    "z_source",
+    "predicted",
+    "pi80_low",
+    "pi80_high",
+    "pi95_low",
+    "pi95_high",
+    "in_support",
+    "moved_before",
+    "minutes",
+    "age",
+    "model_version",
+    "snapshot_id",
+]
+
+
+def _hypothetical_rows(
+    player_seasons: pl.DataFrame,
+    pairs: pl.DataFrame,
+    model_version: str,
+    snapshot: str,
+) -> tuple[list[str], list[list[Any]]]:
+    """Projections for players who have *not* made the move.
+
+    Usage rate only. The rest of this export serves true shooting with a
+    `beats_best_baseline: false` flag beside it, which works because an observed
+    transition also carries what actually happened — a reader can see the miss.
+    A hypothetical has no actual to check against, so a true-shooting number
+    here would be an unfalsifiable figure on a metric already known to be worse
+    than guessing the league average. It is omitted rather than flagged, and the
+    interface says why.
+    """
+    from hoopslab.models.hypothetical import (
+        PROJECTED_DIRECTIONS,
+        latest_season_for,
+        score_counterfactuals,
+    )
+
+    order = dict(player_seasons.select("season_id", "season_order").unique().iter_rows())
+    rows: list[list[Any]] = []
+
+    for direction in PROJECTED_DIRECTIONS:
+        _, _, target_league = direction.partition("->")
+        target_season_id = latest_season_for(player_seasons, target_league)
+
+        frame = score_counterfactuals(
+            player_seasons,
+            pairs,
+            direction=direction,
+            target_season_id=target_season_id,
+            metric="usg_pct",
+        )
+        if frame.is_empty():
+            continue
+
+        for r in frame.iter_rows(named=True):
+            rows.append(
+                [
+                    r["person_id"],
+                    r["source_season_id"],
+                    int(order.get(r["source_season_id"], 0)),
+                    r["source_league"],
+                    r["target_season_id"],
+                    direction,
+                    "usg_pct",
+                    _round(r["source_value"], 5),
+                    _round(r["z_source"], 4),
+                    _round(r["predicted"], 5),
+                    _round(r["pi80_low"], 5),
+                    _round(r["pi80_high"], 5),
+                    _round(r["pi95_low"], 5),
+                    _round(r["pi95_high"], 5),
+                    bool(r["in_support"]),
+                    bool(r["moved_before"]),
+                    _round(r["source_minutes"], 1),
+                    _round(r["age_at_source"], 1),
+                    model_version,
+                    snapshot,
+                ]
+            )
+
+    log.info("hypothetical projections: %d rows", len(rows))
+    return HYPOTHETICAL_COLUMNS, rows
 
 
 def _roles_rows(

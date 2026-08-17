@@ -69,6 +69,39 @@ opposite of the compression the model estimates on average. That row is first
 in the table above, not buried in an appendix, because a projection tool that
 hides its misses is not a projection tool.
 
+## Projecting players who have not moved
+
+The observed transfers are how the model is _validated_. Projecting players who
+have **not** moved is what it is _for_, and it is a separate page.
+
+![Projected NBA usage for EuroLeague players who have not transferred, with an extrapolation flag on the top rows](docs/screenshots/projections.png)
+
+_1,376 projections across two directions. The top four rows are flagged
+`extrapolated`, and that is not a coincidence._
+
+Two things make this honest rather than a leaderboard of guesses.
+
+**The conditioning does not disappear when the transfer is hypothetical.** The
+function is fitted on players who were signed, and being good is why they were
+signed. Applying it to someone nobody has signed assumes the same relationship
+holds for him — an assumption, not a finding, and one that observational data
+cannot test. It is stated on the page rather than solved.
+
+**The ranking puts the least reliable rows first.** Sorting by projected usage
+surfaces the highest-usage players in the league, and those are precisely the
+ones outside the range where transferring players were ever observed. Their
+interval comes from the residual spread _inside_ the fitted range, so it
+understates the uncertainty — the model has no data at that end and its error
+bars cannot know it. Every row carries an `in_support` flag, the API warns when
+any row trips it, and filtering them out is something a caller asks for rather
+than something the interface quietly does.
+
+Only usage rate is projected. True shooting is omitted here even though it is
+served elsewhere: for a transfer that happened you can see the model miss
+against what the player actually did, but a counterfactual has no actual beside
+it, so a number on a metric that loses to the league average would be
+unfalsifiable.
+
 ## For a front office
 
 The output is a **ranking instrument, not a pricing instrument**, and the
@@ -569,6 +602,7 @@ Note that Next inlines `NEXT_PUBLIC_*` at compile time, so change it _and_ clear
 curl http://127.0.0.1:8710/                        # every endpoint and its state
 curl http://127.0.0.1:8710/health                  # actually probes D1 and KV
 curl http://127.0.0.1:8710/players/nba_1629029/report   # a checked scouting report
+curl 'http://127.0.0.1:8710/projections?direction=EL-%3ENBA&limit=10'  # players who have not moved
 curl http://127.0.0.1:8710/leaderboards/gravity    # 410, and explains why it cannot exist
 ```
 

@@ -375,3 +375,65 @@ export const playerReports = sqliteTable(
     index("idx_reports_grounded").on(table.grounded),
   ]
 );
+
+/**
+ * What the model says about players who have *not* changed league.
+ *
+ * The point of the project, and the table that needs the most care. Every other
+ * prediction here describes a transfer that happened and can be checked against
+ * what the player actually did. These cannot: they are counterfactuals, and a
+ * counterfactual has no actual column.
+ *
+ * Two flags carry the caveats that a number alone would hide.
+ *
+ * `inSupport` is false when the player's standing in their own league falls
+ * outside the range where transferring players were actually observed. The
+ * interval is derived from the residual spread *inside* the fitted range, so
+ * for these rows it understates the real uncertainty — the model is
+ * extrapolating and its error bars cannot know that. In practice the
+ * highest-usage players in a league are exactly the ones that trips, which is
+ * why the flag is served rather than the rows being quietly dropped.
+ *
+ * `movedBefore` marks a player with a cross-league transfer in some other
+ * direction. They have been signed abroad before, which is different evidence
+ * from a player with no such history.
+ *
+ * Usage rate only. True shooting is omitted because the model loses to
+ * predicting the league average on it, and unlike an observed transition there
+ * is no actual value beside it to expose that.
+ */
+export const hypotheticalProjections = sqliteTable(
+  "hypothetical_projections",
+  {
+    personId: text("person_id")
+      .notNull()
+      .references(() => persons.personId),
+    sourceSeasonId: text("source_season_id").notNull(),
+    /** Integer key, because season ids do not sort correctly across leagues. */
+    sourceSeasonOrder: integer("source_season_order").notNull(),
+    sourceLeague: text("source_league").notNull(),
+    /** The season the move is assumed into: the most recent one available. */
+    targetSeasonId: text("target_season_id").notNull(),
+    direction: text("direction").notNull(),
+    metric: text("metric").notNull(),
+    sourceValue: real("source_value").notNull(),
+    zSource: real("z_source").notNull(),
+    predicted: real("predicted").notNull(),
+    pi80Low: real("pi80_low").notNull(),
+    pi80High: real("pi80_high").notNull(),
+    pi95Low: real("pi95_low").notNull(),
+    pi95High: real("pi95_high").notNull(),
+    /** False means the estimate is extrapolation; see the note above. */
+    inSupport: integer("in_support", { mode: "boolean" }).notNull(),
+    movedBefore: integer("moved_before", { mode: "boolean" }).notNull(),
+    minutes: real("minutes").notNull(),
+    age: real("age"),
+    modelVersion: text("model_version").notNull(),
+    snapshotId: text("snapshot_id").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.personId, table.direction, table.metric] }),
+    index("idx_hypothetical_rank").on(table.direction, table.predicted),
+    index("idx_hypothetical_recent").on(table.direction, table.sourceSeasonOrder),
+  ]
+);

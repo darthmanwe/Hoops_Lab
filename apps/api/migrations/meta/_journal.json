@@ -15,6 +15,13 @@
       "when": 1786437494264,
       "tag": "0001_player_reports",
       "breakpoints": false
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786943979968,
+      "tag": "0002_hypothetical_projections",
+      "breakpoints": false
     }
   ]
 }
