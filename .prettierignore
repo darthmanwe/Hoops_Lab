@@ -17,6 +17,13 @@ docs/data-dictionary.md
 # number, so they are committed but never hand-edited or reformatted.
 services/ml/runs/
 
+# Verbatim Anthropic responses, kept so the demo costs nothing to replay. Same
+# category as the run logs: a record of what a third party actually returned,
+# not source this repository authors. They were reformatted once by hand, which
+# meant the next cache refresh turned CI red for a diff nobody should be
+# reading anyway.
+data/llm_cache/
+
 # Binary snapshots.
 data/gold/
 data/bronze/

@@ -11,7 +11,7 @@ footnote.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
-![Tests](https://img.shields.io/badge/tests-366%20offline-199e70)
+![Tests](https://img.shields.io/badge/tests-374%20offline-199e70)
 
 ![Every observed EuroLeague to NBA transfer, with its projected usage rate, an 80% prediction interval, and what actually happened](docs/screenshots/hero-translation.png)
 
@@ -97,15 +97,27 @@ bars cannot know it. Every row carries an `in_support` flag, the API warns when
 any row trips it, and filtering them out is something a caller asks for rather
 than something the interface quietly does.
 
-**The direction matters as much as the player.** Moves *out* of the NBA are the
+**The direction matters as much as the player.** Moves _out_ of the NBA are the
 best-evidenced in this data — 134 to the G League and 115 to the EuroLeague,
 against 61 the other way — but that cohort was selected in reverse: players who
-left the NBA sat about a third of a standard deviation *below* their league,
-where players who arrived from the EuroLeague sat half a deviation above.
-So an NBA regular projected into the EuroLeague is scored by a function fitted
-mostly on players who could not hold a roster spot, and nearly every star trips
-the extrapolation flag for exactly that reason. Each row carries the number of
+left the NBA sat about a third of a standard deviation _below_ their league,
+where players who arrived from the EuroLeague sat half a deviation above. So an
+NBA regular projected into the EuroLeague is scored by a function fitted mostly
+on players who could not hold a roster spot. Each row carries the number of
 observed transfers behind its direction, which ranges from 134 down to 14.
+
+The consequence is visible the moment you rank NBA players by projected
+EuroLeague usage:
+
+![The NBA to EuroLeague projection ranking, where every one of the top rows is flagged as extrapolated](docs/screenshots/projections-nba.png)
+
+_Every row is flagged `extrapolated` — LaMelo Ball, Dončić, Giannis,
+Wembanyama, LeBron. Not one NBA player who actually moved to the EuroLeague
+carried a usage rate anywhere near these, so the model has no data at this end
+of the range and the interval it prints cannot know that. **This is the page
+working, not failing.** The names a scouting tool is most tempted to rank are
+the ones it is least entitled to rank, and the alternative — dropping the rows
+— would produce a shorter list that looked more trustworthy and was not._
 
 Only usage rate is projected. True shooting is omitted here even though it is
 served elsewhere: for a transfer that happened you can see the model miss
@@ -170,7 +182,7 @@ leaderboard, and it is built accordingly.
 | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Only ~2–5 EuroLeague→NBA transitions a year clear a usable minutes threshold — roughly 40–80 pairs in total. | Model **four** directions (EuroLeague⇄NBA, G League⇄NBA). The G League adds hundreds of pairs that stabilise the shared structure so the EuroLeague pairs can borrow strength instead of carrying the fit alone.                                                                                                                                                                                             |
 | Players who cross leagues are selected on being good enough to be signed.                                    | Fit direction-specific intercepts with a shared slope. EuroLeague→NBA is selected _positively_, NBA→EuroLeague _negatively_; agreement between the two slopes is evidence the effect is not selection-driven, and disagreement quantifies how much of it is. Also shipped: a Heckman correction reported alongside the uncorrected estimate, and a plot of the transferring cohort against its whole league. |
-| Aging and regression to the mean look like league effects.                                                   | Two-stage fit. Player-season dynamics are estimated from 7,680 _same-league_ consecutive pairs; only the league offset depends on the small sample.                                                                                                                                                                                                                                                          |
+| Aging and regression to the mean look like league effects.                                                   | Two-stage fit. Player-season dynamics are estimated from 7,902 _same-league_ consecutive pairs; only the league offset depends on the small sample.                                                                                                                                                                                                                                                          |
 | A cross-league player is not one entity in any public dataset.                                               | A person-centric identity model with an auditable crosswalk across four id systems, recording how each link was made and how confident it is.                                                                                                                                                                                                                                                                |
 
 Details and the exact estimand are in [docs/modeling.md](docs/modeling.md).
@@ -304,11 +316,11 @@ Against every baseline, on usage rate:
 | Baseline                       | MAE    | Model better by |
 | ------------------------------ | ------ | --------------- |
 | League mean                    | 0.0428 | 22.4%           |
-| Stage-1 persistence, no league | 0.0505 | 34.3%           |
+| Stage-1 persistence, no league | 0.0504 | 34.1%           |
 | z-preservation                 | 0.0527 | 37.1%           |
 | The folk ×0.75 rule            | 0.0749 | 55.7%           |
 
-**Estimated compression: β = 0.724** for usage. A slope below one means
+**Estimated compression: β = 0.727** for usage. A slope below one means
 standing within a league compresses on the way across.
 
 ### The model does not work for true shooting, and says so
@@ -324,7 +336,7 @@ Three things in that table are worth more than the headline:
 - **The folk ×0.75 rule is worse than predicting the league average** (0.0749
   vs 0.0428). The rule everyone quotes is not merely imprecise; it is beaten by
   ignoring the player entirely.
-- **Stage-1 persistence alone is also worse than the league mean** (0.0505).
+- **Stage-1 persistence alone is also worse than the league mean** (0.0504).
   Applying same-league year-to-year dynamics to a cross-league move actively
   misleads, which is the clearest evidence that the league term is doing real
   work rather than decorating a trend.
@@ -340,8 +352,8 @@ knows. The model gets one of the two metrics wrong:
 
 | Metric        | Source | Predicted (80% interval) | Actual                         |
 | ------------- | ------ | ------------------------ | ------------------------------ |
-| Usage rate    | 28.9%  | 23.7% [18.5%, 28.8%]     | **30.1%** — above the interval |
-| True shooting | 61.2%  | 55.2% [49.7%, 60.6%]     | 54.5% — inside it              |
+| Usage rate    | 28.9%  | 23.2% [18.0%, 28.5%]     | **30.1%** — above the interval |
+| True shooting | 61.2%  | 55.3% [49.5%, 61.2%]     | 54.5% — inside it              |
 
 He used more possessions as an NBA rookie than he had in the EuroLeague, which
 is the opposite of the compression the model estimates on average. That is a
@@ -353,22 +365,28 @@ rather than in a footnote.
 The movers are not a random sample of the league they leave, and the whole
 estimate is conditional on that. How far above their own peers they sat:
 
-| Direction        | Movers | Gap vs peers, usage |
-| ---------------- | ------ | ------------------- |
-| EuroLeague → NBA | 61     | **+0.46 sd**        |
-| NBA → EuroLeague | 115    | **−0.31 sd**        |
-| G League → NBA   | 45     | +0.27 sd            |
-| NBA → G League   | 134    | −0.41 sd            |
+| Direction             | Movers | Gap vs peers, usage |
+| --------------------- | ------ | ------------------- |
+| EuroLeague → NBA      | 61     | **+0.46 sd**        |
+| NBA → EuroLeague      | 115    | **−0.31 sd**        |
+| G League → NBA        | 45     | +0.27 sd            |
+| NBA → G League        | 134    | −0.41 sd            |
+| G League → EuroLeague | 45     | +0.52 sd            |
+| EuroLeague → G League | 14     | +0.77 sd            |
 
 The two headline directions are selected in **opposite** directions, exactly as
 the design predicted: players move up because they were good, and down because
 they were not. That opposition is what makes the effect testable rather than
 merely acknowledged.
 
-![Selection gaps per direction, in standard deviations](docs/screenshots/selection.png)
+![Selection gaps for all six directions, in standard deviations, with the mover and peer counts under each](docs/screenshots/selection.png)
+
+_All six directions, each with the number of movers it rests on. The sign flip
+between the two headline directions is the whole argument: +0.46 sd into the
+NBA, −0.31 sd out of it._
 
 **And the test does not pass.** Fitting a separate slope per direction gives
-0.579 for EuroLeague→NBA and 0.982 for NBA→EuroLeague — a gap of 0.40.
+0.580 for EuroLeague→NBA and 0.986 for NBA→EuroLeague — a gap of 0.41.
 If one slope fitted both, the compression would be unlikely to be a selection
 artefact. It does not, so part of the estimated compression is
 direction-specific. That is reported here, in the model card, and in the CLI
@@ -405,6 +423,15 @@ in this table.
 ![Five archetype clusters, each shown with its bootstrap stability, and the unstable one flagged as unclassified](docs/screenshots/archetypes.png)
 
 _The interface refuses to name the cluster that does not survive resampling._
+
+The same space gives comparables, computed in Python and served as a
+precomputed table rather than a cosine similarity the Worker recomputes per
+request:
+
+![Nearest neighbours in archetype space for a EuroLeague season, each with its distance](docs/screenshots/comparables.png)
+
+_Neighbours for Dončić's 2016-17 EuroLeague season, with the distance shown
+rather than a similarity score scaled to look like a percentage._
 
 **Shooting, replacing "gravity".** Gravity measures defensive attention and
 needs optical tracking data that no public source provides, so it is gone
@@ -490,7 +517,7 @@ weakest possible way to report a rate, and the README said so. A later change to
 the underlying data invalidated every cached response, so all 30 reports were
 regenerated and scored by the **frozen** checker. It returned **29/30**. The one
 failure was, again, the checker: "the G League-anchored cohorts" was read as a
-recalled proper noun because the rule required *every* part of a compound to
+recalled proper noun because the rule required _every_ part of a compound to
 appear in the evidence, and "anchored" is a participle. Fixing that returned
 30/30 with distractor detection still at 1.00 — so the held-out result is one
 checker false positive in thirty reports, and zero fabrications by the model.
@@ -585,8 +612,8 @@ cd Hoops_Lab && npm ci
 ### Verify the claims
 
 ```bash
-npm run test                     # 102 Worker tests, inside workerd, real D1 + KV
-npm run ml:test                  # 231 Python tests, offline, no credentials
+npm run test                     # 118 Worker tests, inside workerd, real D1 + KV
+npm run ml:test                  # 256 Python tests, offline, no credentials
 
 npm run ml -- verify             # re-derives every data checksum
 npm run ml -- train --verify     # refits the models; fails if a reported metric moved
@@ -687,7 +714,7 @@ Filled in with measured numbers as each phase lands. What can be said already:
   receiving league. Useful for ranking a cohort; useless for deciding a
   contract.
 - **The shared-slope restriction is not supported.** The two directions give
-  0.579 and 0.982, so a substantial part of the estimated compression is
+  0.580 and 0.986, so a substantial part of the estimated compression is
   direction-specific rather than a property of the leagues.
 - **The model is worse than the league average for true shooting**, and the API
   reports that rather than leaving it to be discovered.
@@ -745,13 +772,23 @@ Things that are load-bearing rather than decorative:
   and recorded in an append-only manifest, so an interrupted pull loses only the
   request in flight, and rebuilding gold touches no source at all.
 - **A silent filter cost 22% of the modelling cohort, and was found by
-  accident.** The G League source returns no age column, age is a covariate,
-  and the transition frame drops rows without one — so every transition
-  originating in the G League vanished. 90 pairs, no warning, a plausible-looking
-  total. It survived five phases and turned up because an evaluation set had 20
-  members instead of 30. Age is now derived from the same person's seasons
-  elsewhere, which is arithmetic rather than imputation, and
+  accident.** `leaguedashplayerstats` returns no age column for the G League,
+  age is a covariate, and the transition frame drops rows without one — so
+  every transition originating in the G League vanished. 90 pairs, no warning,
+  a plausible-looking total. It survived five phases and turned up because an
+  evaluation set had 20 members instead of 30. Age was recovered from the same
+  person's seasons elsewhere, which is arithmetic rather than imputation, and
   [ADR 8](docs/adr/0008-silent-drops-fail-loudly.md) records the general rule.
+- **The fix worked, which is why the cause went unexamined for five more
+  phases.** A comment stated that no G League bio endpoint existed, reasoning
+  from the absence of a `league_id_nullable` parameter. `leaguedashplayerbiostats`
+  takes a plain `league_id` and returns G League ages one season per request.
+  The pairs never noticed — a G League player in a transition pair has an NBA
+  season by definition — but projecting players who have _not_ moved needs an
+  age for people who never reached the NBA, and **716 of them were excluded by
+  a docstring nobody checked against the signature.** Ten requests took the
+  unaged residue from 2,129 seasons to 6. A repaired number is still a number
+  that was missing, and the repair is not the place to stop looking.
 - **`stats.nba.com` ingestion cannot run in CI** — it refuses datacenter IP
   ranges, and Actions runners are on Azure. That is why gold is committed and
   why the nightly cron was deleted rather than repaired.

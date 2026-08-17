@@ -52,12 +52,23 @@ Committed gold, built from public sources:
 An earlier build fitted only 324 of them. `leaguedashplayerstats` returns no
 AGE column for the G League, age is a covariate here, and the transition frame
 drops rows without one — so every pair _originating_ in the G League was
-discarded in silence. Age is now recovered from the same person's seasons in
-leagues that do report it, which is arithmetic rather than imputation; the
-2,129 G League seasons belonging to people who never played elsewhere still
-have no age, and still contribute no pairs. A pair requires ≥400 minutes in the source league, ≥300 in the
-target, a gap of one or two seasons, and no appearance in the target league
-during the source season.
+discarded in silence. Age was first recovered from the same person's seasons in
+leagues that do report it, which is arithmetic rather than imputation and
+restored the missing 90 pairs.
+
+That recovery is no longer the main source. `leaguedashplayerbiostats` accepts
+`league_id` and serves the G League directly, one request per season — a fact a
+comment in this repository denied for several phases, having reasoned from the
+absence of a `league_id_nullable` parameter without calling the endpoint. It
+cost nothing here, because every G League player in a transition pair has an
+NBA season by definition. It cost a great deal one layer over, where projecting
+players who have _not_ moved needs an age for people who never reached the NBA:
+2,129 G League seasons had none, and 716 players were excluded from that feature
+by a docstring. Direct ingestion leaves 6 seasons without an age.
+
+A pair requires ≥400 minutes in the source league, ≥300 in the target, a gap of
+one or two seasons, and no appearance in the target league during the source
+season.
 
 Candidates are then reduced to a **matching**: within a person and direction,
 each source season and each target season is used at most once. Deduplicating
@@ -86,7 +97,7 @@ subsequently did.
 
 Two stages, because almost nothing can be estimated from a few hundred pairs.
 
-**Stage 1 — ordinary season-to-season dynamics.** Fitted on 7,680 consecutive
+**Stage 1 — ordinary season-to-season dynamics.** Fitted on 7,902 consecutive
 _same-league_ season pairs: next-season standing regressed on current standing,
 a quadratic in age, and log minutes. This is where aging and mean reversion
 come from, and it is large.
@@ -128,7 +139,7 @@ All four baselines, `usg_pct`:
 | Baseline                       | MAE    | Model better by |
 | ------------------------------ | ------ | --------------- |
 | League mean                    | 0.0428 | 22.4%           |
-| Stage-1 persistence, no league | 0.0505 | 34.3%           |
+| Stage-1 persistence, no league | 0.0504 | 34.1%           |
 | z-preservation                 | 0.0527 | 37.1%           |
 | Folk ×0.75 rule                | 0.0749 | 55.7%           |
 
@@ -136,7 +147,7 @@ Shuffled-target controls: 0.0427 for usage, 0.0523 for true shooting. Both are
 worse than the fitted model and close to the league-mean baseline, which is
 what a clean pipeline looks like.
 
-**Estimated compression.** Shared slope β = **0.724** for usage, 0.690 for true
+**Estimated compression.** Shared slope β = **0.727** for usage, 0.693 for true
 shooting. A slope below one means standing within a league compresses on the
 way across.
 
@@ -157,23 +168,26 @@ is the more flattering and less honest presentation.
   persistence for that metric has R² = 0.30 against 0.73 for usage; shooting
   efficiency is mostly year-to-year noise.
 - **The direction-specific slopes disagree, and by more than before.** For
-  usage, EL→NBA is 0.579 and NBA→EL is 0.982, a gap of 0.40. The shared-slope
+  usage, EL→NBA is 0.580 and NBA→EL is 0.986, a gap of 0.41. The shared-slope
   restriction is therefore doing substantial work, and a meaningful part of the
   estimated compression is direction-specific rather than a property of the
   leagues alone. On the smaller, correctly matched cohort this is the largest
   open question about the estimate.
 - **The folk ×0.75 rule is worse than predicting the league average.** Worth
   knowing, and the reason it is included as a baseline at all.
-- **Stage-1 persistence alone is worse than the league mean** for usage (0.0505
+- **Stage-1 persistence alone is worse than the league mean** for usage (0.0504
   vs 0.0428). Applying same-league dynamics to a cross-league move without an
   offset actively misleads, which is the clearest evidence that the league term
   is load-bearing rather than decorative.
 - **Small and uneven folds.** Some target seasons contribute only a handful of
   pairs; fold sizes are recorded in the run log.
-- **G League ages are derived, not reported.** The source has no AGE column for
-  that league, so age comes from the same person's seasons elsewhere. Anyone
-  who never played outside the G League has no age and contributes no pair —
-  2,129 seasons, and a real limit on the cohort rather than a rounding note.
+- **G League ages come from the bio endpoint, and 6 seasons still lack one.**
+  `leaguedashplayerstats` carries no AGE column for that league, which for
+  several phases was taken to mean no source did; ages were derived from the
+  same person's seasons elsewhere, so anyone who never left the G League had
+  none. `leaguedashplayerbiostats` accepts `league_id` and reports them
+  directly. Derivation is now the fallback rather than the mechanism, and the
+  residual is 6 player-seasons instead of 2,129.
 
 ## Selection
 

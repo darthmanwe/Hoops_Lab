@@ -28,9 +28,17 @@ A filter that removes rows on a null covariate must either:
    do report it — or
 2. report the count it dropped, per reason, in the run log.
 
-A person with no age anywhere still has none. 2,129 G League seasons remain
-unaged and contribute no pairs, because a fabricated covariate in the flagship
-model is worse than a smaller cohort.
+A person with no age anywhere still has none, because a fabricated covariate in
+the flagship model is worse than a smaller cohort. That residual was 2,129
+G League seasons until the source was checked properly:
+`leaguedashplayerbiostats` takes `league_id` and reports G League ages
+directly, so derivation is now the fallback and 6 seasons remain unaged.
+
+Which sharpens this decision rather than softening it. Recovery worked, and
+because it worked nobody asked whether the data had been there all along — the
+comment asserting it was not went unexamined for five phases. **A repaired
+number is still a number that was missing, and the repair is not the place to
+stop looking.**
 
 ## Consequences
 

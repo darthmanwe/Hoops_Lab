@@ -34,7 +34,7 @@ MAX_GAP_SEASONS = 2
 
 
 def fill_missing_age(player_seasons: pl.DataFrame) -> pl.DataFrame:
-    """Recover age for leagues whose source does not report it.
+    """Recover age for player-seasons whose own row does not carry one.
 
     ``leaguedashplayerstats`` returns no AGE column for the G League, so every
     one of its 4,463 player-seasons carried a null age. Age is a covariate in
@@ -43,6 +43,13 @@ def fill_missing_age(player_seasons: pl.DataFrame) -> pl.DataFrame:
     including the entire GL→NBA direction the G League was ingested to provide.
     Nothing failed; the pairs simply were not there, and the count looked
     plausible.
+
+    This is now a **fallback** rather than the mechanism. G League ages are
+    ingested directly from ``leaguedashplayerbiostats``, which takes a
+    ``league_id`` this project spent five phases believing it did not — see
+    :meth:`hoopslab.ingest.nba_stats.NBAStatsClient.player_bio_stats`. What
+    remains for this function is the ordinary residue: a player-season the bio
+    endpoint did not cover, whose person is aged somewhere else.
 
     The recovery is arithmetic, not imputation. These are the same people under
     another league's id, and a person's birth year is already resolved from the
