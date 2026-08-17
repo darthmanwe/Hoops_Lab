@@ -1,0 +1,99 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:14:05.371559+00:00",
+  "evidence_digest": "994eedc40082af1d61dabda524002a494bfa3ce4904cdc05896cf2af201a5165",
+  "key": "2db473328cfc4251d078cc9b",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1628539",
+  "report": {
+    "confidence": "low",
+    "headline": "Projected to be a low-usage role player in the NBA, with usage rate falling from 15.5% to 11.9% and a true-shooting projection that the model cannot be trusted to make",
+    "projection": {
+      "fact_ids": [
+        "f12",
+        "f14",
+        "f15",
+        "f16",
+        "f19",
+        "f20"
+      ],
+      "text": "Player A's usage rate is projected to fall to 11.9% in the NBA, down from 15.5% in the G League and well below the target season's league-average usage rate of 20.1%; the 80% interval (6.4%-17.4%) spans roughly two standard deviations of the league's usage distribution (5.5%), so the model can place him relative to peers but cannot pin down an individual number."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f12",
+          "f14",
+          "f19",
+          "f20"
+        ],
+        "text": "Usage rate projects to drop sharply, from 15.5% in the G League to 11.9% in the NBA, roughly 1.5 standard deviations below the target season's league-average usage rate of 20.1%, signaling a diminished offensive role."
+      },
+      {
+        "fact_ids": [
+          "f17",
+          "f18",
+          "f20"
+        ],
+        "text": "The 95% interval for usage rate (3.5%-20.3%) covers nearly the full spread of NBA usage rates, reflecting substantial individual-level uncertainty even though the model can rank players in aggregate."
+      },
+      {
+        "fact_ids": [
+          "f25",
+          "f36",
+          "f37"
+        ],
+        "text": "The true-shooting projection of 56.4% is unreliable because the model does no better than a naive league-mean baseline on this metric (MAE 4.7% vs 4.7%), so it should not be used to judge his likely NBA efficiency."
+      },
+      {
+        "fact_ids": [
+          "f39",
+          "f11"
+        ],
+        "text": "The estimate rests on a modest historical sample of 45 GL->NBA transitions, and two full seasons elapsed between the source season and the move, both of which add to the uncertainty of applying the model to this case."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f23",
+          "f24"
+        ],
+        "text": "In the G League, Player A posted a true shooting percentage of 61.0%, one full standard deviation above the league average, indicating clear scoring efficiency."
+      },
+      {
+        "fact_ids": [
+          "f08",
+          "f09"
+        ],
+        "text": "Nearly two-thirds of his shot attempts (65.9%) came from three-point range, paired with a low turnover rate of 7.0%, consistent with a low-usage, high-value floor-spacing profile."
+      },
+      {
+        "fact_ids": [
+          "f35",
+          "f38"
+        ],
+        "text": "Historically, efficiency metrics carry over from the G League to the NBA more than usage does: the fitted slope for true shooting is 0.801 versus 0.531 for usage, suggesting his shooting skill is more likely to persist than his shot volume."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f40",
+        "f13",
+        "f33",
+        "f34",
+        "f36",
+        "f37",
+        "f25"
+      ],
+      "text": "The model's estimates are fitted on players who, on average, sat +0.27 SD above their own league before moving; Player A, at -0.97 SD in G League usage, sits well below that typical mover profile, which adds to the uncertainty here. The usage-rate model modestly beats a trivial league-mean baseline (MAE 3.3% vs 4.3%), so that projection carries some signal, but the true-shooting model performs no better than simply guessing the league mean (MAE 4.7% vs 4.7%), so the projected true-shooting percentage of 56.4% should not be treated as informative."
+    }
+  },
+  "target_season_id": "NBA_2020",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1438,
+    "output_tokens": 3722
+  }
+}

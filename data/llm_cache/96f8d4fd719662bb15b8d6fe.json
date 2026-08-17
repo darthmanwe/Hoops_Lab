@@ -1,0 +1,98 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:10:48.297169+00:00",
+  "evidence_digest": "a25b1019c53920fd4670844dda257834c4c6d947300437ec84730ade3835ed4a",
+  "key": "96f8d4fd719662bb15b8d6fe",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_101132",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage projected to jump from 20.1% in the NBA to 24.6% in the EuroLeague, but the shooting-efficiency projection fails its own reliability test.",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f12",
+        "f13",
+        "f18"
+      ],
+      "text": "The model projects usage rate to rise to 24.6% in the EuroLeague, up from a 20.1% NBA usage rate that was almost exactly league-average (+0.02 sd), and above the EuroLeague's own minutes-weighted average of 20.5%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f39"
+        ],
+        "text": "Unlike the typical pattern of players who move being well above their league's average, the cohort behind this estimate sat 0.31 standard deviations below their own league average before moving, which weakens the analogy this projection rests on."
+      },
+      {
+        "fact_ids": [
+          "f14",
+          "f15",
+          "f19"
+        ],
+        "text": "The 80% prediction interval for usage rate (20.4%-28.7%) spans roughly two standard deviations of EuroLeague usage (sd 4.1%), so the model can rank but not pinpoint the player's eventual role."
+      },
+      {
+        "fact_ids": [
+          "f35",
+          "f36"
+        ],
+        "text": "The true shooting projection should not be trusted: the model's error (4.7%) ties the trivial league-average baseline (4.7%), meaning it adds no predictive value here."
+      },
+      {
+        "fact_ids": [
+          "f09"
+        ],
+        "text": "A 10.0% turnover rate in the source season is a risk if usage rises as projected, since higher usage typically strains ball security."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f11",
+          "f13",
+          "f18"
+        ],
+        "text": "Projected usage climbs to 24.6%, above both the NBA baseline of 20.1% and the EuroLeague average of 20.5%, suggesting a larger offensive role after the move."
+      },
+      {
+        "fact_ids": [
+          "f34"
+        ],
+        "text": "The fitted slope for usage rate is 0.986, meaning the model expects almost all of the player's relative standing to carry over into the new league."
+      },
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "NBA true shooting of 55.2% was above the league average (+0.17 sd) entering the move, indicating efficient scoring at the source level, even if the EuroLeague shooting projection itself is unreliable."
+      },
+      {
+        "fact_ids": [
+          "f07"
+        ],
+        "text": "Rebounding production was solid at 6.454 per 75 possessions in the source season."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f19",
+        "f35",
+        "f36",
+        "f24",
+        "f23"
+      ],
+      "text": "The 80% prediction interval for usage rate runs from 20.4% to 28.7%, a span of roughly two standard deviations of EuroLeague usage (sd 4.1%), so the model can say this is a larger role but not what size exactly. For true shooting percentage the model's out-of-fold error (4.7%) is no better than simply guessing the league average (4.7%), so the projected 59.3% true shooting figure carries no information beyond the fact that the player's NBA efficiency was already above average (+0.17 sd)."
+    }
+  },
+  "target_season_id": "EL_2009",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1444,
+    "output_tokens": 2444
+  }
+}

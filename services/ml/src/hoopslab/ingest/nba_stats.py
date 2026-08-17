@@ -138,12 +138,18 @@ class NBAStatsClient:
         gives age in any other season, including seasons in leagues whose own
         sources do not report it.
 
-        Note: this endpoint rejects ``league_id_nullable``, so there is no
-        G League equivalent. G League ages are derived from the NBA
-        observation of the same person, which every G League to NBA transition
-        by definition has.
+        This endpoint takes ``league_id`` like the others, so the G League is
+        one request per season here too. An earlier version of this docstring
+        asserted the opposite — that no G League variant existed — on the
+        strength of there being no ``league_id_nullable`` parameter. That was
+        wrong, and it was expensive: G League ages were left to be recovered
+        from the same person's NBA observation, which meant a player who never
+        reached the NBA had no age at all, and the counterfactual projections
+        drop rows without one. 716 G League players were excluded by a comment
+        that was never checked against the endpoint's actual signature.
         """
-        params = {"season": season.nba_stats_season}
+        league_id = LEAGUE_IDS[season.league]
+        params = {"season": season.nba_stats_season, "league_id": league_id}
 
         def call() -> pd.DataFrame:
             from nba_api.stats.endpoints import leaguedashplayerbiostats
@@ -151,6 +157,7 @@ class NBAStatsClient:
             self.limiter.acquire()
             return _first_frame(
                 leaguedashplayerbiostats.LeagueDashPlayerBioStats(
+                    league_id=league_id,
                     season=season.nba_stats_season,
                     season_type_all_star="Regular Season",
                     timeout=TIMEOUT_SECONDS,

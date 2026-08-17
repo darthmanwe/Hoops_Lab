@@ -10,23 +10,52 @@ import { directionLabel, percent, signedSd, withInterval } from "../../lib/forma
  */
 export const dynamic = "force-dynamic";
 
-const DIRECTIONS = ["EL->NBA", "GL->NBA"] as const;
+/**
+ * Every direction with observed transfers behind it, ordered by how much data
+ * supports each. The two NBA-bound moves are the headline, but they are not the
+ * best-evidenced: more players have gone the other way.
+ */
+const DIRECTIONS = ["EL->NBA", "GL->NBA", "NBA->EL", "NBA->GL", "GL->EL", "EL->GL"] as const;
 
 /** Recent enough that the player is plausibly still signable. */
 const DEFAULT_SINCE = 2023;
 
+const PAGE_SIZE = 100;
+
 export default async function ProjectionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ direction?: string; since?: string; all?: string }>;
+  searchParams: Promise<{ direction?: string; since?: string; all?: string; offset?: string }>;
 }) {
-  const { direction = "EL->NBA", since = String(DEFAULT_SINCE), all } = await searchParams;
+  const {
+    direction = "EL->NBA",
+    since = String(DEFAULT_SINCE),
+    all,
+    offset: rawOffset,
+  } = await searchParams;
   const showAllSeasons = all === "true";
+  const offset = Math.max(0, Number.parseInt(rawOffset ?? "0", 10) || 0);
 
-  const query = new URLSearchParams({ direction, limit: "60" });
+  const query = new URLSearchParams({
+    direction,
+    limit: String(PAGE_SIZE),
+    offset: String(offset),
+  });
   if (!showAllSeasons) query.set("sinceSeason", since);
 
   const result = await apiGetOptional<HypotheticalProjection[]>(`/projections?${query}`);
+
+  /** Preserves every filter except the one being changed. */
+  const href = (next: Partial<{ direction: string; all: boolean; offset: number }>) => {
+    const params = new URLSearchParams({ direction: next.direction ?? direction });
+    if (next.all ?? showAllSeasons) params.set("all", "true");
+    const page = next.offset ?? 0;
+    if (page > 0) params.set("offset", String(page));
+    return `/projections?${params}`;
+  };
+
+  const page = isProblem(result) ? undefined : result.meta.page;
+  const movers = isProblem(result) ? undefined : result.data[0]?.supportNMovers;
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,7 +67,7 @@ export default async function ProjectionsPage({
           Every player here has a qualifying season in their own league and{" "}
           <strong>has not made this move</strong>. The projection applies the same fitted
           translation function used on the {directionLabel(direction)} transfers that actually
-          happened.
+          happened{movers ? `, of which there are ${movers}` : ""}.
         </p>
 
         <nav aria-label="Direction" className="flex flex-wrap gap-2">
@@ -47,7 +76,7 @@ export default async function ProjectionsPage({
             return (
               <Link
                 key={option}
-                href={`/projections?direction=${encodeURIComponent(option)}${showAllSeasons ? "&all=true" : ""}`}
+                href={href({ direction: option })}
                 aria-current={active ? "page" : undefined}
                 className={`rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300 ${
                   active
@@ -60,7 +89,7 @@ export default async function ProjectionsPage({
             );
           })}
           <Link
-            href={`/projections?direction=${encodeURIComponent(direction)}${showAllSeasons ? "" : "&all=true"}`}
+            href={href({ all: !showAllSeasons })}
             className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-200 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
           >
             {showAllSeasons ? `Recent only (${DEFAULT_SINCE}+)` : "Include every season"}
@@ -86,6 +115,18 @@ export default async function ProjectionsPage({
       ) : (
         <>
           <Card>
+            {page ? (
+              <p className="mb-3 text-sm text-slate-400">
+                Showing{" "}
+                <strong className="text-slate-200">
+                  {page.offset + 1}–{page.offset + page.returned}
+                </strong>{" "}
+                of <strong className="text-slate-200">{page.total.toLocaleString("en-GB")}</strong>{" "}
+                eligible {directionLabel(direction).split(" → ")[0]} players
+                {showAllSeasons ? "" : ` with a ${DEFAULT_SINCE}+ season`}, ranked by projection.
+              </p>
+            ) : null}
+
             <Table
               caption={`Projected ${directionLabel(direction)} usage rate for players who have not moved`}
               headers={[
@@ -131,6 +172,27 @@ export default async function ProjectionsPage({
                 ),
               ])}
             />
+
+            {page && page.total > page.returned ? (
+              <nav aria-label="Pagination" className="mt-4 flex items-center gap-3 text-sm">
+                {offset > 0 ? (
+                  <Link
+                    className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
+                    href={href({ offset: Math.max(0, offset - PAGE_SIZE) })}
+                  >
+                    ← Previous
+                  </Link>
+                ) : null}
+                {offset + page.returned < page.total ? (
+                  <Link
+                    className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
+                    href={href({ offset: offset + PAGE_SIZE })}
+                  >
+                    Next {Math.min(PAGE_SIZE, page.total - offset - page.returned)} →
+                  </Link>
+                ) : null}
+              </nav>
+            ) : null}
           </Card>
 
           <Card title="Why the top of this list is the least reliable part of it">
@@ -146,6 +208,15 @@ export default async function ProjectionsPage({
               the league first, and those are precisely the ones beyond the observed range. The
               names that look most exciting are the ones the model is least entitled to speak about,
               so the flag is shown rather than the rows being quietly dropped.
+            </p>
+            <p className="mt-3 text-sm text-slate-300">
+              The direction matters as much as the player. Moves <em>out</em> of the NBA are the
+              best-evidenced in this data — 134 to the G League and 115 to the EuroLeague, against
+              61 the other way — but that cohort was selected in reverse: players who left the NBA
+              sat about a third of a standard deviation <em>below</em> their league. So an NBA
+              regular projected into the EuroLeague is being scored by a function fitted mostly on
+              players who could not hold an NBA roster spot, and almost every star is flagged{" "}
+              <span className="text-amber-300">extrapolated</span> for exactly that reason.
             </p>
             <p className="mt-3 text-sm text-slate-300">
               Only usage rate is projected. True shooting is omitted because the model loses to

@@ -1,0 +1,92 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:09:17.940126+00:00",
+  "evidence_digest": "706754a3c301c18483e187e49b7e10c97fa280eb3d60c522bb0fc0840cf0ce7e",
+  "key": "e08acc71e9981aa305824efd",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_2434",
+  "report": {
+    "confidence": "low",
+    "headline": "Above-average NBA usage projects to a high-usage EuroLeague role, but the shooting-efficiency projection carries no real signal.",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f18",
+        "f19"
+      ],
+      "text": "Projected usage rate in the EuroLeague is 25.0%, about 4.4 percentage points (roughly one standard deviation) above the league average of 20.6%, up from 21.2% usage in the NBA source season."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f24",
+          "f29",
+          "f35",
+          "f36"
+        ],
+        "text": "The projected true shooting percentage of 58.4% cannot be trusted: the model's error (4.7%) is no better than simply guessing the EuroLeague average (58.0%, also 4.7% error), so this figure carries no real signal despite sitting close to league norms."
+      },
+      {
+        "fact_ids": [
+          "f16",
+          "f17",
+          "f19"
+        ],
+        "text": "The 95% interval for usage runs from 18.3% to 31.7%, a 13.4-point range against a league standard deviation of just 4.4%—over three standard deviations wide—underscoring that the model can rank this player as high-usage but not price the exact share."
+      },
+      {
+        "fact_ids": [
+          "f39",
+          "f12",
+          "f38"
+        ],
+        "text": "The historical cohort of NBA->EL movers this estimate is built from sat 0.31 standard deviations below their own league's average, the opposite direction from this player's own +0.23 sd standing, so the projection extrapolates somewhat beyond the typical profile the model was fit on."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f11",
+          "f13",
+          "f32",
+          "f33"
+        ],
+        "text": "Usage rate is projected to rise from 21.2% in the NBA to 25.0% in the EuroLeague, and the model is well-suited to this metric, beating the trivial league-mean baseline (3.3% vs 4.3% mean absolute error)."
+      },
+      {
+        "fact_ids": [
+          "f12",
+          "f34"
+        ],
+        "text": "The subject entered above the NBA average in usage (+0.23 sd), and the model's fitted slope of 0.986 for usage means nearly all of that standing above the NBA average is expected to carry over to the EuroLeague."
+      },
+      {
+        "fact_ids": [
+          "f03",
+          "f04"
+        ],
+        "text": "The source-season sample is substantial and uninterrupted: 82 games and 2,117 minutes played."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f19",
+        "f24",
+        "f25",
+        "f26",
+        "f36"
+      ],
+      "text": "The 80% prediction interval for usage spans 20.6% to 29.4%, about two EuroLeague standard deviations wide, so the model can flag this as a likely high-usage role but cannot pin an exact figure; the true shooting projection of 58.4% (interval 50.7%-66.2%) should not be relied on at all, since the model's error on that metric is no better than a simple league-average guess."
+    }
+  },
+  "target_season_id": "EL_2008",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1444,
+    "output_tokens": 3191
+  }
+}

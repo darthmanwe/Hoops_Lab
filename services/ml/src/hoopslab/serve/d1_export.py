@@ -688,6 +688,11 @@ HYPOTHETICAL_COLUMNS = [
     "moved_before",
     "minutes",
     "age",
+    #: How many observed transfers the direction's intercept was fitted from.
+    #: Constant per direction and therefore redundant on every row, but it is
+    #: the single number that decides how much weight a projection deserves,
+    #: and serving it beside the estimate costs one integer.
+    "support_n_movers",
     "model_version",
     "snapshot_id",
 ]
@@ -753,6 +758,7 @@ def _hypothetical_rows(
                     bool(r["moved_before"]),
                     _round(r["source_minutes"], 1),
                     _round(r["age_at_source"], 1),
+                    int(r["support_n_movers"]),
                     model_version,
                     snapshot,
                 ]

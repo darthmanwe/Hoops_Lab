@@ -1,0 +1,204 @@
+{
+  "created_at": "2026-08-17T08:03:30.256343+00:00",
+  "data_contract_hashes": {
+    "persons": "24fc98cd7c0d411a0c40cb5d35c8a43b",
+    "player_identities": "4417c1d6b897881cb41208c33b5aa2bc",
+    "player_seasons": "51c66b708847c8baaf5d1b11c22d5628",
+    "team_seasons": "be6e83e1965b05f2a0702476213ff61d",
+    "transition_pairs": "aa8c2726a0344864e6ccda71c17186d5"
+  },
+  "git_dirty": true,
+  "git_sha": "ea022f3",
+  "metrics": {
+    "ts_pct": {
+      "baseline_mae": {
+        "folk_0.75": 0.16169415990685118,
+        "league_mean": 0.04698529081382219,
+        "persistence_no_league": 0.050107648588384304,
+        "z_preservation": 0.06380385696277972
+      },
+      "beta": 0.6926306378566635,
+      "direction_slopes": {
+        "EL->NBA": 0.7536249456361593,
+        "GL->EL": 0.9780953208240987,
+        "GL->NBA": 0.8010965573271552,
+        "NBA->EL": 0.5361792531384852,
+        "NBA->GL": 0.6770338009842714
+      },
+      "intercepts": {
+        "EL->GL": 0.05479078797670353,
+        "EL->NBA": -0.6525768787175465,
+        "GL->EL": -0.9867907295476325,
+        "GL->NBA": -1.0212483403619954,
+        "NBA->EL": -0.22642820554014365,
+        "NBA->GL": 0.0498109723813035
+      },
+      "mae": 0.047194520483316627,
+      "mae_ci": [
+        0.04334213912261687,
+        0.051297461257732276
+      ],
+      "metric": "ts_pct",
+      "n_evaluated": 367,
+      "n_folds": 12,
+      "n_pairs": 414,
+      "n_persistence": 7902,
+      "persistence_r2": 0.30009075033875654,
+      "residual_sd": 0.9005889942223263,
+      "shuffled_mae": 0.052261564862085566
+    },
+    "usg_pct": {
+      "baseline_mae": {
+        "folk_0.75": 0.07487004469580645,
+        "league_mean": 0.04275529858724223,
+        "persistence_no_league": 0.050355274830231826,
+        "z_preservation": 0.05272444355311388
+      },
+      "beta": 0.7267680663525955,
+      "direction_slopes": {
+        "EL->NBA": 0.5802711270723405,
+        "GL->EL": 0.7531383168724993,
+        "GL->NBA": 0.5305474245705002,
+        "NBA->EL": 0.9858139852262701,
+        "NBA->GL": 0.7901449232016736
+      },
+      "intercepts": {
+        "EL->GL": 0.7731299842778533,
+        "EL->NBA": 0.1017164063634805,
+        "GL->EL": 0.8144845367327456,
+        "GL->NBA": 0.06243193913460529,
+        "NBA->EL": 1.799645298768913,
+        "NBA->GL": 1.7656996798270188
+      },
+      "mae": 0.03317018280468844,
+      "mae_ci": [
+        0.030627066726663314,
+        0.0356634323153447
+      ],
+      "metric": "usg_pct",
+      "n_evaluated": 367,
+      "n_folds": 12,
+      "n_pairs": 414,
+      "n_persistence": 7902,
+      "persistence_r2": 0.7314073894228734,
+      "residual_sd": 0.7819652108045013,
+      "shuffled_mae": 0.04268028943522802
+    }
+  },
+  "model": "translation",
+  "model_version": "translation-v1.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.11",
+  "run_id": "20260817T080330Z",
+  "seed": 20260810,
+  "selection": [
+    {
+      "direction": "EL->GL",
+      "gap_sd": 0.7660455061803315,
+      "league_mean_z": -0.07595635396463082,
+      "metric": "usg_pct",
+      "mover_mean_z": 0.6900891522157007,
+      "n_league": 1573,
+      "n_movers": 14
+    },
+    {
+      "direction": "EL->NBA",
+      "gap_sd": 0.4561172121294238,
+      "league_mean_z": -0.06010759696582436,
+      "metric": "usg_pct",
+      "mover_mean_z": 0.39600961516359945,
+      "n_league": 2874,
+      "n_movers": 61
+    },
+    {
+      "direction": "GL->EL",
+      "gap_sd": 0.5234183318687684,
+      "league_mean_z": -0.04676459823681777,
+      "metric": "usg_pct",
+      "mover_mean_z": 0.4766537336319506,
+      "n_league": 2748,
+      "n_movers": 45
+    },
+    {
+      "direction": "GL->NBA",
+      "gap_sd": 0.2657158645826197,
+      "league_mean_z": -0.04676459823681777,
+      "metric": "usg_pct",
+      "mover_mean_z": 0.21895126634580195,
+      "n_league": 2748,
+      "n_movers": 45
+    },
+    {
+      "direction": "NBA->EL",
+      "gap_sd": -0.3143668525331351,
+      "league_mean_z": -0.2080681003507522,
+      "metric": "usg_pct",
+      "mover_mean_z": -0.5224349528838873,
+      "n_league": 7540,
+      "n_movers": 115
+    },
+    {
+      "direction": "NBA->GL",
+      "gap_sd": -0.4058395543995891,
+      "league_mean_z": -0.20051140835132364,
+      "metric": "usg_pct",
+      "mover_mean_z": -0.6063509627509127,
+      "n_league": 4507,
+      "n_movers": 134
+    },
+    {
+      "direction": "EL->GL",
+      "gap_sd": -0.024916180416658232,
+      "league_mean_z": -0.05295136178299452,
+      "metric": "ts_pct",
+      "mover_mean_z": -0.07786754219965275,
+      "n_league": 1573,
+      "n_movers": 14
+    },
+    {
+      "direction": "EL->NBA",
+      "gap_sd": 0.3366402837246491,
+      "league_mean_z": -0.0513578580535059,
+      "metric": "ts_pct",
+      "mover_mean_z": 0.2852824256711432,
+      "n_league": 2874,
+      "n_movers": 61
+    },
+    {
+      "direction": "GL->EL",
+      "gap_sd": 0.6487316209110805,
+      "league_mean_z": -0.062506189014708,
+      "metric": "ts_pct",
+      "mover_mean_z": 0.5862254318963724,
+      "n_league": 2748,
+      "n_movers": 45
+    },
+    {
+      "direction": "GL->NBA",
+      "gap_sd": -0.13220076603566264,
+      "league_mean_z": -0.062506189014708,
+      "metric": "ts_pct",
+      "mover_mean_z": -0.19470695505037064,
+      "n_league": 2748,
+      "n_movers": 45
+    },
+    {
+      "direction": "NBA->EL",
+      "gap_sd": -0.5107588584142899,
+      "league_mean_z": -0.16873787167608553,
+      "metric": "ts_pct",
+      "mover_mean_z": -0.6794967300903755,
+      "n_league": 7540,
+      "n_movers": 115
+    },
+    {
+      "direction": "NBA->GL",
+      "gap_sd": -0.7462166121383386,
+      "league_mean_z": -0.14025047290639522,
+      "metric": "ts_pct",
+      "mover_mean_z": -0.8864670850447338,
+      "n_league": 4507,
+      "n_movers": 134
+    }
+  ]
+}

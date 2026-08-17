@@ -1,0 +1,102 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:10:21.636835+00:00",
+  "evidence_digest": "400384010839a6ecbfb2baa1697ade39c3c4587c92ea9017c91319b64a656f31",
+  "key": "dddc6b58456290873a7034ae",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1628407",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage rate projected to climb from 20.9% to 25.1% in the EuroLeague, but the accompanying true-shooting projection is not to be trusted.",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f18",
+        "f19",
+        "f14",
+        "f15"
+      ],
+      "text": "The model projects usage rate at 25.1% in the EuroLeague, up from a 20.9% NBA usage rate, and above the EuroLeague's minutes-weighted average of 20.2% (sd 4.7%); the 80% interval runs 20.3%-29.8%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "Source-season true shooting of 49.0% was 1.46 standard deviations below the NBA average that year, the weakest number in the profile."
+      },
+      {
+        "fact_ids": [
+          "f24",
+          "f35",
+          "f36",
+          "f29"
+        ],
+        "text": "The true-shooting projection of 54.0% should not be relied upon: the model's 4.7% error is no better than simply assuming league-average shooting, so it adds no information over the 57.4% EuroLeague average."
+      },
+      {
+        "fact_ids": [
+          "f14",
+          "f15",
+          "f19"
+        ],
+        "text": "The 80% usage-rate interval (20.3%-29.8%) covers roughly two EuroLeague standard deviations, meaning the model can rank this player among peers but cannot pin down an individual outcome."
+      },
+      {
+        "fact_ids": [
+          "f39"
+        ],
+        "text": "Players who historically made this exact NBA-to-EuroLeague move sat 0.31 standard deviations below their own league's average, the opposite of the usual pattern of movers being above average, which adds uncertainty to how cleanly this player's standing will carry over."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f05",
+          "f07",
+          "f10",
+          "f09"
+        ],
+        "text": "Produced 15.3 points and 4.35 rebounds per 75 possessions in the source NBA season, with an 8.6% assist rate and a low 5.4% turnover rate."
+      },
+      {
+        "fact_ids": [
+          "f13",
+          "f18",
+          "f19"
+        ],
+        "text": "Projected usage of 25.1% in the EuroLeague sits well above the league's 20.2% average, roughly one standard deviation above it."
+      },
+      {
+        "fact_ids": [
+          "f32",
+          "f33"
+        ],
+        "text": "The usage-rate model beats the trivial baseline (3.3% mean absolute error vs. 4.3%), so the projected usage increase is a genuine signal rather than noise."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f16",
+        "f17",
+        "f19",
+        "f35",
+        "f36",
+        "f29",
+        "f38"
+      ],
+      "text": "The usage-rate 80% interval (20.3%-29.8%) and 95% interval (17.8%-32.3%) span most of the EuroLeague's spread (sd 4.7%), so the model can rank players but not price this one precisely. The true-shooting model's 4.7% error ties the trivial league-mean baseline of 4.7%, so its 54.0% projection carries no information beyond assuming the league average of 57.4%. The whole estimate rests on 115 historical NBA-to-EuroLeague transitions."
+    }
+  },
+  "target_season_id": "EL_2021",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1444,
+    "output_tokens": 3473
+  }
+}

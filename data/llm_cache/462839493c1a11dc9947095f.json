@@ -1,0 +1,105 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:16:20.340914+00:00",
+  "evidence_digest": "74ff22511eff6ff5223a747d8e9111838953f0769285b3ee05f4592220a6f381",
+  "key": "462839493c1a11dc9947095f",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_203710",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage projected to shrink well below NBA average, and shooting projection carries no signal",
+    "projection": {
+      "fact_ids": [
+        "f13",
+        "f11",
+        "f18"
+      ],
+      "text": "Player A's usage rate is projected to fall to 14.1% in the NBA, down from 17.6% in the G League and below the NBA's minutes-weighted average of 20.1%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f13",
+          "f18",
+          "f19"
+        ],
+        "text": "The projected 14.1% usage rate sits roughly 1.2 standard deviations below the NBA average of 20.1% (SD 5.2%), pointing to a materially reduced offensive role."
+      },
+      {
+        "fact_ids": [
+          "f02",
+          "f12"
+        ],
+        "text": "He was 27 years old in the source season and his usage rate there was already 0.50 standard deviations below the G League average, an older, lower-usage profile heading into the move."
+      },
+      {
+        "fact_ids": [
+          "f24",
+          "f29",
+          "f36"
+        ],
+        "text": "The true shooting projection of 52.5%, below both his source-season mark and the NBA average, cannot be trusted since the model underperforms a naive league-average baseline on this metric."
+      },
+      {
+        "fact_ids": [
+          "f16",
+          "f17"
+        ],
+        "text": "The 95% prediction interval for usage rate spans 6.1% to 22.1%, covering nearly the full range of plausible NBA roles from bit-part to above-average."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f05",
+          "f06",
+          "f07",
+          "f04",
+          "f03"
+        ],
+        "text": "In the source G League season he produced 15.7 points, 5.1 rebounds, and 2.3 assists per 75 possessions across 50 games and 1,463 minutes."
+      },
+      {
+        "fact_ids": [
+          "f22",
+          "f23",
+          "f08",
+          "f09"
+        ],
+        "text": "He shot efficiently, posting a 56.4% true shooting percentage, about 0.19 standard deviations above the G League average, on a heavy diet of threes (53.1% of attempts) with a low 9.4% turnover rate."
+      },
+      {
+        "fact_ids": [
+          "f39"
+        ],
+        "text": "He belongs to a cohort of G League to NBA movers who sat 0.27 standard deviations above their own league's average, the group this model's projections are conditioned on."
+      },
+      {
+        "fact_ids": [
+          "f34"
+        ],
+        "text": "Usage rate historically retains about 53.1% of a player's standing across this specific transition, giving the projection some grounding despite the wide interval."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f19",
+        "f16",
+        "f17",
+        "f24",
+        "f35",
+        "f36"
+      ],
+      "text": "The 80% prediction interval for usage rate runs from 8.8% to 19.3%, a span of roughly two standard deviations of the NBA usage distribution (SD 5.2%), so the model can rank this player against peers but cannot pin down an individual value; the 95% interval widens further to 6.1%-22.1%. The true shooting projection of 52.5% should not be read as informative at all, since the model's held-out error (4.7%) is no better than simply guessing the league average (also 4.7%)."
+    }
+  },
+  "target_season_id": "NBA_2017",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1416,
+    "output_tokens": 2354
+  }
+}

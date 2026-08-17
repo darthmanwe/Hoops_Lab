@@ -1,4 +1,4 @@
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, count, desc, eq, gte } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
 import { createDb, schema } from "../db/client";
@@ -9,8 +9,11 @@ import { snapshotId } from "../lib/snapshot";
 
 export const projectionsRoute = new Hono<{ Bindings: Env }>();
 
+/** Every direction with observed transfers behind it. */
+const DIRECTIONS = ["EL->NBA", "GL->NBA", "NBA->EL", "NBA->GL", "GL->EL", "EL->GL"] as const;
+
 const Query = z.object({
-  direction: z.enum(["EL->NBA", "GL->NBA"]).default("EL->NBA"),
+  direction: z.enum(DIRECTIONS).default("EL->NBA"),
   /** Restrict to recent seasons. A projection off a 2012 line is a curiosity. */
   sinceSeason: z.coerce.number().int().min(2000).max(2100).optional(),
   /** Out-of-support rows top the ranking, so hiding them is opt-in, not default. */
@@ -18,7 +21,13 @@ const Query = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
-  limit: z.coerce.number().int().min(1).max(200).default(50),
+  /**
+   * 500 covers every projection in the largest direction, so a caller who
+   * wants the whole pool can have it in one request. The ceiling exists
+   * because the response is materialised in memory, not to curate the list.
+   */
+  limit: z.coerce.number().int().min(1).max(500).default(50),
+  offset: z.coerce.number().int().min(0).default(0),
 });
 
 /**
@@ -41,6 +50,7 @@ projectionsRoute.get("/projections", async (c) => {
     sinceSeason: c.req.query("sinceSeason"),
     inSupportOnly: c.req.query("inSupportOnly"),
     limit: c.req.query("limit"),
+    offset: c.req.query("offset"),
   });
   if (!parsed.success) {
     return problem(c, {
@@ -48,11 +58,11 @@ projectionsRoute.get("/projections", async (c) => {
       code: "INVALID_QUERY",
       title: "Invalid projection parameters",
       detail: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
-      extensions: { directions: ["EL->NBA", "GL->NBA"] },
+      extensions: { directions: DIRECTIONS },
     });
   }
 
-  const { direction, sinceSeason, inSupportOnly, limit } = parsed.data;
+  const { direction, sinceSeason, inSupportOnly, limit, offset } = parsed.data;
   const db = createDb(c.env.DB);
 
   const filters = [eq(schema.hypotheticalProjections.direction, direction)];
@@ -83,13 +93,25 @@ projectionsRoute.get("/projections", async (c) => {
       movedBefore: schema.hypotheticalProjections.movedBefore,
       minutes: schema.hypotheticalProjections.minutes,
       age: schema.hypotheticalProjections.age,
+      supportNMovers: schema.hypotheticalProjections.supportNMovers,
       modelVersion: schema.hypotheticalProjections.modelVersion,
     })
     .from(schema.hypotheticalProjections)
     .leftJoin(schema.persons, eq(schema.persons.personId, schema.hypotheticalProjections.personId))
     .where(and(...filters))
     .orderBy(desc(schema.hypotheticalProjections.predicted))
-    .limit(limit);
+    .limit(limit)
+    .offset(offset);
+
+  // How many the filters actually match, which is not `rows.length` once a
+  // limit is applied. Without it a caller cannot tell a short list from a
+  // truncated one — the difference between "these are the players" and "these
+  // are the first fifty of two hundred".
+  const [counted] = await db
+    .select({ total: count() })
+    .from(schema.hypotheticalProjections)
+    .where(and(...filters));
+  const total = counted?.total ?? 0;
 
   if (rows.length === 0) {
     return problem(c, {
@@ -105,13 +127,24 @@ projectionsRoute.get("/projections", async (c) => {
 
   const outOfSupport = rows.filter((row) => !row.inSupport).length;
 
+  const movers = rows[0]?.supportNMovers ?? 0;
+
   return c.json(
     envelope(c, rows, {
       snapshot: await snapshotId(db),
+      page: { total, limit, offset, returned: rows.length },
       warnings: [
         "These players have not transferred. The estimate is conditional on a transfer " +
           "happening and is fitted on players who were signed, who sit about half a standard " +
           "deviation above their league. It ranks a shortlist; it does not price a contract.",
+        `Fitted from ${movers} observed ${direction} transfers.`,
+        ...(total > rows.length
+          ? [
+              `Showing ${rows.length} of ${total} eligible players, ranked by projection. ` +
+                "Raise `limit` or page with `offset` for the rest; this is a page of a " +
+                "ranking, not the whole pool.",
+            ]
+          : []),
         ...(outOfSupport > 0
           ? [
               `${outOfSupport} of ${rows.length} rows fall outside the range of source ` +

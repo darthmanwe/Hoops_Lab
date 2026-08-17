@@ -9,6 +9,7 @@ Cost, at the configured 0.67 requests per second:
 | NBA player bio               | 25       | replaces ~3,000 per-player calls |
 | NBA registry                 | 1        | all players, all time          |
 | G League player stats        | 20       | 10 seasons, 2 measures         |
+| G League player bio          | 10       | ages for players with no NBA row |
 | EuroLeague player stats      | 18       |                                |
 | EuroLeague team stats        | 18       |                                |
 | ESPN bulk files              | 24       | not rate limited               |
@@ -134,6 +135,14 @@ def _ingest_nba(client: NBAStatsClient, report: IngestReport, *, refresh: bool) 
                 f"gl/player_season_stats/{season.season_id}/{measure}",
                 lambda s=season, m=measure: client.player_season_stats(s, m, refresh=refresh),
             )
+        # The G League reports age through the same bio endpoint as the NBA.
+        # Without this a G League player who never reached the NBA has no age
+        # anywhere, and every model that takes age as a covariate drops him.
+        _guard(
+            report,
+            f"gl/player_bio_stats/{season.season_id}",
+            lambda s=season: client.player_bio_stats(s, refresh=refresh),
+        )
 
 
 def _ingest_euroleague(client: EuroLeagueClient, report: IngestReport, *, refresh: bool) -> None:

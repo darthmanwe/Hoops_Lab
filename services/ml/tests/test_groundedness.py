@@ -197,6 +197,23 @@ def test_sentence_initial_capitals_are_not_proper_nouns() -> None:
     assert unsupported_entities(prose, bundle()) == []
 
 
+def test_an_adjectival_compound_is_not_an_invented_name() -> None:
+    """The one failure in a held-out batch of thirty, and it was the checker's.
+
+    "the G League-anchored cohorts" reads as a recalled entity only if every
+    part of a compound must appear in the evidence — but "anchored" is a
+    participle, not a proper noun, and no capital claims otherwise.
+    """
+    prose = "The sample is thin next to the G League-anchored cohorts available."
+    assert unsupported_entities(prose, bundle()) == []
+
+
+def test_a_capitalised_part_of_a_compound_is_still_checked() -> None:
+    """The fix above must not become a way to smuggle a name past the check."""
+    prose = "The move makes him a Panathinaikos-bound target this summer."
+    assert "Panathinaikos-bound" in unsupported_entities(prose, bundle())
+
+
 def test_prose_contradicting_the_sign_of_the_projection_is_caught() -> None:
     broken = report(
         projection=Claim(

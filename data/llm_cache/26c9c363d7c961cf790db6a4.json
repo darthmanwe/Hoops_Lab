@@ -1,0 +1,95 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:04:09.241411+00:00",
+  "evidence_digest": "941898ba42a0d39b759ec0ad25eeb4e4396a20c3a96348b33b01bcaddff25655",
+  "key": "26c9c363d7c961cf790db6a4",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1628426",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage rate projected to fall from 24.9% in the EuroLeague to 18.8% in the NBA, landing just below league average; the true-shooting projection carries no information because the model loses to a trivial baseline on that metric.",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f14",
+        "f15",
+        "f18",
+        "f19"
+      ],
+      "text": "The model projects an 18.8% usage rate in the NBA, down from 24.9% in the 2022-23 EuroLeague season, with an 80% interval of 13.1% to 24.4% — a span of roughly two standard deviations of the NBA's usage distribution (mean 20.1%, sd 5.6%), so the model can say the role likely shrinks but not by how much."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f13",
+          "f14",
+          "f15",
+          "f18",
+          "f19"
+        ],
+        "text": "The projected NBA usage rate (18.8%) sits below both the EuroLeague production (24.9%) and even the NBA league average (20.1%), with an 80% interval spanning 13.1% to 24.4% — wide enough that the model is useful for ranking against peers but not for pinning down an individual outcome."
+      },
+      {
+        "fact_ids": [
+          "f35",
+          "f36",
+          "f24"
+        ],
+        "text": "The true-shooting projection is explicitly less accurate than a trivial league-average guess (4.7% error for both), so no efficiency conclusion should be drawn from the 58.4% figure or its interval."
+      },
+      {
+        "fact_ids": [
+          "f38"
+        ],
+        "text": "The estimate rests on only 61 historical EuroLeague-to-NBA transitions, a modest sample for a model already carrying substantial prediction-interval width."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f11",
+          "f12"
+        ],
+        "text": "Carried a EuroLeague usage rate of 24.9%, nearly a full standard deviation (+0.92 sd) above the league average, indicating a genuine high-usage role rather than an inflated one from a weak team context."
+      },
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "Posted a EuroLeague true shooting percentage of 65.3%, about one standard deviation (+1.01 sd) above league average, reflecting elite efficiency at that usage level."
+      },
+      {
+        "fact_ids": [
+          "f07",
+          "f10"
+        ],
+        "text": "Combined solid rebounding (8.433 per 75 possessions) with a 12.4% assist rate, suggesting production beyond scoring alone."
+      },
+      {
+        "fact_ids": [
+          "f09",
+          "f10",
+          "f11"
+        ],
+        "text": "Maintained a low turnover rate of 6.9% for a high-usage, high-assist profile."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f24",
+        "f35",
+        "f36"
+      ],
+      "text": "The true-shooting projection of 58.4% should not be treated as informative: its out-of-fold error (4.7%) is no better than simply guessing the NBA league-mean true shooting percentage (also 4.7% error), so the model provides no edge over that trivial baseline for this metric."
+    }
+  },
+  "target_season_id": "NBA_2023",
+  "usage": {
+    "cache_creation_input_tokens": 1853,
+    "cache_read_input_tokens": 0,
+    "input_tokens": 1432,
+    "output_tokens": 1801
+  }
+}

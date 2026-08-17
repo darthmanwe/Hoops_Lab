@@ -1,0 +1,111 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:07:19.158537+00:00",
+  "evidence_digest": "947d910aaf10db966a9986a5bdc1cbcdbd6f6378c65a71b2255c5033cc2bde65",
+  "key": "2022514d4787ad5234ce3c7c",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_203957",
+  "report": {
+    "confidence": "low",
+    "headline": "Efficient, ball-dominant EuroLeague scorer projects to a near-average NBA usage role, with a shooting forecast that the model itself cannot beat a naive guess on",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f14",
+        "f15",
+        "f18",
+        "f22",
+        "f24",
+        "f25",
+        "f26",
+        "f29"
+      ],
+      "text": "Usage rate is projected to fall to 19.4% in the NBA, down from 25.7% in the EuroLeague, landing just below the NBA's minutes-weighted average of 20.1%, with an 80% interval of 13.8% to 25.1%. True shooting is projected at 59.0%, down from 67.1% in the EuroLeague and close to the NBA average of 58.1%, with an 80% interval of 52.8% to 65.3%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f13",
+          "f14",
+          "f15",
+          "f19"
+        ],
+        "text": "The projected 19.4% NBA usage rate sits inside an 80% interval running from 13.8% to 25.1%, a span of roughly two standard deviations of the league's usage spread (5.6%), so the model can rank this player among peers but cannot pin down an individual usage figure."
+      },
+      {
+        "fact_ids": [
+          "f24",
+          "f35",
+          "f36"
+        ],
+        "text": "The 59.0% true shooting projection is not more accurate than simply guessing the league average, since both carry a 4.7% mean absolute error, so it should not be relied on to describe expected efficiency."
+      },
+      {
+        "fact_ids": [
+          "f03",
+          "f04",
+          "f02",
+          "f38"
+        ],
+        "text": "The source season is a modest sample of 874 minutes across 38 games at age 27, and the model behind this projection is fitted on only 61 prior EuroLeague-to-NBA transitions."
+      },
+      {
+        "fact_ids": [
+          "f34",
+          "f37"
+        ],
+        "text": "Only about 58% of a player's usage standing above the EuroLeague average is estimated to carry over to the NBA, versus 75.4% for true shooting, consistent with a shrinking offensive role in the new league."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f05",
+          "f22",
+          "f23"
+        ],
+        "text": "Scored heavily and efficiently in the EuroLeague, averaging 20.638 points per 75 possessions on a 67.1% true shooting mark, +1.29 standard deviations above the EuroLeague average that season."
+      },
+      {
+        "fact_ids": [
+          "f11",
+          "f12"
+        ],
+        "text": "Carried a featured offensive role, with a 25.7% usage rate that stood +1.09 standard deviations above the EuroLeague average."
+      },
+      {
+        "fact_ids": [
+          "f10",
+          "f06"
+        ],
+        "text": "Combined scoring with playmaking, posting a 21.1% assist rate and 4.202 assists per 75 possessions."
+      },
+      {
+        "fact_ids": [
+          "f09",
+          "f11",
+          "f10"
+        ],
+        "text": "Kept turnovers modest for the workload, at a 15.2% turnover rate alongside the high usage and assist figures."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f32",
+        "f33",
+        "f35",
+        "f36",
+        "f38"
+      ],
+      "text": "The usage projection beats the trivial league-mean baseline (3.3% mean absolute error versus 4.3%), so it carries some signal, but the true-shooting model is exactly as accurate as the trivial baseline (4.7% versus 4.7%) and should not be treated as informative. Both estimates rest on only 61 historical EuroLeague-to-NBA transitions."
+    }
+  },
+  "target_season_id": "NBA_2023",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1430,
+    "output_tokens": 2751
+  }
+}

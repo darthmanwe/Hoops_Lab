@@ -1,0 +1,91 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:06:09.722925+00:00",
+  "evidence_digest": "4953eb5fc4d1203f60091b9ef6d4bf02859978b5e837e32c03dc29a1f5de98ea",
+  "key": "38b8ff187fe6cc5049ff20ef",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_202954",
+  "report": {
+    "confidence": "low",
+    "headline": "Projected to see usage fall from 23.5% to 18.1% in the NBA, with a wide interval and no usable read on shooting efficiency",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f18"
+      ],
+      "text": "The model projects a usage rate of 18.1% in the NBA, down from 23.5% in the 2017-18 EuroLeague season and below the NBA's minutes-weighted average of 20.0%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f24",
+          "f25",
+          "f26",
+          "f35",
+          "f36"
+        ],
+        "text": "The true shooting projection (53.2%, interval 47.4%-59.0% at 80%) should not be trusted: the model's 4.7% error is no better than simply guessing the league-mean true shooting percentage, so this metric carries no real information."
+      },
+      {
+        "fact_ids": [
+          "f38"
+        ],
+        "text": "The usage estimate rests on only 61 historical EL->NBA transitions, a thin cohort for a projection this wide."
+      },
+      {
+        "fact_ids": [
+          "f39"
+        ],
+        "text": "Players who make this move already sit 0.46 standard deviations above their league's average before transitioning, so the projection is conditional on that selection and may not describe how a typical EuroLeague player at this production level would fare."
+      },
+      {
+        "fact_ids": [
+          "f34",
+          "f20"
+        ],
+        "text": "Even on usage, where the model adds value, the fitted slope of 0.58 means only about half of the player's standing above the EuroLeague average is expected to carry over, well short of the 23.7% the naive z-preservation baseline would imply."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f10",
+          "f09"
+        ],
+        "text": "Playmaking indicators were strong in the source season: a 25.4% assist rate paired with a low 12.5% turnover rate."
+      },
+      {
+        "fact_ids": [
+          "f12"
+        ],
+        "text": "The subject's usage rate sat 0.71 standard deviations above the EuroLeague average, indicating a significant offensive role before the move."
+      },
+      {
+        "fact_ids": [
+          "f08"
+        ],
+        "text": "Shot selection leaned heavily toward the perimeter, with 38.5% of attempts coming from three."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f16",
+        "f17",
+        "f19",
+        "f32",
+        "f33"
+      ],
+      "text": "The 80% prediction interval for usage runs from 12.9% to 23.3% — a span of over two standard deviations of the NBA usage distribution (SD 5.2%) — and the 95% interval widens to 10.1%-26.1%, so while the model beats the league-mean baseline (3.3% MAE vs 4.3%), it can only rank this player against peers, not pin down an individual number."
+    }
+  },
+  "target_season_id": "NBA_2018",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1430,
+    "output_tokens": 1888
+  }
+}

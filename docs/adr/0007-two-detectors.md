@@ -25,7 +25,7 @@ truth beside them.
 ## Consequences
 
 - **The two answer different questions.** The checker asks _is this number in
-  the evidence?_ Across 1,027 numeric tokens the answer was yes every time, so
+  the evidence?_ Across 966 numeric tokens the answer was yes every time, so
   it has no positives and κ = 0 is a definition rather than a failure. The judge
   asks _is this number used for what it measures?_, which the checker cannot
   express.

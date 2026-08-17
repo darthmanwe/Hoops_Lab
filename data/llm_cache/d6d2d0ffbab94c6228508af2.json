@@ -1,0 +1,110 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:16:34.336639+00:00",
+  "evidence_digest": "94557af4967d2167e481b57c385c3a3719984f7a20e02e5e599f00da04ee6992",
+  "key": "d6d2d0ffbab94c6228508af2",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1626188",
+  "report": {
+    "confidence": "low",
+    "headline": "G League usage star projects to a modest, league-average NBA role, with shooting projection unreliable",
+    "projection": {
+      "fact_ids": [
+        "f12",
+        "f13",
+        "f14",
+        "f15",
+        "f16",
+        "f19",
+        "f20"
+      ],
+      "text": "The model projects a usage rate of 19.2% in the NBA, down from 25.0% in the G League (+1.10 sd above that league's average), with an 80% interval spanning 14.0% to 24.5% — a range covering roughly two-thirds of a standard deviation in either direction around the target league's mean of 20.1% (sd 5.2%)."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f14",
+          "f21",
+          "f22"
+        ],
+        "text": "Projected NBA usage (19.2%) falls well short of both the naive same-standing baseline (25.8%) and even the simple folk rule of 18.8% is close, suggesting a real, model-supported role reduction typical of this league move."
+      },
+      {
+        "fact_ids": [
+          "f25",
+          "f30",
+          "f23",
+          "f36",
+          "f37"
+        ],
+        "text": "Projected true shooting percentage (53.6%) sits below the target league's average of 55.7% and below the subject's own source-season mark of 57.4%, but this projection should not be trusted: the model's error (4.7%) is no better than a trivial league-mean guess."
+      },
+      {
+        "fact_ids": [
+          "f26",
+          "f27",
+          "f28",
+          "f29",
+          "f31"
+        ],
+        "text": "The true shooting interval is very wide, from 47.9% to 59.4% at 80% confidence and 44.8% to 62.4% at 95%, spanning more than two standard deviations of the league's spread (sd 5.0%), underscoring that little can be said about efficiency here."
+      },
+      {
+        "fact_ids": [
+          "f11"
+        ],
+        "text": "Two full seasons passed between the source season and the move, adding uncertainty about how representative the 2015-16 numbers remain by the time of the 2017-18 transition."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f05",
+          "f06",
+          "f07",
+          "f10",
+          "f08"
+        ],
+        "text": "The subject produced at a high level in the source season: 20.886 points, 5.779 assists, and 4.192 rebounds per 75 possessions, with a 26.1% assist rate and a 33.9% share of shots from three."
+      },
+      {
+        "fact_ids": [
+          "f23",
+          "f24"
+        ],
+        "text": "Efficiency in the source season was solidly above the G League average, with a true shooting percentage of 57.4% (+0.32 sd)."
+      },
+      {
+        "fact_ids": [
+          "f35",
+          "f39"
+        ],
+        "text": "The historical rate at which usage carries across this transition is meaningfully positive (a slope of 0.531), and the estimate is grounded in a moderate sample of 45 prior GL->NBA transitions."
+      },
+      {
+        "fact_ids": [
+          "f13",
+          "f40"
+        ],
+        "text": "The player already stood out relative to peers who made this same move, sitting at +1.10 sd on usage in their own league, above the average standing (+0.27 sd) of players selected for this transition."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f15",
+        "f16",
+        "f20",
+        "f36",
+        "f37"
+      ],
+      "text": "The usage projection's 80% interval (14.0%-24.5%) spans about 10 percentage points, roughly double the league's standard deviation of 5.2%, so the model can say this player will likely take a below-to-average share of possessions but cannot pin down where in that range; the true shooting projection, meanwhile, is not trustworthy at all, since its out-of-fold error (4.7%) is no better than simply guessing the league mean."
+    }
+  },
+  "target_season_id": "NBA_2017",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1438,
+    "output_tokens": 1127
+  }
+}

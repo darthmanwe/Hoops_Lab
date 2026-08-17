@@ -475,6 +475,16 @@ def unsupported_entities(prose: str, bundle: EvidenceBundle) -> list[str]:
     tokens that are *not* sentence-initial, because a capital after a full stop
     carries no information about proper-noun-hood and treating it as if it did
     would fire on every other sentence.
+
+    Within a compound, only the *capitalised* parts are candidates. A held-out
+    batch failed on "the G League-anchored cohorts": "League" is in the
+    evidence, "anchored" is an ordinary participle that is not, and requiring
+    every part to be evidence-backed reported the whole compound as a recalled
+    name. Capitalisation is the only signal this check has for proper-noun-hood
+    and it has to be applied to compound parts for the same reason it is
+    applied to whole tokens. Nothing real is let through: "Panathinaikos-bound"
+    still has a capitalised part with no support, and redacted terms are caught
+    by :func:`_leaks` regardless of case.
     """
     evidence = _fold(bundle.render())
     found: list[str] = []
@@ -488,7 +498,8 @@ def unsupported_entities(prose: str, bundle: EvidenceBundle) -> list[str]:
             token = raw.strip(".,;:()\"'—–")  # noqa: RUF001
             if index == 0 or not token[:1].isupper() or len(token) < 3:
                 continue
-            if all(_permitted_word(part, evidence) for part in _split_compound(token)):
+            candidates = [part for part in _split_compound(token) if part[:1].isupper()]
+            if all(_permitted_word(part, evidence) for part in candidates):
                 continue
             found.append(token)
 

@@ -50,10 +50,29 @@ from hoopslab.transform.gold import MIN_SOURCE_MINUTES
 
 log = logging.getLogger(__name__)
 
-#: Directions worth projecting. Each names a real destination a player in the
-#: source league could plausibly reach; `NBA->EL` is omitted because a current
-#: NBA player's hypothetical EuroLeague line is not a question anyone asks.
-PROJECTED_DIRECTIONS = ("EL->NBA", "GL->NBA")
+#: Every direction with observed transitions to fit an intercept from.
+#:
+#: An earlier version projected only the two moves ending in the NBA, on the
+#: stated grounds that "a current NBA player's hypothetical EuroLeague line is
+#: not a question anyone asks". That was wrong twice over. A EuroLeague general
+#: manager asks precisely that question, and it is the one this data answers
+#: *best*: `NBA->EL` has 115 observed pairs and `NBA->GL` 134, against 61 for
+#: the headline `EL->NBA`. Restricting to NBA destinations excluded the whole
+#: NBA player pool — 1,670 eligible players — from a feature whose entire
+#: purpose is to cover players who have not moved.
+#:
+#: `EL->GL` is fitted from only 14 pairs. It is served rather than dropped
+#: because the count rides on every row and is shown in the interface; a
+#: direction the data barely supports should be visibly thin, not absent with
+#: no explanation.
+PROJECTED_DIRECTIONS = (
+    "EL->NBA",
+    "GL->NBA",
+    "NBA->EL",
+    "NBA->GL",
+    "GL->EL",
+    "EL->GL",
+)
 
 #: A hypothetical move is assumed to happen the season after the source one,
 #: which is what almost every observed transfer did.

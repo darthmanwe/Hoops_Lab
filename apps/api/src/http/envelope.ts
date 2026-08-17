@@ -27,6 +27,15 @@ export type Meta = {
     primary_ci?: [number, number] | null;
     card?: string;
   };
+  /**
+   * How many rows the filters matched, against how many were returned.
+   *
+   * A truncated list and a complete one look identical without this, which
+   * invites the reader to mistake the first page of a ranking for the whole
+   * population — a listing of 60 players reads as "these are the 60", not "these
+   * are the top 60 of 196".
+   */
+  page?: { total: number; limit: number; offset: number; returned: number };
   warnings: string[];
 };
 
@@ -46,6 +55,7 @@ export function envelope<T>(
       warnings: extra.warnings ?? [],
       ...(extra.resolved ? { resolved: extra.resolved } : {}),
       ...(extra.model ? { model: extra.model } : {}),
+      ...(extra.page ? { page: extra.page } : {}),
     },
   };
 }

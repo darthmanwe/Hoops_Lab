@@ -1,0 +1,99 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:11:50.238460+00:00",
+  "evidence_digest": "08cc07ea6aba0f9f3449ba1a5142c531bbb40c0bed9fa0334744ca7e664f5f08",
+  "key": "eb1d87180ad399e1593bf92a",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_200770",
+  "report": {
+    "confidence": "low",
+    "headline": "Projected for a modest usage increase in the EuroLeague, but the accompanying efficiency projection carries no real information.",
+    "projection": {
+      "fact_ids": [
+        "f14",
+        "f12",
+        "f19",
+        "f20",
+        "f15",
+        "f16"
+      ],
+      "text": "Usage rate is projected at 24.5% in the EuroLeague, up from 21.2% in the source NBA season, and above the target league's average of 20.3% (sd 4.2%); the 80% interval runs 20.4%-28.7%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f23",
+          "f24"
+        ],
+        "text": "True shooting percentage in the source season was 50.4%, or -0.73 standard deviations below the NBA average, marking scoring efficiency as a source-season weakness."
+      },
+      {
+        "fact_ids": [
+          "f36",
+          "f37"
+        ],
+        "text": "The true-shooting projection model loses to the trivial league-average baseline (4.7% MAE for both), meaning the 55.9% true-shooting projection is not more reliable than simply assuming league average and should not be used as a genuine forecast."
+      },
+      {
+        "fact_ids": [
+          "f17",
+          "f18",
+          "f28",
+          "f29"
+        ],
+        "text": "At the 95% level the intervals widen further, 18.2%-30.9% for usage and 45.2%-66.5% for true shooting, underscoring how imprecise the individual-level projections are."
+      },
+      {
+        "fact_ids": [
+          "f40",
+          "f13",
+          "f24"
+        ],
+        "text": "Historically, players who made this NBA->EuroLeague move sat on average -0.31 standard deviations below their own league's average at the time of the move, a cohort profile that does not clearly match this subject's mixed indicators (above-average usage standing but below-average shooting efficiency)."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f06",
+          "f10"
+        ],
+        "text": "Averaged 7.377 assists and a 33.3% assist rate per 75 possessions in the source season, indicating a heavy playmaking role."
+      },
+      {
+        "fact_ids": [
+          "f33",
+          "f34",
+          "f35",
+          "f14"
+        ],
+        "text": "The model's usage-rate projection beats a trivial league-average baseline (3.3% MAE vs 4.3%), and the fitted slope of 0.986 shows nearly full carry-over of standing, giving the 24.5% usage projection real weight."
+      },
+      {
+        "fact_ids": [
+          "f13",
+          "f14"
+        ],
+        "text": "Usage rate stood at +0.23 standard deviations above the NBA average in the source season, a modestly above-average role that the model projects to expand further in the EuroLeague."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f15",
+        "f16",
+        "f20",
+        "f25",
+        "f36",
+        "f37"
+      ],
+      "text": "The 80% interval for usage rate spans 8.3 percentage points-about two standard deviations of the EuroLeague's usage spread-so the model can rank this transition but not price it precisely; the true-shooting projection of 55.9% is worse than a simple league-average baseline (4.7% MAE vs 4.7%) and should not be treated as informative."
+    }
+  },
+  "target_season_id": "EL_2012",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1466,
+    "output_tokens": 4356
+  }
+}

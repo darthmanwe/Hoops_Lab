@@ -1,0 +1,98 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:13:05.260414+00:00",
+  "evidence_digest": "38606c19ade1262c8d0916159f8f6a74001d458ef105ba6c38834c3213e0cc2c",
+  "key": "74a0ae9c6736093a4ffb6032",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_203585",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage projected to drop to 13.8% from 16.9% in the G League, about 1.2 standard deviations below the NBA's 20.0% average, while the true-shooting projection is not trustworthy for this transition.",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f18",
+        "f19"
+      ],
+      "text": "The model projects a 13.8% usage rate in the NBA, down from 16.9% in the source G League season, roughly 1.2 standard deviations below the target league's average of 20.0%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f24",
+          "f35",
+          "f36"
+        ],
+        "text": "The true-shooting projection of 53.7% carries no real information: the model's error (4.7%) is matched exactly by a trivial league-average baseline, so this number should not be used to judge scoring efficiency."
+      },
+      {
+        "fact_ids": [
+          "f13",
+          "f18",
+          "f19"
+        ],
+        "text": "Central usage projection of 13.8% is below the NBA average of 20.0% by more than one standard deviation (5.3%), implying a reduced offensive role relative to the receiving league's typical player."
+      },
+      {
+        "fact_ids": [
+          "f38",
+          "f39"
+        ],
+        "text": "The estimate rests on only 45 historical G League to NBA transitions, and this player's standing above their own league (+0.27 sd) was modest compared to typical movers, adding to the uncertainty of any single projection."
+      },
+      {
+        "fact_ids": [
+          "f16",
+          "f17",
+          "f19"
+        ],
+        "text": "The 95% interval for usage (5.7% to 21.8%) covers more than three standard deviations of the NBA usage distribution, underscoring that any point estimate should be read as a wide range rather than a precise forecast."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f05",
+          "f22",
+          "f23"
+        ],
+        "text": "In the source season the subject produced 15.2 points per 75 possessions on a 61.6% true shooting mark, 1.10 standard deviations above the G League average."
+      },
+      {
+        "fact_ids": [
+          "f08",
+          "f09"
+        ],
+        "text": "Shot selection was heavily three-point oriented (42.8% of attempts) alongside a low 9.4% turnover rate."
+      },
+      {
+        "fact_ids": [
+          "f15",
+          "f18"
+        ],
+        "text": "The upper end of the 80% usage interval (19.0%) sits close to the NBA average of 20.0%, leaving room for a full-role outcome if the projection lands high."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f16",
+        "f17",
+        "f19",
+        "f24",
+        "f35",
+        "f36"
+      ],
+      "text": "The 80% prediction interval for usage runs from 8.5% to 19.0% and the 95% interval from 5.7% to 21.8%, spans wide enough relative to the league's 5.3-point standard deviation that the model can rank this transition but not pin a precise value; separately, the true-shooting projection of 53.7% should not be treated as informative because its held-out error (4.7%) is no better than simply guessing the league average (4.7%)."
+    }
+  },
+  "target_season_id": "NBA_2016",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1416,
+    "output_tokens": 1947
+  }
+}

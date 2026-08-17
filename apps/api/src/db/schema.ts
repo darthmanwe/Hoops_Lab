@@ -428,6 +428,12 @@ export const hypotheticalProjections = sqliteTable(
     movedBefore: integer("moved_before", { mode: "boolean" }).notNull(),
     minutes: real("minutes").notNull(),
     age: real("age"),
+    /**
+     * Observed transfers behind this direction's intercept. Ranges from 134
+     * (NBA to G League) to 14 (EuroLeague to G League), and a reader deciding
+     * how much to trust a row needs it more than any other single number.
+     */
+    supportNMovers: integer("support_n_movers").notNull(),
     modelVersion: text("model_version").notNull(),
     snapshotId: text("snapshot_id").notNull(),
   },

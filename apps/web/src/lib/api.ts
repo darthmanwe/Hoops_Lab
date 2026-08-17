@@ -24,6 +24,8 @@ export type Meta = {
     primary_ci?: [number, number] | null;
     card?: string;
   };
+  /** Present on list endpoints, so a page of a ranking never reads as the whole pool. */
+  page?: { total: number; limit: number; offset: number; returned: number };
   warnings: string[];
 };
 
@@ -199,6 +201,8 @@ export type HypotheticalProjection = {
   movedBefore: boolean;
   minutes: number;
   age: number | null;
+  /** Observed transfers behind this direction: 134 at best, 14 at worst. */
+  supportNMovers: number;
   modelVersion: string;
 };
 

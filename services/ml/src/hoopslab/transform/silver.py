@@ -96,10 +96,18 @@ def nba_player_seasons(cache: BronzeCache, league: str = "NBA") -> pl.DataFrame:
 
         frame = _nba_base_to_silver(base, season)
 
-        # Age comes from the bio endpoint, which is NBA-only. G League ages are
-        # recovered later from the same person's NBA observation.
-        bio = cache.load("nba_stats", "player_bio_stats", {"season": season.nba_stats_season})
-        if bio is not None and not bio.empty and league == "NBA":
+        # Age comes from the bio endpoint, which serves both leagues. Anyone it
+        # still misses is picked up by `fill_missing_age` from the same person's
+        # observation in another league.
+        bio = cache.load(
+            "nba_stats",
+            "player_bio_stats",
+            {
+                "season": season.nba_stats_season,
+                "league_id": "00" if league == "NBA" else "20",
+            },
+        )
+        if bio is not None and not bio.empty:
             ages = pl.from_pandas(bio[["PLAYER_ID", "AGE"]]).select(
                 pl.col("PLAYER_ID").cast(pl.Utf8).alias("source_player_id"),
                 pl.col("AGE").cast(pl.Float64).alias("age"),

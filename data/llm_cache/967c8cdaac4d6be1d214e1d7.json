@@ -1,0 +1,100 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:09:47.647862+00:00",
+  "evidence_digest": "208ecf1fa19e75b2f937dbf9a97703e6b7fa728e3390ccb3274c73fb1fc4b077",
+  "key": "967c8cdaac4d6be1d214e1d7",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_1905",
+  "report": {
+    "confidence": "low",
+    "headline": "Usage projected to climb from 18.4% to 23.0% in the move to the EuroLeague, but the shooting-efficiency projection is not trustworthy for this transition.",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f12",
+        "f13",
+        "f18"
+      ],
+      "text": "The model projects a usage rate of 23.0% in the EuroLeague, up from 18.4% in the 2010-11 NBA season, moving the subject from below the NBA average (-0.33 sd) to above the EuroLeague average of 20.3%."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f35",
+          "f36"
+        ],
+        "text": "The true shooting projection of 57.2% cannot be trusted: the model's error on this metric (4.7%) is no better than the trivial baseline (4.7%), so it should be treated as carrying no signal."
+      },
+      {
+        "fact_ids": [
+          "f14",
+          "f15",
+          "f19"
+        ],
+        "text": "Even where the model is informative, the 80% usage interval (18.6%-27.5%) covers about a third of the plausible EuroLeague usage range, so any single-season figure is highly uncertain despite the group-level signal being real."
+      },
+      {
+        "fact_ids": [
+          "f38"
+        ],
+        "text": "The estimate is built on only 115 historical NBA->EL transitions, a comparatively thin sample next to the G League-anchored cohorts the model can otherwise draw on."
+      },
+      {
+        "fact_ids": [
+          "f11",
+          "f12",
+          "f34"
+        ],
+        "text": "The fitted usage slope of 0.986 implies near-full carryover of standing, but combined with the -0.33 sd source usage, it also means the projected rise is driven mostly by league context (lower EuroLeague average is not the case here) rather than a clear talent signal."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "Source-season true shooting of 56.7% was 0.51 sd above the NBA average that season, indicating efficient scoring relative to NBA peers."
+      },
+      {
+        "fact_ids": [
+          "f13",
+          "f18"
+        ],
+        "text": "Projected usage of 23.0% sits above the EuroLeague's minutes-weighted average of 20.3%, pointing to an expanded offensive role compared to the NBA season."
+      },
+      {
+        "fact_ids": [
+          "f32",
+          "f33"
+        ],
+        "text": "The usage projection model beats the trivial league-mean baseline (3.3% mean absolute error vs. 4.3%), so this particular projection carries real information rather than noise."
+      },
+      {
+        "fact_ids": [
+          "f03",
+          "f04"
+        ],
+        "text": "Played a full, durable season in the source year: 1,999 minutes across 64 games."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f14",
+        "f15",
+        "f16",
+        "f17",
+        "f19",
+        "f39"
+      ],
+      "text": "The 80% interval for usage runs from 18.6% to 27.5%, a span of roughly two standard deviations of EuroLeague usage (sd 4.4%), so the model can say this is a group likely to see a larger role but cannot pin down where in that range the subject lands; the 95% interval widens further to 16.2%-29.8%. Separately, the cohort of NBA->EL movers this estimate rests on sat 0.31 sd below their own league's average, so the usual assumption of a strongly above-average mover does not clearly apply here."
+    }
+  },
+  "target_season_id": "EL_2011",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1444,
+    "output_tokens": 2754
+  }
+}

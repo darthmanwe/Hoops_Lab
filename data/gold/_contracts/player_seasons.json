@@ -187,7 +187,7 @@
       "maximum": 44.0,
       "minimum": 15.0,
       "name": "age",
-      "null_rate": 0.095484
+      "null_rate": 0.000269
     },
     {
       "dtype": "String",
@@ -313,7 +313,7 @@
       "maximum": 2007.0,
       "minimum": 1960.0,
       "name": "birth_year",
-      "null_rate": 0.095484
+      "null_rate": 0.000269
     },
     {
       "dtype": "Int32",
@@ -400,7 +400,7 @@
       "null_rate": 4.5e-05
     }
   ],
-  "content_hash": "fd6279a2033d61fb20bce26183c76281",
+  "content_hash": "51c66b708847c8baaf5d1b11c22d5628",
   "contract_version": 1,
   "n_columns": 57,
   "n_rows": 22297,

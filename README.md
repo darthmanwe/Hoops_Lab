@@ -11,7 +11,7 @@ footnote.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
-![Tests](https://img.shields.io/badge/tests-333%20offline-199e70)
+![Tests](https://img.shields.io/badge/tests-366%20offline-199e70)
 
 ![Every observed EuroLeague to NBA transfer, with its projected usage rate, an 80% prediction interval, and what actually happened](docs/screenshots/hero-translation.png)
 
@@ -50,7 +50,7 @@ snapshot that produced it.
 |                     |                                                                                   |
 | ------------------- | --------------------------------------------------------------------------------- |
 | **Usage rate**      | out-of-fold MAE **0.0332** — beats the best trivial baseline by **22.4%**         |
-| **True shooting**   | out-of-fold MAE **0.0471** — **loses** to the league average by 0.3%, and says so |
+| **True shooting**   | out-of-fold MAE **0.0472** — **loses** to the league average by 0.4%, and says so |
 | **Sample**          | 414 transfers, 22,297 player-seasons, three leagues, 2000–2025                    |
 | **Reproducibility** | every number refits from committed data with **no network**, on every push        |
 
@@ -61,7 +61,7 @@ him:
 
 | Metric        | EuroLeague 2017-18 | Projected (80% interval) | Actual NBA 2018-19             |
 | ------------- | ------------------ | ------------------------ | ------------------------------ |
-| Usage rate    | 28.9%              | 23.3% [18.0% – 28.5%]    | **30.1%** — above the interval |
+| Usage rate    | 28.9%              | 23.2% [18.0% – 28.5%]    | **30.1%** — above the interval |
 | True shooting | 61.2%              | 55.3% [49.5% – 61.2%]    | 54.5% — inside it              |
 
 He used _more_ possessions as a rookie than he had in Europe, which is the
@@ -76,10 +76,11 @@ have **not** moved is what it is _for_, and it is a separate page.
 
 ![Projected NBA usage for EuroLeague players who have not transferred, with an extrapolation flag on the top rows](docs/screenshots/projections.png)
 
-_1,376 projections across two directions. The top four rows are flagged
-`extrapolated`, and that is not a coincidence._
+_7,329 projections across all six directions — every player in all three leagues
+who clears the minutes floor and has not made that particular move. The top rows
+are flagged `extrapolated`, and that is not a coincidence._
 
-Two things make this honest rather than a leaderboard of guesses.
+Three things make this honest rather than a leaderboard of guesses.
 
 **The conditioning does not disappear when the transfer is hypothetical.** The
 function is fitted on players who were signed, and being good is why they were
@@ -95,6 +96,16 @@ understates the uncertainty — the model has no data at that end and its error
 bars cannot know it. Every row carries an `in_support` flag, the API warns when
 any row trips it, and filtering them out is something a caller asks for rather
 than something the interface quietly does.
+
+**The direction matters as much as the player.** Moves *out* of the NBA are the
+best-evidenced in this data — 134 to the G League and 115 to the EuroLeague,
+against 61 the other way — but that cohort was selected in reverse: players who
+left the NBA sat about a third of a standard deviation *below* their league,
+where players who arrived from the EuroLeague sat half a deviation above.
+So an NBA regular projected into the EuroLeague is scored by a function fitted
+mostly on players who could not hold a roster spot, and nearly every star trips
+the extrapolation flag for exactly that reason. Each row carries the number of
+observed transfers behind its direction, which ranges from 134 down to 14.
 
 Only usage rate is projected. True shooting is omitted here even though it is
 served elsewhere: for a transfer that happened you can see the model miss
@@ -112,7 +123,7 @@ interface says which:
   targets and genuinely useless for setting a number on a contract. The
   interval is presented as the result, not as a caveat attached to one.
 - **True shooting is not projectable** by this method — shooting efficiency is
-  mostly year-to-year noise (stage-1 R² of 0.30 against 0.74 for usage). The
+  mostly year-to-year noise (stage-1 R² of 0.30 against 0.73 for usage). The
   API returns `beats_best_baseline: false` for that metric so a consumer learns
   it from the data.
 - **Every historical comparable is one click away**, with what the model said
@@ -286,7 +297,7 @@ Reproduced by CI on every push.
 | Metric          | MAE        | 95% CI (cluster bootstrap) | Best baseline        | Verdict                      |
 | --------------- | ---------- | -------------------------- | -------------------- | ---------------------------- |
 | Usage rate      | **0.0332** | [0.0306, 0.0357]           | 0.0428 (league mean) | **beats it by 22.4%**        |
-| True shooting % | 0.0471     | [0.0433, 0.0512]           | 0.0470 (league mean) | **loses by 0.3% — unusable** |
+| True shooting % | 0.0472     | [0.0433, 0.0513]           | 0.0470 (league mean) | **loses by 0.4% — unusable** |
 
 Against every baseline, on usage rate:
 
@@ -318,7 +329,7 @@ Three things in that table are worth more than the headline:
   misleads, which is the clearest evidence that the league term is doing real
   work rather than decorating a trend.
 - **True shooting is not predictable by this model** — it loses to the league
-  mean, with stage-1 R² of 0.30 against 0.74 for usage. Shooting efficiency is
+  mean, with stage-1 R² of 0.30 against 0.73 for usage. Shooting efficiency is
   mostly noise year to year. It is reported because dropping the weaker of two
   headline metrics would be selective.
 
@@ -441,21 +452,21 @@ never in the bundle. The brief is written from the projection and its interval
 alone, and the outcome is shown beside it — the same separation this project
 uses everywhere between what a model claims and how it did.
 
-![A generated scouting report with 56 of 56 numbers traced to source and fact ids under every claim](docs/screenshots/scouting-report.png)
+![A generated scouting report with 26 of 26 numbers traced to source and fact ids under every claim](docs/screenshots/scouting-report.png)
 
 _A report on the Dončić transfer. The model was never told whose season it was.
 Every claim carries the ids of the facts supporting it, and the badge is a
-count, not a promise: 56 numeric tokens in the prose, 56 traced back to the
+count, not a promise: 26 numeric tokens in the prose, 26 traced back to the
 evidence bundle._
 
 ### Measured, on 30 anonymised reports
 
-|                                   |                 |
-| --------------------------------- | --------------- |
-| Fully grounded                    | **30/30**       |
-| Numeric tokens traced to evidence | **1,027/1,027** |
-| Distractor detection              | **1.00**        |
-| Cost to re-run                    | **$0.00**       |
+|                                   |             |
+| --------------------------------- | ----------- |
+| Fully grounded                    | **30/30**   |
+| Numeric tokens traced to evidence | **966/966** |
+| Distractor detection              | **1.00**    |
+| Cost to re-run                    | **$0.00**   |
 
 The distractor line is the one to read first. A groundedness rate of 1.00 proves
 nothing on its own — a checker that accepts everything scores 1.00 too — so
@@ -473,6 +484,19 @@ treated as inventions. Each fix was verified against the distractor control,
 which held at 1.00 throughout, so none of them bought a passing grade by
 loosening the check.
 
+**The figure above is now held out.** The first 30/30 was in-sample — the
+checker had been repaired against the very reports it was scoring, which is the
+weakest possible way to report a rate, and the README said so. A later change to
+the underlying data invalidated every cached response, so all 30 reports were
+regenerated and scored by the **frozen** checker. It returned **29/30**. The one
+failure was, again, the checker: "the G League-anchored cohorts" was read as a
+recalled proper noun because the rule required *every* part of a compound to
+appear in the evidence, and "anchored" is a participle. Fixing that returned
+30/30 with distractor detection still at 1.00 — so the held-out result is one
+checker false positive in thirty reports, and zero fabrications by the model.
+The ninth defect in a row belonging to the checker rather than the model is
+itself the finding.
+
 ### The judge, and a prediction that was wrong
 
 This layer was built predicting that a deterministic regex would beat an LLM
@@ -485,7 +509,7 @@ judge at catching bad numbers. Against 30 labelled reports:
 
 The prediction was wrong, and the reason is worth more than the prediction. The
 two answer different questions. The checker asks _is this number in the
-evidence?_ — across 1,027 tokens the answer was always yes, so it has no
+evidence?_ — across 966 tokens the answer was always yes, so it has no
 positives and κ = 0 is a definition, not a failure. The judge asks _is this
 number used for what it measures?_, which the checker cannot express.
 

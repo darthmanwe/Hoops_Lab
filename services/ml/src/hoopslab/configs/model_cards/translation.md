@@ -121,7 +121,7 @@ Out-of-fold, in rate units, n = 367 evaluated pairs.
 | Metric    | MAE        | 95% CI (cluster bootstrap) | Best baseline        | Verdict                      |
 | --------- | ---------- | -------------------------- | -------------------- | ---------------------------- |
 | `usg_pct` | **0.0332** | [0.0306, 0.0357]           | 0.0428 (league mean) | **beats it by 22.4%**        |
-| `ts_pct`  | 0.0471     | [0.0433, 0.0512]           | 0.0470 (league mean) | **loses by 0.3% — unusable** |
+| `ts_pct`  | 0.0472     | [0.0433, 0.0513]           | 0.0470 (league mean) | **loses by 0.4% — unusable** |
 
 All four baselines, `usg_pct`:
 
@@ -143,7 +143,7 @@ way across.
 ### The model does not work for true shooting
 
 On the corrected cohort it is **worse than predicting the league average**
-(0.0471 against 0.0470). It should not be used for that metric, and the API
+(0.0472 against 0.0470). It should not be used for that metric, and the API
 says so: `model_evaluations.beats_best_baseline` is served as `false`, so a
 consumer can tell without reading this page.
 
@@ -154,7 +154,7 @@ is the more flattering and less honest presentation.
 ## Known failure modes and caveats
 
 - **True shooting is not predictable by this model** — see above. Stage-1
-  persistence for that metric has R² = 0.30 against 0.74 for usage; shooting
+  persistence for that metric has R² = 0.30 against 0.73 for usage; shooting
   efficiency is mostly year-to-year noise.
 - **The direction-specific slopes disagree, and by more than before.** For
   usage, EL→NBA is 0.579 and NBA→EL is 0.982, a gap of 0.40. The shared-slope

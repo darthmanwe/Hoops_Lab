@@ -1,0 +1,98 @@
+{
+  "anonymized": true,
+  "created_at": "2026-08-17T15:07:44.683133+00:00",
+  "evidence_digest": "206626c0c45ef66bfa02d78a1a39b62cfd336ec2176c30dc4f0d7bc3a0c513a0",
+  "key": "0aa5c7a11d1e147a17ef5ea1",
+  "model": "claude-sonnet-5",
+  "person_id": "nba_200770",
+  "report": {
+    "confidence": "low",
+    "headline": "EuroLeague high-usage playmaker projected to shrink to near-average NBA usage; shooting-efficiency projection carries no signal",
+    "projection": {
+      "fact_ids": [
+        "f11",
+        "f13",
+        "f14",
+        "f15",
+        "f18",
+        "f19"
+      ],
+      "text": "Player A is projected to use 19.5% of NBA possessions, down from 24.7% in the 2012-13 EuroLeague season and just below the league-average usage of 20.1%; the 80% interval (14.6%–24.3%) spans roughly two standard deviations of NBA usage (SD 4.8%), so the model can rank but not pin down an individual value."
+    },
+    "risks": [
+      {
+        "fact_ids": [
+          "f09"
+        ],
+        "text": "A 17.3% turnover rate in the source season is elevated for a high-usage ball-handler."
+      },
+      {
+        "fact_ids": [
+          "f13",
+          "f20"
+        ],
+        "text": "Projected NBA usage of 19.5% falls well short of the 25.1% the z-preservation baseline implies if Player A held exactly their EuroLeague standing, reflecting the typical role compression that comes with this move."
+      },
+      {
+        "fact_ids": [
+          "f24",
+          "f29",
+          "f31",
+          "f36"
+        ],
+        "text": "For what it's worth, the true shooting projection sits below both the NBA average (54.1%) and the z-preservation baseline (54.4%), hinting at downside on efficiency, though this metric's model underperforms a trivial baseline and should be discounted."
+      },
+      {
+        "fact_ids": [
+          "f38"
+        ],
+        "text": "The estimate rests on only 61 historical EL->NBA transitions, a modest sample for a move of this kind."
+      }
+    ],
+    "strengths": [
+      {
+        "fact_ids": [
+          "f06",
+          "f10"
+        ],
+        "text": "In the source season Player A posted a 25.8% assist rate and 4.693 assists per 75 possessions, indicating a significant playmaking role."
+      },
+      {
+        "fact_ids": [
+          "f12"
+        ],
+        "text": "Player A's usage rate sat 1.04 standard deviations above the EuroLeague average, reflecting a heavy offensive workload before the move."
+      },
+      {
+        "fact_ids": [
+          "f22",
+          "f23"
+        ],
+        "text": "Shooting efficiency in the EuroLeague was solid at 56.5% true shooting, essentially at league average (+0.06 sd)."
+      },
+      {
+        "fact_ids": [
+          "f08"
+        ],
+        "text": "A three-point rate of 38.1% of shot attempts in the EuroLeague points to a floor-spacing shot profile."
+      }
+    ],
+    "uncertainty": {
+      "fact_ids": [
+        "f24",
+        "f25",
+        "f26",
+        "f35",
+        "f36"
+      ],
+      "text": "The true shooting projection (52.5%, 80% interval 46.6%–58.5%) should not be treated as informative: its out-of-fold error (4.7%) is no better than a naive league-average baseline, meaning the model adds nothing beyond guessing the mean for this metric."
+    }
+  },
+  "target_season_id": "NBA_2013",
+  "usage": {
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1853,
+    "input_tokens": 1430,
+    "output_tokens": 2502
+  }
+}

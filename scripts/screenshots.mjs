@@ -19,6 +19,7 @@ const SHOTS = [
   { name: "hero-translation", path: "/translation?direction=EL-%3ENBA", card: 2, maxHeight: 900 },
   { name: "model-verdict", path: "/model", card: 2 },
   { name: "scouting-report", path: "/players/nba_1629029", card: 4 },
+  { name: "projections", path: "/projections", card: 3, maxHeight: 900 },
   { name: "landing", path: "/", card: null, viewport: { width: 1440, height: 1180 } },
   { name: "archetypes", path: "/archetypes", card: 3 },
   { name: "selection", path: "/", card: 4 },

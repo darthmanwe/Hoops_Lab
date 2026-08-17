@@ -4,13 +4,16 @@ import { describe, expect, it } from "vitest";
 type Row = {
   personId: string;
   displayName: string | null;
+  sourceLeague: string;
   predicted: number;
   pi80Low: number;
   pi80High: number;
   inSupport: boolean;
   sourceValue: number;
+  supportNMovers: number;
 };
-type Body = { data: Row[]; meta: { warnings: string[] } };
+type Page = { total: number; limit: number; offset: number; returned: number };
+type Body = { data: Row[]; meta: { warnings: string[]; page?: Page } };
 
 async function projections(query = ""): Promise<Response> {
   return SELF.fetch(`https://api.test/projections${query}`);
@@ -70,12 +73,73 @@ describe("GET /projections", () => {
     expect(shown.data.length).toBeGreaterThanOrEqual(filtered.data.length);
   });
 
-  it("rejects a direction it has no projections for", async () => {
-    const response = await projections("?direction=NBA-%3EEL");
+  it("serves every direction with observed transfers behind it", async () => {
+    // Restricting to NBA destinations excluded the entire NBA player pool from
+    // a feature about players who have not moved, and dropped the two
+    // best-evidenced directions in the data along with it.
+    for (const direction of ["EL->NBA", "GL->NBA", "NBA->EL", "NBA->GL", "GL->EL", "EL->GL"]) {
+      const response = await projections(`?direction=${encodeURIComponent(direction)}`);
+      expect(response.status, `${direction} should be served`).toBe(200);
+    }
+  });
+
+  it("covers players from all three leagues", async () => {
+    const leagues = new Set<string>();
+    for (const direction of ["EL->NBA", "NBA->EL", "GL->NBA"]) {
+      const body = (await (
+        await projections(`?direction=${encodeURIComponent(direction)}`)
+      ).json()) as Body;
+      for (const row of body.data) leagues.add(row.sourceLeague);
+    }
+    expect(leagues).toEqual(new Set(["EL", "NBA", "GL"]));
+  });
+
+  it("rejects a direction with no observed transfers", async () => {
+    const response = await projections("?direction=NBA-%3ENBA");
     expect(response.status).toBe(422);
 
     const body = (await response.json()) as Record<string, unknown>;
     expect(body.code).toBe("INVALID_QUERY");
+  });
+
+  it("reports the full match count, not just what it returned", async () => {
+    // A page of a ranking and the whole pool look identical without this, and
+    // reading the first 60 of 196 as "the 196" is the mistake it prevents.
+    const body = (await (await projections("?limit=5")).json()) as Body;
+    expect(body.meta.page).toBeDefined();
+    expect(body.meta.page!.returned).toBe(body.data.length);
+    expect(body.meta.page!.total).toBeGreaterThanOrEqual(body.data.length);
+  });
+
+  it("warns when the list is truncated", async () => {
+    const body = (await (await projections("?limit=1")).json()) as Body;
+    if (body.meta.page!.total > 1) {
+      expect(body.meta.warnings.join(" ")).toMatch(/Showing 1 of \d+ eligible players/);
+    }
+  });
+
+  it("pages without repeating or skipping a row", async () => {
+    const first = (await (await projections("?limit=4&offset=0")).json()) as Body;
+    const second = (await (await projections("?limit=4&offset=4")).json()) as Body;
+    const overlap = first.data.filter((row) =>
+      second.data.some((other) => other.personId === row.personId)
+    );
+    expect(overlap).toHaveLength(0);
+
+    const all = (await (await projections("?limit=8&offset=0")).json()) as Body;
+    expect(all.data.map((r) => r.personId)).toEqual([
+      ...first.data.map((r) => r.personId),
+      ...second.data.map((r) => r.personId),
+    ]);
+  });
+
+  it("states how many observed transfers the direction rests on", async () => {
+    // 134 for NBA to the G League, 14 for EuroLeague to the G League. A reader
+    // deciding how much weight a row deserves needs that more than any other
+    // single number.
+    const body = (await (await projections()).json()) as Body;
+    expect(body.data[0]!.supportNMovers).toBeGreaterThan(0);
+    expect(body.meta.warnings.join(" ")).toMatch(/Fitted from \d+ observed .+ transfers/);
   });
 
   it("rejects a nonsense limit rather than clamping silently", async () => {

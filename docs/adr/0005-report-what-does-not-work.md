@@ -5,8 +5,8 @@ Accepted.
 ## Context
 
 The translation model beats every baseline on usage rate and **loses to
-predicting the league average on true shooting**, by 0.3%. Stage-1 persistence
-for true shooting has R² = 0.30 against 0.74 for usage: shooting efficiency is
+predicting the league average on true shooting**, by 0.4%. Stage-1 persistence
+for true shooting has R² = 0.30 against 0.73 for usage: shooting efficiency is
 mostly year-to-year noise.
 
 The tempting move is to publish the metric that worked.

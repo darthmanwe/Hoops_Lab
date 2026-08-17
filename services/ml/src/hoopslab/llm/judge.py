@@ -16,7 +16,7 @@ prediction is recorded here rather than quietly deleted, because the reason it
 was wrong is the useful part.
 
 The two detectors answer different questions. The regex asks *is this number in
-the evidence?* Across 1,027 numeric tokens the answer was yes every time —
+the evidence?* Across 966 numeric tokens the answer was yes every time —
 these reports fabricate nothing — so it has nothing to flag and κ = 0 is not a
 failure but a definition: a detector with no positives cannot agree with the
 labels beyond chance. The judge asks *is this number used for what it

@@ -13,6 +13,7 @@ import pytest
 
 from hoopslab.models.hypothetical import (
     ASSUMED_GAP_SEASONS,
+    PROJECTED_DIRECTIONS,
     build_counterfactual_frame,
     latest_season_for,
     score_counterfactuals,
@@ -152,3 +153,59 @@ def test_an_unknown_destination_season_is_refused(
 def test_projections_are_ranked_by_the_projection(projections: pl.DataFrame) -> None:
     predicted = projections["predicted"].to_list()
     assert predicted == sorted(predicted, reverse=True)
+
+
+def test_every_observed_direction_is_projected(gold: tuple[pl.DataFrame, pl.DataFrame]) -> None:
+    """A direction the model can fit but does not serve is a silent exclusion.
+
+    The first version projected only the two moves ending in the NBA, which left
+    every NBA player out of a feature whose entire subject is players who have
+    not moved — and dropped the two *best-evidenced* directions in the data.
+    """
+    _, pairs = gold
+    observed = set(pairs["direction"].unique().to_list())
+    assert observed == set(PROJECTED_DIRECTIONS)
+
+
+def test_players_from_all_three_leagues_are_projected(
+    gold: tuple[pl.DataFrame, pl.DataFrame],
+) -> None:
+    player_seasons, pairs = gold
+    covered = set()
+
+    for direction in PROJECTED_DIRECTIONS:
+        _, _, target = direction.partition("->")
+        frame = score_counterfactuals(
+            player_seasons,
+            pairs,
+            direction=direction,
+            target_season_id=latest_season_for(player_seasons, target),
+            metric="usg_pct",
+        )
+        assert not frame.is_empty(), f"{direction} produced nothing"
+        covered.update(frame["source_league"].unique().to_list())
+
+    assert covered == {"NBA", "EL", "GL"}
+
+
+def test_the_mover_count_rides_on_every_row(projections: pl.DataFrame) -> None:
+    """It is the number that decides how much a projection is worth."""
+    assert projections["support_n_movers"].n_unique() == 1
+    assert projections["support_n_movers"][0] > 0
+
+
+def test_g_league_ages_come_from_the_source_not_inference(
+    gold: tuple[pl.DataFrame, pl.DataFrame],
+) -> None:
+    """The G League bio endpoint reports age; a stale comment said it did not.
+
+    Before this was checked, a G League player who never reached the NBA had no
+    age anywhere, and every model taking age as a covariate dropped him. That
+    silently removed roughly half the G League pool from the projections.
+    """
+    player_seasons, _ = gold
+    gl = player_seasons.filter(
+        (pl.col("league") == "GL") & (pl.col("minutes") >= MIN_SOURCE_MINUTES)
+    )
+    missing = gl["age"].null_count()
+    assert missing / gl.height < 0.01, f"{missing} of {gl.height} G League seasons still lack age"
