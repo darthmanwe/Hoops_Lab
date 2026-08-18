@@ -37,7 +37,9 @@
     "ml:report": "uv run --project services/ml hoopslab report",
     "demo:llm": "uv run --project services/ml hoopslab report-eval",
     "db:migrate": "wrangler d1 migrations apply hoopslab-dev --local --config apps/api/wrangler.toml --env dev",
-    "db:load": "wrangler d1 execute hoopslab-dev --local --config apps/api/wrangler.toml --env dev --file data/d1/load.sql"
+    "db:load": "wrangler d1 execute hoopslab-dev --local --config apps/api/wrangler.toml --env dev --file data/d1/load.sql",
+    "shots": "node scripts/screenshots.mjs",
+    "social-card": "node scripts/social-card.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
