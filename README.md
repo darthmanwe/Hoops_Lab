@@ -636,7 +636,7 @@ npm run social-card              # the 1280x640 link-preview card
 
 ```bash
 npm run db:migrate               # apply migrations to a local D1
-npm run db:load                  # load the committed snapshot (~192k rows)
+npm run db:load                  # load the committed snapshot (199,439 rows)
 npm run dev                      # Worker API  -> http://127.0.0.1:8710
 
 # in a second terminal
@@ -665,6 +665,28 @@ curl http://127.0.0.1:8710/players/nba_1629029/report   # a checked scouting rep
 curl 'http://127.0.0.1:8710/projections?direction=EL-%3ENBA&limit=10'  # players who have not moved
 curl http://127.0.0.1:8710/leaderboards/gravity    # 410, and explains why it cannot exist
 ```
+
+### Deploy it
+
+```bash
+npm run ml -- export --demo      # the 48,423-row slice, and it refuses to
+                                 # write one that would not fit
+npm run db:migrate:prod          # apply migrations to remote D1
+npm run db:load:prod             # seed it
+npm run deploy:api               # Worker
+npm run deploy:web               # Next.js via @opennextjs/cloudflare
+```
+
+The order matters in one place: `deploy:api` reads `DATA_SNAPSHOT` from
+`apps/api/wrangler.toml`, and that value must be the snapshot id the seed file
+carries. It prefixes every cache key, so deploying with the previous id serves
+the previous data from KV until the TTL runs out — the response would be stale
+and would say so in `meta.snapshot`, but only to someone reading it.
+
+`deploy:web` deletes `.next` before building, because `NEXT_PUBLIC_API_BASE` is
+inlined by the compiler rather than read at request time. A warm build ships
+whichever API URL was current when it was made, and gives no sign of having
+done so.
 
 ### Regenerate the screenshots
 
