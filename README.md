@@ -11,7 +11,7 @@ footnote.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
-![Tests](https://img.shields.io/badge/tests-374%20offline-199e70)
+![Tests](https://img.shields.io/badge/tests-382%20offline-199e70)
 
 ![Every observed EuroLeague to NBA transfer, with its projected usage rate, an 80% prediction interval, and what actually happened](docs/screenshots/hero-translation.png)
 
@@ -614,7 +614,7 @@ cd Hoops_Lab && npm ci
 
 ```bash
 npm run test                     # 118 Worker tests, inside workerd, real D1 + KV
-npm run ml:test                  # 256 Python tests, offline, no credentials
+npm run ml:test                  # 264 Python tests, offline, no credentials
 
 npm run ml -- verify             # re-derives every data checksum
 npm run ml -- train --verify     # refits the models; fails if a reported metric moved

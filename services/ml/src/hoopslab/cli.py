@@ -219,21 +219,58 @@ def train(
 
 
 @app.command()
-def export() -> None:
+def export(
+    demo: bool = typer.Option(
+        False,
+        "--demo",
+        help="Write the smaller slice a free-tier D1 deployment can hold.",
+    ),
+) -> None:
     """Build the SQL artefact that loads D1.
 
     Only aggregates are exported. Raw event data stays in parquet: the free
     tier caps a database at 500 MB and row writes at 100,000 a day.
+
+    ``--demo`` writes `load-demo.sql` instead, holding the model cohort in full
+    plus recent seasons. The full export is 199,439 rows against that same
+    100,000-a-day ceiling, so a hosted deployment has to choose which rows it
+    serves; see :class:`hoopslab.serve.d1_export.DemoSlice` for what it keeps
+    and why dropping old seasons wholesale would break the front page.
     """
     import logging
 
-    from hoopslab.serve.d1_export import build_export
+    from hoopslab.serve.d1_export import D1_FREE_DAILY_WRITES, build_export
 
     settings = load_settings()
     logging.basicConfig(level=settings.log_level, format="%(levelname)s %(message)s")
 
-    result = build_export(DataPaths.discover())
+    result = build_export(DataPaths.discover(), demo=demo)
     console.print(result.render())
+
+    if demo:
+        console.print()
+        headroom = D1_FREE_DAILY_WRITES - result.total
+        console.print(
+            f"  {result.total:,} rows against a free-tier ceiling of "
+            f"{D1_FREE_DAILY_WRITES:,} writes a day."
+        )
+        if headroom < 0:
+            # Writing it anyway would produce a file that loads most of the way
+            # and then starts failing, leaving the database half-seeded with no
+            # obvious sign of which half.
+            console.print(
+                f"\n[red]Over the ceiling by {-headroom:,} rows. "
+                "Tighten DEMO_RECENT_SEASON or DEMO_COMPS_PER_SEASON.[/red]"
+            )
+            raise typer.Exit(code=1)
+        if result.total * 2 > D1_FREE_DAILY_WRITES:
+            # Re-running the loader spends the whole count again, so a slice
+            # that only fits once cannot be corrected the day it goes wrong.
+            console.print(
+                "[yellow]  Fits once, but not twice — a failed seed could not "
+                "be retried until tomorrow.[/yellow]"
+            )
+
     console.print("\n[dim]Apply locally with `npm run db:load`.[/dim]")
 
 

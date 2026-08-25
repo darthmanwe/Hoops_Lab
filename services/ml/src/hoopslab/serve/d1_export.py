@@ -14,7 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -59,16 +59,36 @@ TABLES_IN_LOAD_ORDER = (
 )
 
 
+#: D1's free plan allows this many row writes per day. The demo slice exists to
+#: fit under it, and `hoopslab export --demo` refuses to write a file that
+#: cannot be loaded in one sitting.
+D1_FREE_DAILY_WRITES = 100_000
+
+
 @dataclass
 class ExportResult:
     snapshot_id: str
     path: Path
     row_counts: dict[str, int]
+    #: Rows a filter removed, per table. Empty for a full export.
+    #:
+    #: ADR 8 requires a filter to report what it dropped rather than leave it
+    #: to be discovered. That rule was written after a null age silently
+    #: removed 22% of the modelling cohort, and it has stood as *proposed* ever
+    #: since because nothing enforced it. This is the first filter to comply.
+    dropped: dict[str, int] = field(default_factory=dict)
+
+    @property
+    def total(self) -> int:
+        return sum(self.row_counts.values())
 
     def render(self) -> str:
         lines = [f"snapshot {self.snapshot_id}", f"wrote {self.path.name}"]
-        lines.extend(f"  {t:<26} {n:>7,} rows" for t, n in self.row_counts.items())
-        lines.append(f"  {'TOTAL':<26} {sum(self.row_counts.values()):>7,} rows")
+        for table, n in self.row_counts.items():
+            lost = self.dropped.get(table, 0)
+            suffix = f"   ({lost:,} dropped)" if lost else ""
+            lines.append(f"  {table:<26} {n:>7,} rows{suffix}")
+        lines.append(f"  {'TOTAL':<26} {self.total:>7,} rows")
         return "\n".join(lines)
 
 
@@ -85,7 +105,109 @@ def snapshot_id(paths: DataPaths) -> str:
     return digest.hexdigest()[:12]
 
 
-def build_export(paths: DataPaths) -> ExportResult:
+#: Seasons kept for browsing in the hosted demo. The model cohort is kept in
+#: full regardless of age, so this only trims the tail nobody clicks.
+DEMO_RECENT_SEASON = 2022
+
+#: Comparables per player-season in the demo. The full export stores every
+#: neighbour the archetype model found; the interface shows six.
+DEMO_COMPS_PER_SEASON = 6
+
+
+@dataclass
+class DemoSlice:
+    """Which rows a free-tier deployment serves.
+
+    D1's free plan allows 100,000 row writes per day and the full export is
+    199,439, so a hosted demo has to choose. The choice is made here rather
+    than by truncating the load file, because *which* rows go is the whole
+    question: a slice that drops Doncic's 2017 EuroLeague season breaks the
+    example on the front page, and a slice built by taking recent seasons does
+    exactly that.
+
+    So the rule is cohort-first. Every person involved in an observed transfer
+    is kept with their **entire** career, because they are what the model is
+    about and what every worked example on the site points at. Recent seasons
+    are kept on top of that so the projections and browsing are current.
+    Comparables, which are the only table large enough to matter and the least
+    load-bearing, are capped at what the interface actually displays.
+
+    Applied to emitted rows, never to the frames the models are fitted on.
+    Filtering the inputs would refit the archetype mixture on a subset and
+    serve clusters that disagree with the published stability figures — a
+    hosted demo that quietly contradicts its own model card.
+    """
+
+    persons: set[str]
+    season_orders: dict[str, int]
+    recent_season: int = DEMO_RECENT_SEASON
+    comps_per_season: int = DEMO_COMPS_PER_SEASON
+
+    @classmethod
+    def build(
+        cls,
+        player_seasons: pl.DataFrame,
+        pairs: pl.DataFrame,
+        *,
+        recent_season: int = DEMO_RECENT_SEASON,
+    ) -> DemoSlice:
+        cohort = set(pairs["person_id"].to_list())
+        recent = set(
+            player_seasons.filter(pl.col("season_order") >= recent_season)["person_id"].to_list()
+        )
+        orders = dict(player_seasons.select("season_id", "season_order").unique().iter_rows())
+        return cls(
+            persons=cohort | (recent - {None}),
+            season_orders={str(k): int(v) for k, v in orders.items() if k is not None},
+            recent_season=recent_season,
+        )
+
+    def is_recent(self, season_id: Any) -> bool:
+        return self.season_orders.get(str(season_id), 0) >= self.recent_season
+
+    def keep(self, table: str, columns: list[str], rows: list[list[Any]]) -> list[list[Any]]:
+        """Filter one table's rows. Unlisted tables are served whole."""
+        index = {name: i for i, name in enumerate(columns)}
+
+        def person_of(row: list[Any]) -> Any:
+            return row[index["person_id"]] if "person_id" in index else None
+
+        if table in {
+            "persons",
+            "player_identities",
+            "player_seasons",
+            "player_archetypes",
+            "player_shooting",
+            "player_reports",
+            "hypothetical_projections",
+        }:
+            rows = [r for r in rows if person_of(r) in self.persons]
+
+        # Hypothetical projections are ranked by a season the interface already
+        # filters to recent by default; older source lines are never shown.
+        if table == "hypothetical_projections" and "source_season_order" in index:
+            rows = [r for r in rows if int(r[index["source_season_order"]]) >= self.recent_season]
+
+        if table == "player_comps":
+            rows = [r for r in rows if person_of(r) in self.persons]
+            if "season_id" in index:
+                rows = [r for r in rows if self.is_recent(r[index["season_id"]])]
+            # Both ends, not just the subject. This removes nothing today:
+            # comparables are nearest neighbours *within* a season, so the
+            # season filter above already guarantees the neighbour is kept. It
+            # is here because `neighbour_person_id` carries no foreign key, so
+            # if either rule changes a stray neighbour would not fail the load
+            # — it would render as a bare id where a name belongs, which is the
+            # silent degradation this project keeps finding in its own output.
+            if "neighbour_person_id" in index:
+                rows = [r for r in rows if r[index["neighbour_person_id"]] in self.persons]
+            if "rank" in index:
+                rows = [r for r in rows if int(r[index["rank"]]) <= self.comps_per_season]
+
+        return rows
+
+
+def build_export(paths: DataPaths, *, demo: bool = False) -> ExportResult:
     player_seasons = pl.read_parquet(paths.gold / "player_seasons.parquet")
     persons = pl.read_parquet(paths.gold / "persons.parquet")
     identities = pl.read_parquet(paths.gold / "player_identities.parquet")
@@ -99,7 +221,16 @@ def build_export(paths: DataPaths) -> ExportResult:
     statements: list[str] = [f"DELETE FROM {t};" for t in reversed(TABLES_IN_LOAD_ORDER)]
     counts: dict[str, int] = {}
 
+    demo_slice = DemoSlice.build(player_seasons, pairs) if demo else None
+
+    dropped: dict[str, int] = {}
+
     def emit(table: str, columns: list[str], rows: list[list[Any]]) -> None:
+        if demo_slice is not None:
+            kept = demo_slice.keep(table, columns, rows)
+            if len(kept) != len(rows):
+                dropped[table] = len(rows) - len(kept)
+            rows = kept
         counts[table] = len(rows)
         statements.extend(sql.insert_many(table, columns, rows))
 
@@ -150,10 +281,10 @@ def build_export(paths: DataPaths) -> ExportResult:
 
     out_dir = paths.data / "d1"
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / "load.sql"
+    path = out_dir / ("load-demo.sql" if demo else "load.sql")
     path.write_text(sql.transaction(statements), encoding="utf-8")
 
-    return ExportResult(snapshot_id=snapshot, path=path, row_counts=counts)
+    return ExportResult(snapshot_id=snapshot, path=path, row_counts=counts, dropped=dropped)
 
 
 def _season_rows(player_seasons: pl.DataFrame) -> tuple[list[str], list[list[Any]]]:
