@@ -5,7 +5,10 @@
     "dev": "next dev -p 3710",
     "build": "next build",
     "start": "next start",
-    "type": "tsc --noEmit"
+    "type": "tsc --noEmit",
+    "build:cf": "opennextjs-cloudflare build",
+    "preview": "opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "clsx": "2.1.1",
@@ -16,6 +19,7 @@
     "tailwind-merge": "3.6.0"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.2",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "26.2.0",
     "@types/react": "19.2.18",
@@ -23,6 +27,7 @@
     "autoprefixer": "10.5.4",
     "postcss": "8.5.26",
     "tailwindcss": "4.3.3",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "wrangler": "^4.120.1"
   }
 }

@@ -42,6 +42,7 @@
     "db:migrate:prod": "wrangler d1 migrations apply hoopslab-db --remote --config apps/api/wrangler.toml --env production",
     "db:load:prod": "wrangler d1 execute hoopslab-db --remote --config apps/api/wrangler.toml --env production --file data/d1/load-demo.sql",
     "deploy:api": "wrangler deploy --config apps/api/wrangler.toml --env production",
+    "deploy:web": "rimraf apps/web/.next apps/web/.open-next && npm run deploy -w hoopslab-web",
     "shots": "node scripts/screenshots.mjs",
     "social-card": "node scripts/social-card.mjs"
   },

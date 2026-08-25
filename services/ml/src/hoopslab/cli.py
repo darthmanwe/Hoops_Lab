@@ -271,7 +271,12 @@ def export(
                 "be retried until tomorrow.[/yellow]"
             )
 
-    console.print("\n[dim]Apply locally with `npm run db:load`.[/dim]")
+    # Naming the wrong script here is worse than saying nothing: both files sit
+    # in data/d1/ and both load without complaint, so following the hint after a
+    # `--demo` export seeds the full snapshot and blows the daily write budget
+    # before anyone notices which one ran.
+    script = "db:load:demo" if demo else "db:load"
+    console.print(f"\n[dim]Apply locally with `npm run {script}`.[/dim]")
 
 
 @app.command()

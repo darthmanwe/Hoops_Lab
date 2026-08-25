@@ -143,6 +143,28 @@ jobs:
       # silently stop being true.
       - run: uv run hoopslab train --verify
 
+  demo-slice-fits:
+    name: The demo slice fits the free tier
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: uv sync --frozen --extra dev
+      # D1's free plan allows 100,000 row writes a day, and the hosted demo is
+      # re-seeded from this export. The ceiling is not a property of the code,
+      # it is a property of the data: a season of ingest or a looser comparable
+      # cap pushes the slice over it, the seed fails halfway through, and the
+      # site serves a database that is missing its tail. `--demo` exits non-zero
+      # if the export would not fit, so the failure arrives here on the pull
+      # request rather than in production at 2am.
+      - run: uv run hoopslab export --demo
+
   no-fabricated-data:
     name: No endpoint serves fabricated data
     runs-on: ubuntu-latest

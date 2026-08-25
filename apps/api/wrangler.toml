@@ -64,12 +64,17 @@ id = "00000000000000000000000000000000"
 # --------------------------------------------------------------------------
 # production
 #
-# This database still holds the fabricated seed rows from the previous version.
-# Nothing can read them: every data route now returns 501 or 410. It is dropped
-# and recreated from real migrations in phase 3.
+# DATA_SNAPSHOT prefixes every cache key, so a re-seed with new data cannot
+# serve stale entries: new data means a new snapshot id, which means the old
+# keys are simply never asked for again. There is no purge API on the free
+# plan and this is better than one anyway — the id is echoed in `meta.snapshot`
+# and on `/health`, so a stale response identifies itself instead of having to
+# be caught. It must be the id in the seed file that was actually loaded; the
+# empty string that stood here before namespaced everything under a prefix
+# that never changed, which is the failure this variable exists to prevent.
 # --------------------------------------------------------------------------
 [env.production]
-vars = { APP_ENV = "production", DATA_SNAPSHOT = "" }
+vars = { APP_ENV = "production", DATA_SNAPSHOT = "ee6b530f0aa0" }
 
 [[env.production.d1_databases]]
 binding = "DB"

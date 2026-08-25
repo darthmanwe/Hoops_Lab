@@ -8,6 +8,8 @@ export default [
     ignores: [
       "**/node_modules/**",
       "**/.next/**",
+      // OpenNext's bundle: the whole Next.js server, re-emitted as CommonJS.
+      "**/.open-next/**",
       "**/.wrangler/**",
       "**/dist/**",
       "**/build/**",
