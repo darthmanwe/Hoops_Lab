@@ -1,8 +1,14 @@
 import type { Context } from "hono";
 
 /**
- * RFC 9457 `application/problem+json`. Every non-2xx response in this API uses
- * this shape, so a client can branch on `code` without string-matching prose.
+ * RFC 9457 `application/problem+json`, so a client can branch on `code` without
+ * string-matching prose.
+ *
+ * Every non-2xx response in this API is built here, with one deliberate
+ * exception: `/health` answers 503 with its own schema, because a monitor polls
+ * one URL and needs one shape back whatever the status — and its degraded body
+ * names which dependency failed and how slowly, which a problem document would
+ * replace with prose. This comment previously claimed no exception existed.
  */
 export type Problem = {
   type: string;

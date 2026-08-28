@@ -23,6 +23,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "gen": "tsx scripts/gen.ts",
     "type": "npm run type -w hoopslab-api && npm run type -w hoopslab-web",
     "test": "npm run test -w hoopslab-api",
     "dev": "npm run dev -w hoopslab-api",
@@ -53,8 +54,10 @@
     "eslint": "10.8.1",
     "eslint-config-prettier": "10.1.8",
     "globals": "17.9.0",
+    "openapi-typescript": "7.13.0",
     "prettier": "3.9.6",
     "rimraf": "6.1.3",
+    "tsx": "4.23.12",
     "typescript": "5.9.3",
     "typescript-eslint": "8.67.0"
   }

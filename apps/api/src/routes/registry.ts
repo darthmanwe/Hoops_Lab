@@ -63,6 +63,17 @@ export const ENDPOINTS: readonly Endpoint[] = [
     state: "live",
     description: "This listing, generated from the endpoint registry.",
   },
+  {
+    path: "/openapi.json",
+    state: "live",
+    description:
+      "The OpenAPI 3.1 document, generated from the same route definitions the router is built from.",
+  },
+  {
+    path: "/docs",
+    state: "live",
+    description: "The document above, rendered to read.",
+  },
 
   // ---------------------------------------------------------------------
   // Real entity data. Blocked only on ingestion, not on any model.

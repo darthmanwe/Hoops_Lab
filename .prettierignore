@@ -13,6 +13,7 @@ contracts/openapi.json
 apps/web/src/lib/api/generated/
 apps/api/migrations/
 docs/data-dictionary.md
+docs/errors.md
 
 # Written by `hoopslab train`. These are the audit trail for every reported
 # number, so they are committed but never hand-edited or reformatted.

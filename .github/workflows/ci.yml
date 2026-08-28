@@ -165,6 +165,39 @@ jobs:
       # request rather than in production at 2am.
       - run: uv run hoopslab export --demo
 
+  contracts:
+    name: The generated contract matches what is committed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # The OpenAPI document, the TypeScript client, the error catalogue and the
+      # data dictionary are all derived from source that lives elsewhere in this
+      # repository. Regenerating and diffing is what makes them derived rather
+      # than merely generated once: a route added without a schema, an error code
+      # added without an explanation, or a column renamed in the Drizzle schema
+      # all turn this red instead of silently leaving four documents describing
+      # an API that has moved on.
+      #
+      # `.prettierignore` and `eslint.config.mjs` have named these paths as
+      # generated since phase 3. Until this job existed, nothing generated them.
+      - run: npm run gen
+      # `git diff --exit-code` alone would not catch this: it ignores untracked
+      # files, so a generator that starts emitting a fifth artifact nobody
+      # committed would pass. `status --porcelain` sees both.
+      - name: Assert nothing regenerated differently
+        run: |
+          if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
+            echo '::error::npm run gen changed tracked files or produced new ones. Run it locally and commit the result.'
+            git status --porcelain --untracked-files=all
+            git diff
+            exit 1
+          fi
+
   no-fabricated-data:
     name: No endpoint serves fabricated data
     runs-on: ubuntu-latest

@@ -1,0 +1,2683 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "HoopsLab API",
+    "version": "1.0.0",
+    "description": "Cross-league basketball translation. Every served number comes from a fitted model or a measured column and carries the version that produced it. Paths marked pending are waiting on data this project does not yet have; paths marked withdrawn measured something no public data supports, and say so instead of returning a plausible number.",
+    "license": {
+      "name": "MIT",
+      "url": "https://github.com/darthmanwe/Hoops_Lab/blob/main/LICENSE"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://hoopslab-api-production.kutlumizrak.workers.dev"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Listing": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string",
+            "enum": [
+              "hoopslab-api"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "live"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "live": {
+                "type": "integer"
+              },
+              "pending": {
+                "type": "integer"
+              },
+              "withdrawn": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "live",
+              "pending",
+              "withdrawn"
+            ]
+          },
+          "endpoints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "live",
+                    "pending",
+                    "gone"
+                  ]
+                },
+                "description": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "integer"
+                },
+                "blocked_on": {
+                  "type": "string"
+                },
+                "will_serve": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "state"
+              ]
+            }
+          },
+          "roadmap": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "service",
+          "status",
+          "summary",
+          "counts",
+          "endpoints",
+          "roadmap"
+        ]
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "enum": [
+              "hoopslab-api"
+            ]
+          },
+          "data_snapshot": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The snapshot this deployment serves. Every cache key is prefixed with it."
+          },
+          "environment": {
+            "type": "string"
+          },
+          "dependencies": {
+            "type": "object",
+            "properties": {
+              "d1": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "ok": {
+                        "type": "boolean",
+                        "enum": [
+                          true
+                        ]
+                      },
+                      "latency_ms": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "ok",
+                      "latency_ms"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "ok": {
+                        "type": "boolean",
+                        "enum": [
+                          false
+                        ]
+                      },
+                      "error": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "ok",
+                      "error"
+                    ]
+                  }
+                ]
+              },
+              "kv": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "ok": {
+                        "type": "boolean",
+                        "enum": [
+                          true
+                        ]
+                      },
+                      "latency_ms": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "ok",
+                      "latency_ms"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "ok": {
+                        "type": "boolean",
+                        "enum": [
+                          false
+                        ]
+                      },
+                      "error": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "ok",
+                      "error"
+                    ]
+                  }
+                ]
+              }
+            },
+            "required": [
+              "d1",
+              "kv"
+            ]
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "data_snapshot",
+          "environment",
+          "dependencies",
+          "checked_at"
+        ]
+      },
+      "PlayerSearch": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "personId": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "birthYear": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "leagues": {
+                  "type": "string",
+                  "description": "Which leagues this person appears in, e.g. \"EL+NBA\".",
+                  "example": "EL+NBA"
+                }
+              },
+              "required": [
+                "personId",
+                "displayName",
+                "birthYear",
+                "leagues"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "Meta": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "example": "a3236f384d2ddfdb"
+          },
+          "snapshot": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The data snapshot every number in this response came from. Also prefixes the cache key, so a stale response identifies itself.",
+            "example": "ee6b530f0aa0"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolved": {
+            "type": "object",
+            "properties": {
+              "season_id": {
+                "type": "string"
+              },
+              "requested_season_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "resolution": {
+                "type": "string",
+                "enum": [
+                  "exact",
+                  "latest_available"
+                ]
+              }
+            },
+            "description": "Present when a season was resolved rather than matched. `exact` or `latest_available` — never a silent substitution."
+          },
+          "model": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "primary_metric": {
+                "type": "string"
+              },
+              "primary_value": {
+                "type": "number"
+              },
+              "primary_ci": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "card": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "version"
+            ],
+            "description": "The model that produced these numbers, with its headline error, so a value never appears without the accuracy of the thing that made it."
+          },
+          "page": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "offset": {
+                "type": "integer"
+              },
+              "returned": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "total",
+              "limit",
+              "offset",
+              "returned"
+            ],
+            "description": "How many rows matched against how many were returned. Without this a truncated ranking and a complete one are indistinguishable."
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "request_id",
+          "snapshot",
+          "generated_at",
+          "warnings"
+        ]
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to this code's entry in docs/errors.md."
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "detail"
+        ],
+        "additionalProperties": {}
+      },
+      "PlayerCareer": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "person": {
+                "type": "object",
+                "properties": {
+                  "personId": {
+                    "type": "string"
+                  },
+                  "displayName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "nameNormalized": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "birthYear": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "leagues": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "personId",
+                  "displayName",
+                  "nameNormalized",
+                  "birthYear",
+                  "leagues"
+                ]
+              },
+              "seasons": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "seasonId": {
+                      "type": "string"
+                    },
+                    "league": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "seasonOrder": {
+                      "type": "integer",
+                      "description": "Integer sort key. Season ids do not sort correctly across leagues."
+                    },
+                    "teamName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "gamesPlayed": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "minutes": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "usgPct": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "tsPct": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "astPct": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "ptsPer75": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "age": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "qualified": {
+                      "type": "boolean",
+                      "description": "Whether the season clears the minutes floor to count as a measurement."
+                    }
+                  },
+                  "required": [
+                    "seasonId",
+                    "league",
+                    "label",
+                    "seasonOrder",
+                    "teamName",
+                    "gamesPlayed",
+                    "minutes",
+                    "usgPct",
+                    "tsPct",
+                    "astPct",
+                    "ptsPer75",
+                    "age",
+                    "qualified"
+                  ]
+                }
+              },
+              "identities": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "league": {
+                      "type": "string"
+                    },
+                    "sourcePlayerId": {
+                      "type": "string"
+                    },
+                    "matchMethod": {
+                      "type": "string",
+                      "description": "How the link was made: anchor, shared_nba_person_id, name_and_age, ..."
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "description": "Below 0.8 the link is reported but excluded from the modelling cohort."
+                    }
+                  },
+                  "required": [
+                    "league",
+                    "sourcePlayerId",
+                    "matchMethod",
+                    "confidence"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "person",
+              "seasons",
+              "identities"
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "PlayerTranslations": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "personId": {
+                  "type": "string"
+                },
+                "sourceSeasonId": {
+                  "type": "string"
+                },
+                "targetSeasonId": {
+                  "type": "string"
+                },
+                "direction": {
+                  "type": "string"
+                },
+                "metric": {
+                  "type": "string"
+                },
+                "sourceValue": {
+                  "type": "number"
+                },
+                "predicted": {
+                  "type": "number"
+                },
+                "pi80Low": {
+                  "type": "number"
+                },
+                "pi80High": {
+                  "type": "number"
+                },
+                "pi95Low": {
+                  "type": "number"
+                },
+                "pi95High": {
+                  "type": "number"
+                },
+                "actualValue": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "baselineLeagueMean": {
+                  "type": "number"
+                },
+                "baselineZPreservation": {
+                  "type": "number"
+                },
+                "baselineFolkRule": {
+                  "type": "number"
+                },
+                "modelVersion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "personId",
+                "sourceSeasonId",
+                "targetSeasonId",
+                "direction",
+                "metric",
+                "sourceValue",
+                "predicted",
+                "pi80Low",
+                "pi80High",
+                "pi95Low",
+                "pi95High",
+                "actualValue",
+                "baselineLeagueMean",
+                "baselineZPreservation",
+                "baselineFolkRule",
+                "modelVersion"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "ModelRegistry": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "modelVersion": {
+                  "type": "string"
+                },
+                "modelName": {
+                  "type": "string"
+                },
+                "trainedAt": {
+                  "type": "string"
+                },
+                "gitSha": {
+                  "type": "string"
+                },
+                "runId": {
+                  "type": "string"
+                },
+                "seed": {
+                  "type": "integer"
+                },
+                "primaryMetric": {
+                  "type": "string"
+                },
+                "primaryValue": {
+                  "type": "number"
+                },
+                "primaryCiLow": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "primaryCiHigh": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "nTrain": {
+                  "type": "integer"
+                },
+                "nEvaluated": {
+                  "type": "integer"
+                },
+                "cardPath": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "modelVersion",
+                "modelName",
+                "trainedAt",
+                "gitSha",
+                "runId",
+                "seed",
+                "primaryMetric",
+                "primaryValue",
+                "primaryCiLow",
+                "primaryCiHigh",
+                "nTrain",
+                "nEvaluated",
+                "cardPath"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "ModelEvaluation": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "object",
+                "properties": {
+                  "modelVersion": {
+                    "type": "string"
+                  },
+                  "modelName": {
+                    "type": "string"
+                  },
+                  "trainedAt": {
+                    "type": "string"
+                  },
+                  "gitSha": {
+                    "type": "string"
+                  },
+                  "runId": {
+                    "type": "string"
+                  },
+                  "seed": {
+                    "type": "integer"
+                  },
+                  "primaryMetric": {
+                    "type": "string"
+                  },
+                  "primaryValue": {
+                    "type": "number"
+                  },
+                  "primaryCiLow": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "primaryCiHigh": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "nTrain": {
+                    "type": "integer"
+                  },
+                  "nEvaluated": {
+                    "type": "integer"
+                  },
+                  "cardPath": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "modelVersion",
+                  "modelName",
+                  "trainedAt",
+                  "gitSha",
+                  "runId",
+                  "seed",
+                  "primaryMetric",
+                  "primaryValue",
+                  "primaryCiLow",
+                  "primaryCiHigh",
+                  "nTrain",
+                  "nEvaluated",
+                  "cardPath"
+                ]
+              },
+              "evaluations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "modelVersion": {
+                      "type": "string"
+                    },
+                    "metric": {
+                      "type": "string"
+                    },
+                    "fold": {
+                      "type": "string",
+                      "description": "\"overall\" for the pooled row, otherwise the season."
+                    },
+                    "nEvaluated": {
+                      "type": "integer"
+                    },
+                    "mae": {
+                      "type": "number"
+                    },
+                    "maeCiLow": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "maeCiHigh": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "baselineName": {
+                      "type": "string"
+                    },
+                    "baselineMae": {
+                      "type": "number"
+                    },
+                    "shuffledMae": {
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "description": "The shuffled-target control, which a model with no signal matches."
+                    },
+                    "beatsBestBaseline": {
+                      "type": "boolean",
+                      "description": "Whether the model beats the best baseline for this metric. Served rather than logged, so a metric it loses on says so."
+                    },
+                    "skillVsBest": {
+                      "type": "number",
+                      "description": "Fractional error reduction against the best baseline; negative is worse."
+                    }
+                  },
+                  "required": [
+                    "modelVersion",
+                    "metric",
+                    "fold",
+                    "nEvaluated",
+                    "mae",
+                    "maeCiLow",
+                    "maeCiHigh",
+                    "baselineName",
+                    "baselineMae",
+                    "shuffledMae",
+                    "beatsBestBaseline",
+                    "skillVsBest"
+                  ]
+                }
+              },
+              "selection": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "modelVersion": {
+                      "type": "string"
+                    },
+                    "direction": {
+                      "type": "string"
+                    },
+                    "metric": {
+                      "type": "string"
+                    },
+                    "nMovers": {
+                      "type": "integer"
+                    },
+                    "nLeague": {
+                      "type": "integer"
+                    },
+                    "moverMeanZ": {
+                      "type": "number"
+                    },
+                    "leagueMeanZ": {
+                      "type": "number"
+                    },
+                    "gapSd": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "modelVersion",
+                    "direction",
+                    "metric",
+                    "nMovers",
+                    "nLeague",
+                    "moverMeanZ",
+                    "leagueMeanZ",
+                    "gapSd"
+                  ]
+                }
+              },
+              "interpretation": {
+                "type": "object",
+                "properties": {
+                  "estimand": {
+                    "type": "string"
+                  },
+                  "selection_note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "estimand",
+                  "selection_note"
+                ]
+              }
+            },
+            "required": [
+              "version",
+              "evaluations",
+              "selection",
+              "interpretation"
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "TranslationLeaderboard": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "personId": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceSeasonId": {
+                  "type": "string"
+                },
+                "targetSeasonId": {
+                  "type": "string"
+                },
+                "direction": {
+                  "type": "string"
+                },
+                "metric": {
+                  "type": "string"
+                },
+                "sourceValue": {
+                  "type": "number"
+                },
+                "predicted": {
+                  "type": "number"
+                },
+                "pi80Low": {
+                  "type": "number"
+                },
+                "pi80High": {
+                  "type": "number"
+                },
+                "actualValue": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "What actually happened, where the move is already in the past."
+                },
+                "modelVersion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "personId",
+                "displayName",
+                "sourceSeasonId",
+                "targetSeasonId",
+                "direction",
+                "metric",
+                "sourceValue",
+                "predicted",
+                "pi80Low",
+                "pi80High",
+                "actualValue",
+                "modelVersion"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "Archetypes": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "modelVersion": {
+                  "type": "string"
+                },
+                "cluster": {
+                  "type": "integer"
+                },
+                "nMembers": {
+                  "type": "integer"
+                },
+                "topFeatures": {
+                  "type": "string"
+                },
+                "exemplars": {
+                  "type": "string"
+                },
+                "stabilityJaccard": {
+                  "type": "number",
+                  "description": "Bootstrap stability. Clusters are not equally real, so it is served, not hidden."
+                },
+                "reportable": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "modelVersion",
+                "cluster",
+                "nMembers",
+                "topFeatures",
+                "exemplars",
+                "stabilityJaccard",
+                "reportable"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "PlayerArchetypes": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "seasonId": {
+                  "type": "string"
+                },
+                "league": {
+                  "type": "string"
+                },
+                "cluster": {
+                  "type": "integer"
+                },
+                "modelVersion": {
+                  "type": "string"
+                },
+                "topFeatures": {
+                  "type": "string"
+                },
+                "exemplars": {
+                  "type": "string"
+                },
+                "stabilityJaccard": {
+                  "type": "number"
+                },
+                "reportable": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "seasonId",
+                "league",
+                "cluster",
+                "modelVersion",
+                "topFeatures",
+                "exemplars",
+                "stabilityJaccard",
+                "reportable"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "PlayerComps": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "seasonId": {
+                  "type": "string"
+                },
+                "rank": {
+                  "type": "integer"
+                },
+                "distance": {
+                  "type": "number",
+                  "description": "Euclidean in the whitened archetype space, which is the correct metric here."
+                },
+                "neighbourPersonId": {
+                  "type": "string"
+                },
+                "neighbourName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "modelVersion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "seasonId",
+                "rank",
+                "distance",
+                "neighbourPersonId",
+                "neighbourName",
+                "modelVersion"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "PlayerShooting": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "seasonId": {
+                  "type": "string"
+                },
+                "personId": {
+                  "type": "string"
+                },
+                "fg3a": {
+                  "type": "number"
+                },
+                "fg3aPer75": {
+                  "type": "number"
+                },
+                "fg3PctRaw": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "fg3PctShrunk": {
+                  "type": "number"
+                },
+                "shrinkageWeight": {
+                  "type": "number",
+                  "description": "How much of the number is the player's own attempts rather than the league prior. A 40-attempt shooter is mostly prior, and that is the difference between a measurement and an impression."
+                },
+                "priorMean": {
+                  "type": "number"
+                },
+                "spacingScore": {
+                  "type": "number"
+                },
+                "reportable": {
+                  "type": "boolean"
+                },
+                "modelVersion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "seasonId",
+                "personId",
+                "fg3a",
+                "fg3aPer75",
+                "fg3PctRaw",
+                "fg3PctShrunk",
+                "shrinkageWeight",
+                "priorMean",
+                "spacingScore",
+                "reportable",
+                "modelVersion"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "SpacingLeaderboard": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "personId": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "seasonId": {
+                  "type": "string"
+                },
+                "fg3a": {
+                  "type": "number"
+                },
+                "fg3PctRaw": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "fg3PctShrunk": {
+                  "type": "number"
+                },
+                "shrinkageWeight": {
+                  "type": "number"
+                },
+                "spacingScore": {
+                  "type": "number"
+                },
+                "modelVersion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "personId",
+                "displayName",
+                "seasonId",
+                "fg3a",
+                "fg3PctRaw",
+                "fg3PctShrunk",
+                "shrinkageWeight",
+                "spacingScore",
+                "modelVersion"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "Report": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "personId": {
+                "type": "string"
+              },
+              "targetSeasonId": {
+                "type": "string"
+              },
+              "direction": {
+                "type": "string"
+              },
+              "named": {
+                "type": "boolean"
+              },
+              "headline": {
+                "type": "string"
+              },
+              "report": {
+                "description": "The structured `ScoutingReport`: claims, the fact ids behind them, confidence."
+              },
+              "evidence": {
+                "type": "string",
+                "description": "The evidence bundle the report was written from, rendered as text."
+              },
+              "audit": {
+                "type": "object",
+                "properties": {
+                  "grounded": {
+                    "type": "boolean"
+                  },
+                  "numbersTraced": {
+                    "type": "integer"
+                  },
+                  "numbersTotal": {
+                    "type": "integer"
+                  },
+                  "checks": {}
+                },
+                "required": [
+                  "grounded",
+                  "numbersTraced",
+                  "numbersTotal"
+                ]
+              },
+              "reportModel": {
+                "type": "string"
+              },
+              "generatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "personId",
+              "targetSeasonId",
+              "direction",
+              "named",
+              "headline",
+              "evidence",
+              "audit",
+              "reportModel",
+              "generatedAt"
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "Projections": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "personId": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceSeasonId": {
+                  "type": "string"
+                },
+                "sourceLeague": {
+                  "type": "string"
+                },
+                "targetSeasonId": {
+                  "type": "string"
+                },
+                "direction": {
+                  "type": "string"
+                },
+                "metric": {
+                  "type": "string"
+                },
+                "sourceValue": {
+                  "type": "number"
+                },
+                "zSource": {
+                  "type": "number"
+                },
+                "predicted": {
+                  "type": "number"
+                },
+                "pi80Low": {
+                  "type": "number"
+                },
+                "pi80High": {
+                  "type": "number"
+                },
+                "pi95Low": {
+                  "type": "number"
+                },
+                "pi95High": {
+                  "type": "number"
+                },
+                "inSupport": {
+                  "type": "boolean",
+                  "description": "False means the player's standing sits outside the range where transferring players were observed, so the interval understates the uncertainty."
+                },
+                "movedBefore": {
+                  "type": "boolean"
+                },
+                "minutes": {
+                  "type": "number"
+                },
+                "age": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "supportNMovers": {
+                  "type": "integer",
+                  "description": "Observed transfers behind this direction's intercept."
+                },
+                "modelVersion": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "personId",
+                "displayName",
+                "sourceSeasonId",
+                "sourceLeague",
+                "targetSeasonId",
+                "direction",
+                "metric",
+                "sourceValue",
+                "zSource",
+                "predicted",
+                "pi80Low",
+                "pi80High",
+                "pi95Low",
+                "pi95High",
+                "inSupport",
+                "movedBefore",
+                "minutes",
+                "age",
+                "supportNMovers",
+                "modelVersion"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "Every endpoint and its state.",
+        "description": "Generated from the endpoint registry, which is also what mounts the withdrawn handlers and what the OpenAPI document is checked against.",
+        "responses": {
+          "200": {
+            "description": "The full surface, including what is pending and what is gone.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Listing"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "Liveness, and real D1 and KV reachability.",
+        "description": "Probes both dependencies rather than reporting on the Worker alone, and answers 503 when either is unreachable. Also reports the data snapshot, which is what makes a stale cached response identifiable.",
+        "responses": {
+          "200": {
+            "description": "Both dependencies answered.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "D1 or KV is unreachable. The body names which and why.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/search": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Diacritic-insensitive search over every resolved person.",
+        "description": "Matches against a column Python already de-accented, so `jokic` finds `Jokić`. Cross-league players rank first: they are the ones this project is about.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "1-80 characters. Accents optional.",
+              "example": "jokic"
+            },
+            "required": false,
+            "description": "1-80 characters. Accents optional.",
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "1-50, default 20. Outside that range the request is rejected.",
+              "example": "20"
+            },
+            "required": false,
+            "description": "1-50, default 20. Outside that range the request is rejected.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching people, cross-league first, then alphabetical.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSearch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_QUERY: `q` is empty or over 80 characters, or `limit` is not 1-50.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/{personId}": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "A person's whole career across every league they appear in.",
+        "description": "Seasons are ordered by the integer sort key rather than the season id, which would put NBA_2020 above EL_2021. Identity links carry the method and confidence that produced them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "personId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The person, their seasons in chronological order, and their identity links.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerCareer"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PERSON_NOT_FOUND: the id does not resolve. Ids are not guessable.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/{personId}/translation": {
+      "get": {
+        "tags": [
+          "Players"
+        ],
+        "summary": "Cross-league translation predictions for one person.",
+        "description": "Every row carries its 80% and 95% intervals, and `meta.model` carries the measured error of the model that produced them, so a value never appears without the accuracy of the thing that made it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "personId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Predictions in source-season order, with the model's own error attached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerTranslations"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NO_TRANSITION_FOR_PLAYER: the person exists but never changed league, which is the common case. /projections serves the counterfactual instead.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Every model version this deployment can serve.",
+        "description": "Each row carries the run that produced it and its headline error, so a prediction elsewhere in the API can always be looked up here.",
+        "responses": {
+          "200": {
+            "description": "The registry, most recently trained first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelRegistry"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/{modelVersion}/evaluation": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "One model's held-out error against all four baselines.",
+        "description": "Includes the metric the model loses on and the selection gaps that condition every number here, because an evaluation that reports only the wins is not an evaluation.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "translation-v1"
+            },
+            "required": true,
+            "name": "modelVersion",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The registry row, its per-fold evaluation, and the selection summaries.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelEvaluation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "MODEL_VERSION_NOT_FOUND: the version is not in the registry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leaderboards/translation": {
+      "get": {
+        "tags": [
+          "Models"
+        ],
+        "summary": "Players ranked by projected translated production.",
+        "description": "Every row carries its 80% interval and, where the move has already happened, what the player actually did.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Defaults to EL->NBA.",
+              "example": "EL->NBA"
+            },
+            "required": false,
+            "description": "Defaults to EL->NBA.",
+            "name": "direction",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Defaults to usg_pct.",
+              "example": "usg_pct"
+            },
+            "required": false,
+            "description": "Defaults to usg_pct.",
+            "name": "metric",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "1-100, default 25. Outside that range the request is rejected.",
+              "example": "25"
+            },
+            "required": false,
+            "description": "1-100, default 25. Outside that range the request is rejected.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ranking for that direction and metric.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationLeaderboard"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NO_PREDICTIONS_FOR_FILTER: no fitted predictions for that direction and metric.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_QUERY: `limit` is not an integer in 1-100.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/archetypes": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "The clusters, their distinguishing features, exemplars and stability.",
+        "description": "Ordered by stability, most reproducible first. A cluster below the floor is flagged in the row and again in `meta.warnings`.",
+        "responses": {
+          "200": {
+            "description": "Every cluster in the archetype model.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Archetypes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/{personId}/archetype": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Archetype assignment per season, carrying that cluster's stability.",
+        "description": "Descriptive, never predictive. Only seasons clearing the 500-minute floor are clustered, so a low-minute season has no assignment rather than one fitted on noise.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "personId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One row per clustered season, in season order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerArchetypes"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NO_ARCHETYPE_FOR_PLAYER: no season clears the minutes floor the model requires.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/{personId}/comps": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Nearest neighbours in the whitened archetype space.",
+        "description": "Precomputed in Python, because the Worker gets 10 ms of CPU per request. The distance metric is stated on every row rather than left for the reader to assume.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "personId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Restrict to one season. Omitted, every clustered season is returned.",
+              "example": "NBA_2023"
+            },
+            "required": false,
+            "description": "Restrict to one season. Omitted, every clustered season is returned.",
+            "name": "season",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Default 10, capped at 25.",
+              "example": "10"
+            },
+            "required": false,
+            "description": "Default 10, capped at 25.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Neighbours ordered by season, then by rank.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerComps"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NO_COMPS_FOR_PLAYER: the player has no archetype assignment, so there is no space to find neighbours in.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/{personId}/shooting": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Empirical-Bayes shrunk three-point threat, with the shrinkage weight exposed.",
+        "description": "What replaces the withdrawn gravity metric, named for what it actually measures. Seasons below the attempt floor are served but flagged, because their value is largely the league prior.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "personId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One row per season, in season order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerShooting"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NO_SHOOTING_FOR_PLAYER: no season above the three-point attempt floor, below which the estimate would be almost entirely prior.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leaderboards/shooting": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Spacing leaderboard, restricted to players above the attempt floor.",
+        "description": "Ranking on a mostly-prior number would put the smallest samples on top, which is the exact failure shrinkage exists to prevent, so players below the floor are excluded rather than ranked.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Defaults to NBA_2023.",
+              "example": "NBA_2023"
+            },
+            "required": false,
+            "description": "Defaults to NBA_2023.",
+            "name": "season",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "1-100, default 25. Outside that range the request is rejected.",
+              "example": "25"
+            },
+            "required": false,
+            "description": "1-100, default 25. Outside that range the request is rejected.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Players above the attempt floor, ranked by spacing score.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpacingLeaderboard"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NO_SHOOTING_FOR_SEASON: the season carries no player above the attempt floor, or is not in the snapshot.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_QUERY: `limit` is not an integer in 1-100.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/{personId}/report": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "A grounded scouting report, served with its groundedness audit.",
+        "description": "Reports are written offline against a fixed evidence bundle and committed with their audit, so a player without one has no report rather than a generated-on-demand one.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "personId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "`true` selects the run where the model was told the subject's name. Anything else selects the anonymized run, which is the default."
+            },
+            "required": false,
+            "description": "`true` selects the run where the model was told the subject's name. Anything else selects the anonymized run, which is the default.",
+            "name": "named",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The most recent report for this player, with its audit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NO_REPORT_FOR_PLAYER: no report has been generated for this player and season.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projections": {
+      "get": {
+        "tags": [
+          "Projections"
+        ],
+        "summary": "Projected production for players who have NOT changed league.",
+        "description": "The counterfactual the model exists to answer. Ranked by projection, which puts the least trustworthy rows first, so every row carries an out-of-support flag and `meta.page` says how much of the pool this page is.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "One of EL->NBA, GL->NBA, NBA->EL, NBA->GL, GL->EL, EL->GL. Defaults to EL->NBA.",
+              "example": "EL->NBA"
+            },
+            "required": false,
+            "description": "One of EL->NBA, GL->NBA, NBA->EL, NBA->GL, GL->EL, EL->GL. Defaults to EL->NBA.",
+            "name": "direction",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Season order floor, 2000-2100. A projection off a 2012 line is a curiosity.",
+              "example": "2022"
+            },
+            "required": false,
+            "description": "Season order floor, 2000-2100. A projection off a 2012 line is a curiosity.",
+            "name": "sinceSeason",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "`true` drops rows the model is extrapolating for. Off by default: those rows top the ranking, so hiding them is something a caller asks for.",
+              "example": "false"
+            },
+            "required": false,
+            "description": "`true` drops rows the model is extrapolating for. Off by default: those rows top the ranking, so hiding them is something a caller asks for.",
+            "name": "inSupportOnly",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "1-500, default 50.",
+              "example": "50"
+            },
+            "required": false,
+            "description": "1-500, default 50.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Row offset into the ranking, default 0.",
+              "example": "0"
+            },
+            "required": false,
+            "description": "Row offset into the ranking, default 0.",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of the ranking, with the matched total in `meta.page`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Projections"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NO_PROJECTIONS: no player satisfies the direction, season and support filters together.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_QUERY: a parameter is malformed or outside its range. `directions` lists the ones that exist.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/search": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Search over real NBA and EuroLeague franchises across seasons.",
+        "description": "Previously: Searched a table containing four hand-written teams.\n\nBlocked on: phase-1-real-data",
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{teamId}": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Team season ratings and pace computed from real game results.",
+        "description": "Previously: Served values hand-written into the ETL as Python literals, presented as model output.\n\nBlocked on: phase-1-real-data",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Real NBA (2013-14 onward) and EuroLeague (2007-08 onward) schedules and results.",
+        "description": "Previously: Listed two hand-written games.\n\nBlocked on: phase-1-real-data",
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{gameId}": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Real box scores. Also fixes a bug that ran the same query twice per request.",
+        "description": "Previously: Returned four hand-written box score lines.\n\nBlocked on: phase-1-real-data",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "gameId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compare": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Side-by-side real rate stats for two players, with each value's source season.",
+        "description": "Previously: Served values hand-written into the ETL as Python literals, presented as model output.\n\nBlocked on: phase-1-real-data",
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/{personId}/shot-profile": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Real shot-zone rates and efficiency from ~2.5M ingested shot events.",
+        "description": "Previously: Served values hand-written into the ETL as Python literals, presented as model output. The 'shots' table was never written to or read from.\n\nBlocked on: phase-4-shot-data",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "personId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{teamId}/shot-profile": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Team shot-zone distribution and efficiency versus league average.",
+        "description": "Previously: Served values hand-written into the ETL as Python literals, presented as model output.\n\nBlocked on: phase-4-shot-data",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{teamId}/play-style": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Transition versus set-play splits derived from real possession timing.",
+        "description": "Previously: Served values hand-written into the ETL as Python literals, presented as model output.\n\nBlocked on: phase-4-shot-data",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{teamId}/lineup-impact": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Three exactly computable indices (spacing, archetype balance, usage conflict) and an explicit null projection, because lineup offensive rating cannot be projected without possession-level data.",
+        "description": "Previously: An invented linear formula with nine coefficients hardcoded in the route handler, reported to users as 'offense_projection'. Nothing fitted them.\n\nBlocked on: phase-4-archetypes",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{teamId}/lineup-impact/snapshots": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Stored lineup evaluations, each stamped with the model version that produced it.",
+        "description": "Previously: Served values hand-written into the ETL as Python literals, presented as model output. One stored lineup listed the same player twice.\n\nBlocked on: phase-4-archetypes",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "teamId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{gameId}/schedule-context": {
+      "get": {
+        "tags": [
+          "Under reconstruction"
+        ],
+        "summary": "Exact rest days, back-to-back flags and travel distance. These are arithmetic on the schedule, not a model, and are reported as such.",
+        "description": "Previously: Was '/games/{gameId}/fatigue-flags', which reported a hand-written 'fatigue_score' on an invented scale.\n\nBlocked on: phase-4-game-model",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "gameId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "UNDER_RECONSTRUCTION: withdrawn until real, fitted output backs it. Carries what it will serve and what blocks it.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leaderboards/gravity": {
+      "get": {
+        "tags": [
+          "Withdrawn"
+        ],
+        "summary": "Permanently withdrawn — the underlying quantity is not computable from public data.",
+        "description": "'Gravity' measures how much defensive attention a player draws, which requires optical player-tracking data. The NBA does not publish it and the EuroLeague does not collect it. The previous version of this endpoint reported gravity values that were typed by hand.\n\nInstead: /players/{personId}/shooting serves an empirical-Bayes shrunk 3PT threat measure, which is computable from public data and is named for what it actually measures.",
+        "responses": {
+          "410": {
+            "description": "METRIC_WITHDRAWN: gone rather than 501, because the data to support this does not exist publicly. It is not on the roadmap.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leaderboards/clutch": {
+      "get": {
+        "tags": [
+          "Withdrawn"
+        ],
+        "summary": "Permanently withdrawn — the underlying quantity is not computable from public data.",
+        "description": "The 'clutch_impact' figure behind this leaderboard was a hand-written constant on an undefined scale. Clutch impact estimated from the small per-player samples available would be almost entirely noise, and publishing a ranking of noise is worse than publishing nothing.\n\nInstead: Per-game box scores via /games/{gameId}, from which any clutch definition can be computed with its own sample size attached.",
+        "responses": {
+          "410": {
+            "description": "METRIC_WITHDRAWN: gone rather than 501, because the data to support this does not exist publicly. It is not on the roadmap.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{gameId}/momentum": {
+      "get": {
+        "tags": [
+          "Withdrawn"
+        ],
+        "summary": "Permanently withdrawn — the underlying quantity is not computable from public data.",
+        "description": "'swing_index' and the other momentum figures were hand-written constants. Reconstructing genuine run and momentum statistics needs play-by-play data that this project does not yet ingest.\n\nInstead: Play-by-play ingestion is a stretch goal. Until it lands there is no honest momentum number to serve.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "gameId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "410": {
+            "description": "METRIC_WITHDRAWN: gone rather than 501, because the data to support this does not exist publicly. It is not on the roadmap.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "This document.",
+        "description": "Generated from the route definitions rather than maintained beside them. The committed copy at contracts/openapi.json is asserted equal to this on every test run.",
+        "responses": {
+          "200": {
+            "description": "An OpenAPI 3.1 document.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/docs": {
+      "get": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "The document above, rendered to read.",
+        "responses": {
+          "200": {
+            "description": "An HTML page.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

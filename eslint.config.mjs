@@ -56,7 +56,7 @@ export default [
   // Operator scripts are command-line tools whose output *is* their result.
   // Warning on `console.log` there would be warning that they work.
   {
-    files: ["scripts/**/*.mjs"],
+    files: ["scripts/**/*.{mjs,ts}"],
     rules: { "no-console": "off" },
   },
 

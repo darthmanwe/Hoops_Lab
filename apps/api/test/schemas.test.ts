@@ -141,6 +141,40 @@ describe("the error catalogue matches the API", () => {
     );
   });
 
+  it("parses queries with zod itself, never the re-export", () => {
+    // `@hono/zod-openapi` re-exports a `z` whose `safeParse` returns `any`.
+    // Verified rather than assumed: with the re-export,
+    // `const s: string = Query.safeParse({}).data.limit` typechecks against a
+    // schema declaring `limit` a number; with plain zod it is an error.
+    //
+    // So a schema built from the re-export and then parsed hands back untyped
+    // data, silently reopening the `Record<string, unknown>` hole this rewrite
+    // closed — and it fails open, with no error anywhere. The split imports in
+    // the route files are load-bearing, and look enough like clutter that
+    // someone will tidy them back into one. This is what stops that.
+    const sources = import.meta.glob("../src/**/*.ts", { eager: true, query: "?raw" });
+    const offenders: string[] = [];
+    let parsing = 0;
+
+    for (const [path, module] of Object.entries(sources)) {
+      const text = (module as { default: string }).default;
+      if (!text.includes(".safeParse(")) continue;
+      parsing += 1;
+      if (!/import \{ z as \w+ \} from "zod"/.test(text)) offenders.push(path);
+    }
+
+    // Four route files validate a query. Pinning the count keeps this from
+    // going quiet: a scan that matches nothing reports no offenders, which
+    // reads exactly like a pass.
+    expect(parsing, "found no file that parses a query").toBeGreaterThanOrEqual(4);
+
+    expect(
+      offenders,
+      `these parse a schema but never import zod directly, so the parsed values ` +
+        `are almost certainly \`any\`: ${offenders.join(", ")}`
+    ).toEqual([]);
+  });
+
   it("gives every code a status, a cause and something to do about it", () => {
     for (const [code, entry] of Object.entries(ERROR_CODES)) {
       expect(entry.status, code).toBeGreaterThanOrEqual(400);
