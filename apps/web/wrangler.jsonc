@@ -14,6 +14,23 @@
     "binding": "ASSETS",
   },
 
+  // Every page is a server component, so the API call is made by this Worker
+  // rather than by the browser — and a Worker cannot reach another Worker on
+  // the same account through its workers.dev address. The subrequest never
+  // leaves the runtime; it loops back into this Worker, which has no /models
+  // route and answers 404. From outside, curl gets a clean 200, so the failure
+  // looks like a bad URL and is not one.
+  //
+  // A service binding is the supported way across, and is better than the fix
+  // it replaces: no DNS, no TLS, no public round trip, and the API Worker stays
+  // reachable by the browser for anything client-side later.
+  "services": [
+    {
+      "binding": "API",
+      "service": "hoopslab-api-production",
+    },
+  ],
+
   "observability": {
     "enabled": true,
   },

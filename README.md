@@ -12,6 +12,12 @@ footnote.
 ![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
 ![Tests](https://img.shields.io/badge/tests-383%20offline-199e70)
+[![Live demo](https://img.shields.io/badge/demo-live-d95926)](https://hoopslab-web.kutlumizrak.workers.dev)
+
+**[hoopslab-web.kutlumizrak.workers.dev](https://hoopslab-web.kutlumizrak.workers.dev)** —
+serving the curated slice described under _What this is not_. The API is at
+[`/health`](https://hoopslab-api-production.kutlumizrak.workers.dev/health),
+which reports the snapshot id every response is keyed on.
 
 ![Every observed EuroLeague to NBA transfer, with its projected usage rate, an 80% prediction interval, and what actually happened](docs/screenshots/hero-translation.png)
 
@@ -757,13 +763,20 @@ Filled in with measured numbers as each phase lands. What can be said already:
   magnitude rather than a shortfall: most EuroLeague players never play in the
   NBA. What matters is that unmatched and ambiguously-matched players are
   recorded as such and excluded from the modelling cohort, rather than guessed.
-- **The hosted demo serves a curated slice.** D1's free tier allows 100,000
-  rows written per day, and the full export is 199,439. The deployed database
-  carries 48,423: every translation prediction and every scouting report, but
-  player seasons, comparables and archetypes only for the transition cohort and
-  the three most recent seasons. The slice filters emitted rows, never the
-  model's inputs, so the hosted numbers are the same numbers a local run
-  produces — there are just fewer of them. `npm run demo` gives you all of it.
+- **The hosted demo serves a curated slice.** The full export is 199,439 rows
+  and the deployed database carries 48,423: every translation prediction and
+  every scouting report, but player seasons, comparables and archetypes only
+  for the transition cohort and the three most recent seasons. The slice filters
+  emitted rows, never the model's inputs, so the hosted numbers are the same
+  numbers a local run produces — there are just fewer of them. `npm run demo`
+  gives you all of it.
+- **The free-tier headroom was overstated, and the correction is measured.**
+  This section claimed the slice fit comfortably under D1's documented 100,000
+  row writes a day. It does not: the first production seed inserted 48,423 rows
+  and D1 billed 158,890, because every row written to an indexed table is also
+  a write to each of its indexes. It loaded regardless, so where the limit
+  actually binds is not something this repository has established — the export
+  now reports both figures and says so rather than quoting the flattering one.
 - **Nothing here is causal.**
 
 ## Decision records

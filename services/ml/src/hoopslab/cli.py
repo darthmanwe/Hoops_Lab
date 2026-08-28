@@ -239,7 +239,11 @@ def export(
     """
     import logging
 
-    from hoopslab.serve.d1_export import D1_FREE_DAILY_WRITES, build_export
+    from hoopslab.serve.d1_export import (
+        D1_FREE_DAILY_WRITES,
+        D1_INDEX_WRITE_MULTIPLIER,
+        build_export,
+    )
 
     settings = load_settings()
     logging.basicConfig(level=settings.log_level, format="%(levelname)s %(message)s")
@@ -249,26 +253,35 @@ def export(
 
     if demo:
         console.print()
-        headroom = D1_FREE_DAILY_WRITES - result.total
+        # The insert count is not what D1 charges for. Each row written to an
+        # indexed table is also a write to every index on it, measured at 3.28x
+        # on this schema, so quoting the insert count against the daily ceiling
+        # reports headroom that is not there — which is exactly what this did
+        # until a production seed of 48,423 rows came back billed at 158,890.
+        billed = round(result.total * D1_INDEX_WRITE_MULTIPLIER)
         console.print(
-            f"  {result.total:,} rows against a free-tier ceiling of "
-            f"{D1_FREE_DAILY_WRITES:,} writes a day."
+            f"  {result.total:,} rows inserted, about {billed:,} billed once "
+            f"index writes are counted,\n  against a documented free-tier "
+            f"allowance of {D1_FREE_DAILY_WRITES:,} a day."
         )
-        if headroom < 0:
-            # Writing it anyway would produce a file that loads most of the way
-            # and then starts failing, leaving the database half-seeded with no
-            # obvious sign of which half.
+        if result.total > D1_FREE_DAILY_WRITES:
+            # Past this the file is unloadable on any reading of the limit, and
+            # would seed most of the way before failing, leaving the database
+            # half-populated with no obvious sign of which half.
             console.print(
-                f"\n[red]Over the ceiling by {-headroom:,} rows. "
+                f"\n[red]{result.total:,} inserts exceeds the allowance outright. "
                 "Tighten DEMO_RECENT_SEASON or DEMO_COMPS_PER_SEASON.[/red]"
             )
             raise typer.Exit(code=1)
-        if result.total * 2 > D1_FREE_DAILY_WRITES:
-            # Re-running the loader spends the whole count again, so a slice
-            # that only fits once cannot be corrected the day it goes wrong.
+        if billed > D1_FREE_DAILY_WRITES:
+            # A warning and not an error, deliberately: a slice this size has
+            # loaded, so failing the build would assert a limit this repository
+            # has not actually observed being enforced.
             console.print(
-                "[yellow]  Fits once, but not twice — a failed seed could not "
-                "be retried until tomorrow.[/yellow]"
+                "[yellow]  The billed estimate is over the allowance. It has "
+                "loaded at this size, so where\n  the wall really sits is "
+                "unverified — treat a re-seed as something to plan, not "
+                "repeat.[/yellow]"
             )
 
     # Naming the wrong script here is worse than saying nothing: both files sit

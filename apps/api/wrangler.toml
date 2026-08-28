@@ -76,10 +76,17 @@ id = "00000000000000000000000000000000"
 [env.production]
 vars = { APP_ENV = "production", DATA_SNAPSHOT = "ee6b530f0aa0" }
 
+# A new database rather than the old one, which still holds February's schema:
+# nba_gravity, game_momentum, team_fatigue_effect and the four hardcoded players.
+# Migrations would have applied cleanly alongside them — the table names do not
+# collide — but the result would be a production database containing tables named
+# after the exact fabrications this rebuild exists to have deleted. hoopslab-db
+# is left untouched rather than dropped; it costs nothing and it is the only
+# remaining evidence of what the previous version actually served.
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "hoopslab-db"
-database_id = "f942bd6f-366d-4173-9589-fe521d007334"
+database_name = "hoopslab-prod"
+database_id = "60c8efd8-4ba4-413f-b357-0746c902c0a8"
 
 [[env.production.kv_namespaces]]
 binding = "CACHE"

@@ -48,8 +48,42 @@ export class ApiError extends Error {
   }
 }
 
+/** A service binding, which exposes the target Worker's `fetch` and nothing else. */
+type ServiceBinding = { fetch: (input: string, init?: RequestInit) => Promise<Response> };
+
+/**
+ * How to reach the API from wherever this happens to be running.
+ *
+ * Deployed, every page here is a server component, so the request is made by
+ * the web Worker rather than by a browser — and a Worker cannot call another
+ * Worker on the same account through its `workers.dev` address. The subrequest
+ * never leaves the runtime: it loops back into the caller, which has no
+ * `/models` route and returns 404. `curl` against the same URL returns 200, so
+ * the symptom points at the address and the address is fine.
+ *
+ * The `API` service binding declared in `wrangler.jsonc` is the way across.
+ * Everywhere else — `next dev`, tests, a plain Node build — there is no binding
+ * and the public URL works, so this falls through to global `fetch`. The
+ * failure mode of the fallback is a page that renders the API's own "could not
+ * reach" explanation, which is the same thing it did before this existed.
+ */
+async function transport(): Promise<ServiceBinding["fetch"]> {
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const { env } = await getCloudflareContext({ async: true });
+    const api = (env as unknown as Record<string, unknown>).API as ServiceBinding | undefined;
+    if (api?.fetch) {
+      return (input, init) => api.fetch(input, init);
+    }
+  } catch {
+    // Not running on Workers. Expected in dev and under vitest.
+  }
+  return (input, init) => fetch(input, init);
+}
+
 export async function apiGet<T>(path: string, init?: RequestInit): Promise<Envelope<T>> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const send = await transport();
+  const response = await send(`${API_BASE}${path}`, {
     // The data only changes when a new snapshot is deployed, so responses are
     // cacheable; the Worker sets its own cache headers and pages render at
     // request time (see `dynamic` in each route).

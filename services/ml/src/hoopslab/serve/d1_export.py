@@ -59,10 +59,28 @@ TABLES_IN_LOAD_ORDER = (
 )
 
 
-#: D1's free plan allows this many row writes per day. The demo slice exists to
-#: fit under it, and `hoopslab export --demo` refuses to write a file that
-#: cannot be loaded in one sitting.
+#: D1's free plan allows this many row writes per day.
 D1_FREE_DAILY_WRITES = 100_000
+
+#: Rows D1 bills per row this file inserts.
+#:
+#: Measured, not assumed, and the correction to an earlier claim. The first
+#: production seed inserted 48,423 rows and D1 reported ``rows_written:
+#: 158890`` — because a row written to an indexed table is also a write to each
+#: of its indexes, and D1 bills all of them. The export had been comparing its
+#: insert count against the daily ceiling and reporting comfortable headroom
+#: that did not exist.
+#:
+#: 158,890 / 48,423 = 3.28. The multiplier is a property of how many indexes
+#: the schema carries, so it moves when migrations do; re-measure from the seed
+#: output rather than trusting this number after a schema change.
+#:
+#: Worth stating plainly: at this ratio the current slice bills about 159,000
+#: writes, which is over the documented daily allowance, and it loaded anyway.
+#: Whether that limit is enforced per-operation, per-day, or softly is not
+#: something this repository has established, so the check below reports the
+#: billed estimate and warns, rather than claiming to know where the wall is.
+D1_INDEX_WRITE_MULTIPLIER = 3.28
 
 
 @dataclass

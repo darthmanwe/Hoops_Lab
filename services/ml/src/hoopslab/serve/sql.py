@@ -131,10 +131,25 @@ def insert_many(
 
 
 def transaction(statements: Iterable[str]) -> str:
-    """Wrap statements so a failure leaves the database untouched.
+    """Join statements into one loadable file.
 
-    Deletes and inserts land together or not at all — which is what stops a
-    failed load from leaving the tables empty but the schema intact.
+    There is deliberately no ``BEGIN TRANSACTION`` here, though there was until
+    a remote seed rejected the file outright:
+
+        To execute a transaction, please use the state.storage.transaction()
+        API instead of the SQL BEGIN TRANSACTION or SAVEPOINT statements.
+
+    D1 runs remote statements through Durable Object storage, which coalesces
+    writes atomically on its own and refuses to be told how. The local miniflare
+    executor has no such objection, so the wrapper worked in every test and
+    failed the first time it met production — the reason this is a comment and
+    not a one-line change.
+
+    Atomicity is not lost, because it was never this file's to provide:
+    ``wrangler d1 execute --file`` says so itself before it starts — "if the
+    execution fails to complete, your DB will return to its original state and
+    you can safely retry". The deletes and inserts still land together or not at
+    all. The guarantee simply comes from the loader rather than from a statement
+    the loader is not allowed to read.
     """
-    body = "\n".join(statements)
-    return f"BEGIN TRANSACTION;\n{body}\nCOMMIT;\n"
+    return "\n".join(statements) + "\n"

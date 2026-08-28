@@ -39,10 +39,10 @@
     "db:migrate": "wrangler d1 migrations apply hoopslab-dev --local --config apps/api/wrangler.toml --env dev",
     "db:load": "wrangler d1 execute hoopslab-dev --local --config apps/api/wrangler.toml --env dev --file data/d1/load.sql",
     "db:load:demo": "wrangler d1 execute hoopslab-dev --local --config apps/api/wrangler.toml --env dev --file data/d1/load-demo.sql",
-    "db:migrate:prod": "wrangler d1 migrations apply hoopslab-db --remote --config apps/api/wrangler.toml --env production",
-    "db:load:prod": "wrangler d1 execute hoopslab-db --remote --config apps/api/wrangler.toml --env production --file data/d1/load-demo.sql",
+    "db:migrate:prod": "wrangler d1 migrations apply hoopslab-prod --remote --config apps/api/wrangler.toml --env production",
+    "db:load:prod": "wrangler d1 execute hoopslab-prod --remote --config apps/api/wrangler.toml --env production --file data/d1/load-demo.sql",
     "deploy:api": "wrangler deploy --config apps/api/wrangler.toml --env production",
-    "deploy:web": "rimraf apps/web/.next apps/web/.open-next && npm run deploy -w hoopslab-web",
+    "deploy:web": "rimraf apps/web/.next apps/web/.open-next && npm run build:cf -w hoopslab-web && npm run deploy -w hoopslab-web",
     "shots": "node scripts/screenshots.mjs",
     "social-card": "node scripts/social-card.mjs"
   },
