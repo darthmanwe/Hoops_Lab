@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import app from "../src/index";
 import { ENDPOINTS, GONE_ENDPOINTS, PENDING_ENDPOINTS, toHonoPath } from "../src/routes/registry";
 
 describe("endpoint registry", () => {
@@ -67,5 +68,48 @@ describe("toHonoPath", () => {
 
   it("is idempotent on already-converted paths", () => {
     expect(toHonoPath(toHonoPath("/players/{playerId}"))).toBe("/players/:playerId");
+  });
+});
+
+describe("the registry and the router describe the same API", () => {
+  /**
+   * The direction that was missing, and the reason a real drift survived.
+   *
+   * `routes.test.ts` walks the registry and asks whether the router answers.
+   * That catches a declared path with no handler. It cannot catch a handler
+   * with no declaration, because it never looks at the router's own list — so
+   * `/models` and `/models/{modelVersion}/evaluation` were served while `/`
+   * reported thirteen live endpoints and fifteen existed.
+   *
+   * Hono exposes every registered path on `app.routes`. Middleware registers
+   * itself there too, on `ALL` and on wildcards, so only concrete GET handlers
+   * are compared.
+   */
+  const registered = new Set(
+    app.routes
+      .filter((route) => route.method === "GET" && !route.path.includes("*"))
+      .map((route) => route.path.replace(/:(\w+)/g, "{$1}"))
+  );
+
+  it("serves nothing the registry does not declare", () => {
+    const declared = new Set(ENDPOINTS.map((e) => e.path));
+    const undeclared = [...registered].filter((path) => !declared.has(path));
+
+    expect(undeclared, `served but absent from ENDPOINTS: ${undeclared.join(", ")}`).toEqual([]);
+  });
+
+  it("declares nothing the router does not serve", () => {
+    const missing = ENDPOINTS.map((e) => e.path).filter((path) => !registered.has(path));
+
+    expect(missing, `declared but never registered: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("names path parameters the way the handlers read them", () => {
+    // A generated OpenAPI document publishes these names. The registry said
+    // `{playerId}` while every handler reads `:personId`, so the spec would
+    // have documented a parameter that does not exist.
+    for (const endpoint of ENDPOINTS) {
+      expect(endpoint.path).not.toContain("{playerId}");
+    }
   });
 });

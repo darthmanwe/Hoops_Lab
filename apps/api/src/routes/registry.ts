@@ -3,10 +3,19 @@
  * the API's surface is described.
  *
  * The previous version kept a hand-typed route list in `routes/root.ts` that
- * had already drifted from the real router (it advertised paths the README
- * omitted, and omitted paths the router served). Here the router, the `/`
- * listing, and the reconstruction handlers are all built from this one array,
- * so drift is not expressible.
+ * had already drifted from the real router. This array replaced it, and the `/`
+ * listing and the reconstruction handlers are built from it — but for a while
+ * this comment claimed drift was "not expressible", and that was wrong. Only
+ * the pending and gone handlers are mounted from here; the live routers
+ * register their own paths. `/models` and `/models/{modelVersion}/evaluation`
+ * were served for months while `/` reported thirteen live endpoints and the
+ * router answered fifteen.
+ *
+ * The reason it went unnoticed is worth stating, because it is the general
+ * shape of the bug: `routes.test.ts` walked this array and asked whether the
+ * router answered. Every declared path did. Nothing ever walked the router and
+ * asked whether the registry declared it, so a route could only ever be missing
+ * in the direction nobody looked. `registry.test.ts` now checks both.
  */
 
 /** `pending` is coming back once its blocking phase lands; `gone` is not. */
@@ -65,7 +74,7 @@ export const ENDPOINTS: readonly Endpoint[] = [
       "Diacritic-insensitive search over 5,347 resolved people; cross-league players ranked first.",
   },
   {
-    path: "/players/{playerId}",
+    path: "/players/{personId}",
     state: "live",
     description:
       "A person's whole career across every league they appear in, with identity provenance.",
@@ -110,7 +119,20 @@ export const ENDPOINTS: readonly Endpoint[] = [
   // Model-backed. Blocked on a fitted model, not merely on data.
   // ---------------------------------------------------------------------
   {
-    path: "/players/{playerId}/translation",
+    path: "/models",
+    state: "live",
+    description:
+      "Every model version this API can serve, each with the data snapshot it was fitted on.",
+  },
+  {
+    path: "/models/{modelVersion}/evaluation",
+    state: "live",
+    description:
+      "One model's held-out metrics against all four baselines, plus the selection gaps " +
+      "that condition them — including the metric it loses on.",
+  },
+  {
+    path: "/players/{personId}/translation",
     state: "live",
     description:
       "Cross-league translation predictions, each with 80% and 95% intervals and its model version.",
@@ -129,25 +151,25 @@ export const ENDPOINTS: readonly Endpoint[] = [
       "the model exists to answer, with an out-of-support flag on every row.",
   },
   {
-    path: "/players/{playerId}/report",
+    path: "/players/{personId}/report",
     state: "live",
     description:
       "A grounded scouting report, served with the audit of how many of its numbers trace " +
       "back to the evidence the model was given.",
   },
   {
-    path: "/players/{playerId}/comps",
+    path: "/players/{personId}/comps",
     state: "live",
     description:
       "Comparables precomputed in whitened archetype space, with the distance metric stated.",
   },
   {
-    path: "/players/{playerId}/archetype",
+    path: "/players/{personId}/archetype",
     state: "live",
     description: "Archetype assignment per season, carrying that cluster's bootstrap stability.",
   },
   {
-    path: "/players/{playerId}/shooting",
+    path: "/players/{personId}/shooting",
     state: "live",
     description: "Empirical-Bayes shrunk three-point threat, with the shrinkage weight exposed.",
   },
@@ -162,7 +184,7 @@ export const ENDPOINTS: readonly Endpoint[] = [
     description: "Spacing leaderboard, restricted to players above the attempt floor.",
   },
   {
-    path: "/players/{playerId}/shot-profile",
+    path: "/players/{personId}/shot-profile",
     state: "pending",
     willServe: "Real shot-zone rates and efficiency from ~2.5M ingested shot events.",
     blockedOn: "phase-4-shot-data",
@@ -226,7 +248,7 @@ export const ENDPOINTS: readonly Endpoint[] = [
       "the EuroLeague does not collect it. The previous version of this " +
       "endpoint reported gravity values that were typed by hand.",
     instead:
-      "/players/{playerId}/shooting serves an empirical-Bayes shrunk 3PT threat " +
+      "/players/{personId}/shooting serves an empirical-Bayes shrunk 3PT threat " +
       "measure, which is computable from public data and is named for what it " +
       "actually measures.",
   },

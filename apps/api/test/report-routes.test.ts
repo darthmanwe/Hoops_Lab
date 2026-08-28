@@ -43,6 +43,6 @@ describe("GET /players/:personId/report", () => {
     const body = (await response.json()) as { endpoints: { path: string }[] };
     const paths = body.endpoints.map((endpoint) => endpoint.path);
 
-    expect(paths).toContain("/players/{playerId}/report");
+    expect(paths).toContain("/players/{personId}/report");
   });
 });
