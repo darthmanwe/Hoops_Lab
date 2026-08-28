@@ -7,7 +7,10 @@
  *
  * Usage: node shots.mjs [outdir]   (servers must already be running)
  */
-import { chromium } from "playwright";
+// From @playwright/test rather than `playwright`: the bare package was never
+// declared in any package.json, so `npm ci` removed it and this script failed
+// on every clean clone and in CI. The test runner re-exports the same browser.
+import { chromium } from "@playwright/test";
 import fs from "node:fs";
 
 const WEB = process.env.WEB_BASE ?? "http://127.0.0.1:3710";

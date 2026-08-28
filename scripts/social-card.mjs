@@ -13,7 +13,10 @@
  *
  * Usage: node scripts/social-card.mjs [outfile]
  */
-import { chromium } from "playwright";
+// From @playwright/test rather than `playwright`: the bare package was never
+// declared in any package.json, so `npm ci` removed it and this script failed
+// on every clean clone and in CI. The test runner re-exports the same browser.
+import { chromium } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 
