@@ -68,6 +68,12 @@ for (const shot of SHOTS) {
   const page = await browser.newPage({
     viewport: shot.viewport ?? { width: 1440, height: 1000 },
     deviceScaleFactor: 2,
+    // Pinned, and it has to be. Headless Chromium reports
+    // `prefers-color-scheme: light`, which did not matter while the site was
+    // dark-only and does now — the first run after the light theme landed
+    // quietly re-rendered every README image in the wrong theme. Dark is what
+    // the README, the hero image and the social card have always shown.
+    colorScheme: "dark",
   });
   await page.goto(WEB + shot.path, { waitUntil: "networkidle", timeout: 60000 });
   await page.waitForTimeout(700);

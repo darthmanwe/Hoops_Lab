@@ -87,6 +87,13 @@ npm run e2e        # Playwright: 64 tests, both colour schemes, axe + contrast
 npm run shots      # README screenshots (needs both dev servers up)
 ```
 
+`shots` photographs whatever is in the local D1, and `db:load` and
+`db:load:fixture` write to the same database. Run `db:load` first or the README
+gets pictures of the sixty-person test fixture. It also pins `colorScheme:
+"dark"`: headless Chromium asks for light, which did not matter while the site
+was dark-only and silently re-rendered every README image the first time it ran
+after the light theme landed.
+
 Everything `gen` writes is derived and must never be hand-edited; the
 `contracts` CI job regenerates and fails on any diff. It checks
 `git status --porcelain` rather than `git diff --exit-code`, because the latter
