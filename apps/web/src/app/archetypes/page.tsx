@@ -23,7 +23,7 @@ export default async function ArchetypesPage() {
         title="Archetypes"
         subtitle="Five clusters over role statistics and the composition of shooting possessions. Descriptive, never predictive — none of this says who is better."
       >
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-fg-muted">
           Shot-type shares sum to one, so they are transformed with a centred log-ratio before
           anything measures distance between them; standardisation is within-season, because
           three-point rate in 2000-01 and 2024-25 describe different sports.
@@ -49,7 +49,7 @@ export default async function ArchetypesPage() {
           rows={result.data.map((row) => [
             `#${row.cluster}`,
             integer(row.nMembers),
-            <span key="f" className="text-xs text-slate-300">
+            <span key="f" className="text-xs text-fg-muted">
               {row.topFeatures}
             </span>,
             <span key="e" className="text-xs">
@@ -57,7 +57,7 @@ export default async function ArchetypesPage() {
             </span>,
             <span
               key="s"
-              className={row.reportable ? "text-emerald-300" : "text-amber-300"}
+              className={row.reportable ? "text-good" : "text-warn"}
               title={
                 row.reportable
                   ? "Reproduces under resampling"
@@ -72,7 +72,7 @@ export default async function ArchetypesPage() {
       </Card>
 
       <Card title="How k was chosen">
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-fg-muted">
           Two criteria disagreed. Held-out log-likelihood keeps improving as clusters are added but
           flattens after five; bootstrap stability collapses from a mean Jaccard of 0.52 at k=5 to
           0.40 at k=6. Where they disagree the smaller k wins, so k=5 — and the resulting mean

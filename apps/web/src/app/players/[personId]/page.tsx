@@ -105,7 +105,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ personI
                 percent(row.actualValue),
               ])}
           />
-          <p className="mt-3 text-xs text-slate-400">
+          <p className="mt-3 text-xs text-fg-subtle">
             The interval is the result, not a caveat on it.
           </p>
         </Card>
@@ -130,7 +130,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ personI
               integer(row.fg3a),
               percent(row.fg3PctRaw),
               percent(row.fg3PctShrunk),
-              <span key="w" className={row.reportable ? "" : "text-amber-300"}>
+              <span key="w" className={row.reportable ? "" : "text-warn"}>
                 {percent(row.shrinkageWeight, 0)}
                 {row.reportable ? "" : " (mostly prior)"}
               </span>,

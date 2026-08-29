@@ -63,7 +63,7 @@ export default async function ProjectionsPage({
         title="Who hasn't moved yet"
         subtitle="The counterfactual this project exists to answer: if this player signed, what does history say about players who did?"
       >
-        <p className="mb-4 text-sm text-slate-300">
+        <p className="mb-4 text-sm text-fg-muted">
           Every player here has a qualifying season in their own league and{" "}
           <strong>has not made this move</strong>. The projection applies the same fitted
           translation function used on the {directionLabel(direction)} transfers that actually
@@ -78,10 +78,10 @@ export default async function ProjectionsPage({
                 key={option}
                 href={href({ direction: option })}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300 ${
+                className={`rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   active
-                    ? "border-court-300 bg-court-300/20 text-white"
-                    : "border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"
+                    ? "border-accent bg-accent/20 text-fg"
+                    : "border-edge-strong bg-surface text-fg-muted hover:bg-surface-strong"
                 }`}
               >
                 {directionLabel(option)}
@@ -90,7 +90,7 @@ export default async function ProjectionsPage({
           })}
           <Link
             href={href({ all: !showAllSeasons })}
-            className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-200 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
+            className="rounded-lg border border-edge-strong bg-surface px-3 py-1.5 text-sm text-fg-muted transition hover:bg-surface-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {showAllSeasons ? `Recent only (${DEFAULT_SINCE}+)` : "Include every season"}
           </Link>
@@ -116,12 +116,12 @@ export default async function ProjectionsPage({
         <>
           <Card>
             {page ? (
-              <p className="mb-3 text-sm text-slate-400">
+              <p className="mb-3 text-sm text-fg-subtle">
                 Showing{" "}
-                <strong className="text-slate-200">
+                <strong className="text-fg-muted">
                   {page.offset + 1}–{page.offset + page.returned}
                 </strong>{" "}
-                of <strong className="text-slate-200">{page.total.toLocaleString("en-GB")}</strong>{" "}
+                of <strong className="text-fg-muted">{page.total.toLocaleString("en-GB")}</strong>{" "}
                 eligible {directionLabel(direction).split(" → ")[0]} players
                 {showAllSeasons ? "" : ` with a ${DEFAULT_SINCE}+ season`}, ranked by projection.
               </p>
@@ -145,7 +145,7 @@ export default async function ProjectionsPage({
               rows={result.data.map((row) => [
                 <Link
                   key={row.personId}
-                  className="text-court-300 underline"
+                  className="text-accent underline"
                   href={`/players/${row.personId}`}
                 >
                   {row.displayName ?? row.personId}
@@ -159,7 +159,7 @@ export default async function ProjectionsPage({
                   row.movedBefore ? (
                     <span
                       key="f"
-                      className="text-xs text-slate-400"
+                      className="text-xs text-fg-subtle"
                       title="Has moved league before"
                     >
                       moved before
@@ -168,7 +168,7 @@ export default async function ProjectionsPage({
                 ) : (
                   <span
                     key="f"
-                    className="text-xs text-amber-300"
+                    className="text-xs text-warn"
                     title="Outside the range of source production where transferring players were observed"
                   >
                     extrapolated
@@ -181,7 +181,7 @@ export default async function ProjectionsPage({
               <nav aria-label="Pagination" className="mt-4 flex items-center gap-3 text-sm">
                 {offset > 0 ? (
                   <Link
-                    className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
+                    className="rounded-lg border border-edge-strong bg-surface px-3 py-1.5 text-fg-muted transition hover:bg-surface-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     href={href({ offset: Math.max(0, offset - PAGE_SIZE) })}
                   >
                     ← Previous
@@ -189,7 +189,7 @@ export default async function ProjectionsPage({
                 ) : null}
                 {offset + page.returned < page.total ? (
                   <Link
-                    className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-slate-200 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
+                    className="rounded-lg border border-edge-strong bg-surface px-3 py-1.5 text-fg-muted transition hover:bg-surface-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     href={href({ offset: offset + PAGE_SIZE })}
                   >
                     Next {Math.min(PAGE_SIZE, page.total - offset - page.returned)} →
@@ -200,34 +200,34 @@ export default async function ProjectionsPage({
           </Card>
 
           <Card title="Why the top of this list is the least reliable part of it">
-            <p className="text-sm text-slate-300">
-              Rows marked <span className="text-amber-300">extrapolated</span> sit outside the range
-              of source production where transferring players were actually observed. The interval
+            <p className="text-sm text-fg-muted">
+              Rows marked <span className="text-warn">extrapolated</span> sit outside the range of
+              source production where transferring players were actually observed. The interval
               comes from the residual spread <em>inside</em> that range, so for these players it
               understates the real uncertainty — the model has no data at that end and its error
               bars cannot know it.
             </p>
-            <p className="mt-3 text-sm text-slate-300">
+            <p className="mt-3 text-sm text-fg-muted">
               This is not incidental. Ranking by projected usage puts the highest-usage players in
               the league first, and those are precisely the ones beyond the observed range. The
               names that look most exciting are the ones the model is least entitled to speak about,
               so the flag is shown rather than the rows being quietly dropped.
             </p>
-            <p className="mt-3 text-sm text-slate-300">
+            <p className="mt-3 text-sm text-fg-muted">
               The direction matters as much as the player. Moves <em>out</em> of the NBA are the
               best-evidenced in this data — 134 to the G League and 115 to the EuroLeague, against
               61 the other way — but that cohort was selected in reverse: players who left the NBA
               sat about a third of a standard deviation <em>below</em> their league. So an NBA
               regular projected into the EuroLeague is being scored by a function fitted mostly on
               players who could not hold an NBA roster spot, and almost every star is flagged{" "}
-              <span className="text-amber-300">extrapolated</span> for exactly that reason.
+              <span className="text-warn">extrapolated</span> for exactly that reason.
             </p>
-            <p className="mt-3 text-sm text-slate-300">
+            <p className="mt-3 text-sm text-fg-muted">
               Only usage rate is projected. True shooting is omitted because the model loses to
               predicting the league average on it — for a transfer that already happened you can see
               that miss against what the player actually did, but a hypothetical has no actual
               beside it, so the number would be unfalsifiable.{" "}
-              <Link className="text-court-300 underline" href="/model">
+              <Link className="text-accent underline" href="/model">
                 The model page shows both.
               </Link>
             </p>

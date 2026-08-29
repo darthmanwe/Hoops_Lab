@@ -25,18 +25,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Keyboard users should not have to tab the whole nav on every page. */}
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:text-slate-900"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-fg focus:px-3 focus:py-2 focus:text-bg"
         >
           Skip to content
         </a>
 
         <div className="mx-auto min-h-screen max-w-[1180px] px-4 pb-16 pt-6 md:px-8">
           <header className="glass mb-6 p-4 md:p-5">
-            <p className="text-xs uppercase tracking-[0.2em] text-court-300">
+            <p className="text-xs uppercase tracking-[0.2em] text-accent">
               Cross-league translation modelling
             </p>
-            <h1 className="mt-1 text-2xl font-bold text-white md:text-3xl">HoopsLab</h1>
-            <p className="mt-1 max-w-2xl text-sm text-slate-300">
+            <h1 className="mt-1 text-2xl font-bold text-fg md:text-3xl">HoopsLab</h1>
+            <p className="mt-1 max-w-2xl text-sm text-fg-muted">
               How basketball production travels between the EuroLeague, the NBA and the G League —
               with the sample size, the selection bias and the width of the error bars stated up
               front.
@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-slate-100 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
+                  className="rounded-lg border border-edge-strong bg-surface px-3 py-2 text-sm text-fg transition hover:bg-surface-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   {item.label}
                 </Link>
@@ -59,7 +59,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
           <main id="main">{children}</main>
 
-          <footer className="mt-10 text-xs text-slate-400">
+          <footer className="mt-10 text-xs text-fg-subtle">
             <p>
               Every number here is produced by a fitted model over committed data, and carries the
               model version that produced it. Metrics the models do not beat a trivial baseline on

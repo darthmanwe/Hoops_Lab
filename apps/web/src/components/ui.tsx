@@ -12,8 +12,8 @@ export function Card({
 }) {
   return (
     <section className="glass p-5">
-      {title ? <h2 className="text-lg font-semibold text-white">{title}</h2> : null}
-      {subtitle ? <p className="mt-1 text-sm text-slate-300">{subtitle}</p> : null}
+      {title ? <h2 className="text-lg font-semibold text-fg">{title}</h2> : null}
+      {subtitle ? <p className="mt-1 text-sm text-fg-muted">{subtitle}</p> : null}
       <div className={title ? "mt-4" : ""}>{children}</div>
     </section>
   );
@@ -37,20 +37,20 @@ export function Metric({
 }) {
   const missing = value === MISSING;
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
+    <div className="rounded-lg border border-edge bg-surface p-3">
+      <p className="text-xs uppercase tracking-wide text-fg-subtle">{label}</p>
       <p
         // slate-400 rather than slate-500. Measured on the deployed site,
         // slate-500 on this surface is 4.12:1 against the 4.5:1 AA floor — and
         // of everything on the page it is the em dash, which exists so that a
         // missing value cannot be read as a zero. Styling it in the one colour
         // a reader with low vision cannot resolve defeats the point of it.
-        className={`mt-1 text-xl font-semibold ${missing ? "text-slate-400" : "text-white"}`}
+        className={`mt-1 text-xl font-semibold ${missing ? "text-fg-subtle" : "text-fg"}`}
         title={missing ? "Not recorded for this season" : undefined}
       >
         {value}
       </p>
-      {hint ? <p className="mt-1 text-xs text-slate-400">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-fg-subtle">{hint}</p> : null}
     </div>
   );
 }
@@ -65,11 +65,11 @@ export function Explanation({
   detail: string;
   tone?: "neutral" | "warning" | undefined;
 }) {
-  const border = tone === "warning" ? "border-amber-400/40" : "border-white/10";
+  const border = tone === "warning" ? "border-warn/50" : "border-edge";
   return (
-    <div className={`rounded-lg border ${border} bg-white/5 p-4`}>
-      <p className="font-medium text-white">{title}</p>
-      <p className="mt-1 text-sm text-slate-300">{detail}</p>
+    <div className={`rounded-lg border ${border} bg-surface p-4`}>
+      <p className="font-medium text-fg">{title}</p>
+      <p className="mt-1 text-sm text-fg-muted">{detail}</p>
     </div>
   );
 }
@@ -96,10 +96,10 @@ export function Provenance({
     | undefined;
 }) {
   return (
-    <p className="text-xs text-slate-400">
+    <p className="text-xs text-fg-subtle">
       {model ? (
         <>
-          <span className="text-slate-300">{model.version}</span>
+          <span className="text-fg-muted">{model.version}</span>
           {model.primary_value !== undefined ? (
             <>
               {" · "}
@@ -141,7 +141,7 @@ export function Table({
     // region incidentally, which is why axe reported this on the archetype,
     // model and career tables only: exactly the three that are pure data.
     <div
-      className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
+      className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       tabIndex={0}
       role="region"
       {...(caption ? { "aria-label": caption } : {})}
@@ -149,7 +149,7 @@ export function Table({
       <table className="w-full min-w-[36rem] text-sm">
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <thead>
-          <tr className="border-b border-white/15 text-left text-xs uppercase tracking-wide text-slate-400">
+          <tr className="border-b border-edge-strong text-left text-xs uppercase tracking-wide text-fg-subtle">
             {headers.map((header) => (
               <th key={header} scope="col" className="px-2 py-2 font-medium">
                 {header}
@@ -159,9 +159,9 @@ export function Table({
         </thead>
         <tbody>
           {rows.map((row, index) => (
-            <tr key={index} className="border-b border-white/5 last:border-0">
+            <tr key={index} className="border-b border-edge last:border-0">
               {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="px-2 py-2 text-slate-200">
+                <td key={cellIndex} className="px-2 py-2 text-fg-muted">
                   {cell}
                 </td>
               ))}

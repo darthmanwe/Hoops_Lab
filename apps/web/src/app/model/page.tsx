@@ -92,7 +92,7 @@ export default async function ModelPage() {
                     row.baselineName,
                     decimal(row.baselineMae, 4),
                     decimal(row.mae, 4),
-                    <span key="d" className={better ? "text-emerald-300" : "text-amber-300"}>
+                    <span key="d" className={better ? "text-good" : "text-warn"}>
                       {better ? "model better by " : "model worse by "}
                       {Math.abs(delta).toFixed(1)}%
                     </span>,
@@ -101,7 +101,7 @@ export default async function ModelPage() {
             />
 
             {first.shuffledMae !== null ? (
-              <p className="mt-3 text-xs text-slate-400">
+              <p className="mt-3 text-xs text-fg-subtle">
                 Shuffled-target control: {decimal(first.shuffledMae, 4)}. Permuting the response and
                 refitting collapses performance toward the baseline, which is what a pipeline
                 without leakage looks like.
@@ -123,7 +123,7 @@ export default async function ModelPage() {
             signedSd(row.gapSd),
           ])}
         />
-        <p className="mt-4 text-sm text-slate-300">
+        <p className="mt-4 text-sm text-fg-muted">
           Positive means the movers were better than the peers they left behind. The two headline
           directions carry opposite signs, which is what makes the selection effect measurable
           rather than merely acknowledged.

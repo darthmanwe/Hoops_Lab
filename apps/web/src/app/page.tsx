@@ -46,7 +46,7 @@ export default async function HomePage() {
         title="The question"
         subtitle="A EuroLeague guard posts a 28% usage rate. What should you expect if he signs in the NBA?"
       >
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-fg-muted">
           The folk answer is &ldquo;multiply by about 0.75&rdquo;. The honest answer is that the
           question is only answerable <strong>conditional on the transfer having happened</strong> —
           and the players who make the jump are a heavily selected group. This estimates the
@@ -111,7 +111,7 @@ export default async function HomePage() {
                 />
               ))}
           </div>
-          <p className="mt-4 text-sm text-slate-300">
+          <p className="mt-4 text-sm text-fg-muted">
             The two headline directions are selected in <strong>opposite</strong> directions:
             players move up because they were good, and down because they were not. That opposition
             is what makes the effect testable rather than merely acknowledged.
@@ -122,19 +122,19 @@ export default async function HomePage() {
       <Card title="Explore">
         <ul className="flex flex-col gap-2 text-sm">
           <li>
-            <Link className="text-court-300 underline" href="/translation">
+            <Link className="text-accent underline" href="/translation">
               Translation explorer
             </Link>{" "}
             — every observed league switch, with its prediction interval and what actually happened.
           </li>
           <li>
-            <Link className="text-court-300 underline" href="/model">
+            <Link className="text-accent underline" href="/model">
               Model and calibration
             </Link>{" "}
             — the model&rsquo;s own error against every baseline, including the ones it loses to.
           </li>
           <li>
-            <Link className="text-court-300 underline" href="/archetypes">
+            <Link className="text-accent underline" href="/archetypes">
               Archetypes
             </Link>{" "}
             — five clusters, each published with how well it survives resampling.

@@ -28,13 +28,13 @@ export function ScoutingReport({ data }: { data: ScoutingReportResponse }) {
         <span
           className={`rounded-lg border px-3 py-1.5 ${
             allTraced
-              ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-200"
-              : "border-amber-400/40 bg-amber-400/10 text-amber-200"
+              ? "border-good/50 bg-good/10 text-good"
+              : "border-warn/50 bg-warn/10 text-warn"
           }`}
         >
           {audit.numbersTraced}/{audit.numbersTotal} numbers traced to source
         </span>
-        <span className="text-slate-400">
+        <span className="text-fg-subtle">
           {data.named
             ? "Named mode — the model was told who this is."
             : "Written blind: the model was not given the player's name."}
@@ -65,7 +65,7 @@ export function ScoutingReport({ data }: { data: ScoutingReportResponse }) {
         </div>
       ) : null}
 
-      <p className="mb-5 text-lg font-medium text-white">{report.headline}</p>
+      <p className="mb-5 text-lg font-medium text-fg">{report.headline}</p>
 
       <div className="flex flex-col gap-4">
         <Claim label="Projection" text={report.projection.text} ids={report.projection.fact_ids} />
@@ -79,8 +79,8 @@ export function ScoutingReport({ data }: { data: ScoutingReportResponse }) {
         <ClaimList label="Risks" claims={report.risks} />
       </div>
 
-      <p className="mt-5 text-xs text-slate-400">
-        Self-reported confidence: <strong className="text-slate-200">{report.confidence}</strong>.
+      <p className="mt-5 text-xs text-fg-subtle">
+        Self-reported confidence: <strong className="text-fg-muted">{report.confidence}</strong>.
         The report was written from the projection and its interval only — what the player actually
         did after the move was never in its evidence.
       </p>
@@ -91,8 +91,8 @@ export function ScoutingReport({ data }: { data: ScoutingReportResponse }) {
 function Claim({ label, text, ids }: { label: string; text: string; ids: string[] }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 text-sm text-slate-200">{text}</p>
+      <p className="text-xs uppercase tracking-wide text-fg-subtle">{label}</p>
+      <p className="mt-1 text-sm text-fg-muted">{text}</p>
       <FactIds ids={ids} />
     </div>
   );
@@ -108,10 +108,10 @@ function ClaimList({
   if (claims.length === 0) return null;
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="text-xs uppercase tracking-wide text-fg-subtle">{label}</p>
       <ul className="mt-1 flex flex-col gap-2">
         {claims.map((claim) => (
-          <li key={claim.text} className="text-sm text-slate-200">
+          <li key={claim.text} className="text-sm text-fg-muted">
             {claim.text}
             <FactIds ids={claim.fact_ids} />
           </li>
@@ -125,7 +125,7 @@ function FactIds({ ids }: { ids: string[] }) {
   return (
     // slate-400, not slate-500: at 11px on this surface the latter measures
     // 4.12:1 against a 4.5:1 floor.
-    <p className="mt-1 font-mono text-[11px] text-slate-400">
+    <p className="mt-1 font-mono text-[11px] text-fg-subtle">
       <span className="sr-only">Supported by evidence </span>
       {ids.join(" ")}
     </p>

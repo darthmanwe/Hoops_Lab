@@ -1,8 +1,111 @@
-@config "../../tailwind.config.js";
 @import "tailwindcss";
 
+/**
+ * Two layers, and the split is what makes a second theme possible at all.
+ *
+ * `@theme` holds the palette: fixed colours that do not change with the theme.
+ * Tailwind emits each as a CSS variable and utilities reference it.
+ *
+ * The previous version declared these in a v3-style `tailwind.config.js`
+ * reached through `@config`, which Tailwind compiles to literal hex — the built
+ * stylesheet contained `.text-court-300{color:#f8ba7b}` with no variable
+ * anywhere. There was nothing to swap, which is why this file starts by
+ * building a token layer rather than adding a media query to one.
+ */
+@theme {
+  --color-ink-950: #04050b;
+  --color-ink-900: #090f1f;
+  --color-court-300: #f8ba7b;
+  --color-court-400: #f5a14f;
+  --color-court-500: #f39237;
+  /* Two darker steps, added for light mode. Every link on the site is
+     `court-300`, which is 1.6:1 on a white background — the palette simply had
+     no shade that could carry a link on light. */
+  --color-court-700: #9a4a0f;
+  --color-court-800: #7c3c0d;
+  --color-neon-400: #5ba0ff;
+}
+
+/**
+ * The semantic layer: what a colour is *for*, rather than which colour it is.
+ *
+ * `@theme inline` is load-bearing. Without `inline`, Tailwind resolves the
+ * value at build time and the utility carries the dark colour forever; with it,
+ * the utility emits `var(--surface)` and the media query below can move it.
+ */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+}
+
+/* Dark is the default: it is what the site has always looked like, and what a
+   first-time visitor who has expressed no preference still sees. */
 :root {
   color-scheme: dark;
+
+  --bg: #04050b;
+  --page:
+    radial-gradient(circle at 20% 20%, rgba(245, 161, 79, 0.08), transparent 25%),
+    radial-gradient(circle at 80% 10%, rgba(91, 160, 255, 0.08), transparent 30%),
+    linear-gradient(120deg, rgba(9, 15, 31, 0.98), rgba(4, 5, 11, 0.98));
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-strong: rgba(255, 255, 255, 0.1);
+  --edge: rgba(255, 255, 255, 0.1);
+  --edge-strong: rgba(255, 255, 255, 0.15);
+  --fg: #ffffff;
+  --fg-muted: #cad5e2;
+  --fg-subtle: #90a1b9;
+  --accent: var(--color-court-300);
+  --good: #5ee9b5;
+  --warn: #ffd236;
+  --glow: 0 0 0 1px rgba(91, 160, 255, 0.25), 0 8px 30px rgba(6, 14, 35, 0.55);
+}
+
+/**
+ * Light, for a reader whose system says so.
+ *
+ * A media query rather than a toggle, deliberately. Persisting a choice and
+ * applying it before first paint needs `suppressHydrationWarning` and an inline
+ * pre-hydration script — the first client-side JavaScript in an app that has
+ * none, and the property that makes every page here server-rendered and
+ * trivially testable. The preference is one the reader has already expressed to
+ * their operating system.
+ *
+ * The accent steps down two stops rather than being reused. Every link on the
+ * site is the accent colour, and the dark theme's is a pale orange that sits at
+ * roughly 1.6:1 on white — an inversion that kept it would produce a light
+ * theme that passes a glance and fails a reader.
+ */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+
+    --bg: #f7f6f3;
+    --page:
+      radial-gradient(circle at 20% 20%, rgba(243, 146, 55, 0.07), transparent 25%),
+      radial-gradient(circle at 80% 10%, rgba(63, 136, 255, 0.07), transparent 30%),
+      linear-gradient(120deg, #faf9f7, #f2f1ee);
+    --surface: rgba(255, 255, 255, 0.75);
+    --surface-strong: rgba(15, 23, 43, 0.06);
+    --edge: rgba(15, 23, 43, 0.12);
+    --edge-strong: rgba(15, 23, 43, 0.2);
+    --fg: #0f172b;
+    --fg-muted: #314158;
+    --fg-subtle: #45556c;
+    --accent: var(--color-court-700);
+    --good: #007a55;
+    --warn: #8a5a00;
+    --glow: 0 0 0 1px rgba(15, 23, 43, 0.08), 0 8px 30px rgba(15, 23, 43, 0.08);
+  }
 }
 
 * {
@@ -16,7 +119,10 @@ body {
 }
 
 body {
-  @apply bg-court-grid text-slate-100 antialiased;
+  background-color: var(--bg);
+  background-image: var(--page);
+  color: var(--fg-muted);
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -25,23 +131,6 @@ a {
 }
 
 .glass {
-  @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-glow;
-}
-
-.section-title {
-  @apply text-lg font-semibold tracking-wide text-slate-100;
-}
-
-.section-subtitle {
-  @apply text-sm text-slate-300;
-}
-
-.metric-value {
-  @apply text-2xl font-bold text-white;
-}
-
-.basketball-texture {
-  background-image:
-    radial-gradient(circle at 30% 30%, rgba(243, 146, 55, 0.14), transparent 32%),
-    radial-gradient(circle at 70% 65%, rgba(63, 136, 255, 0.14), transparent 36%);
+  @apply rounded-2xl border border-edge bg-surface backdrop-blur-md;
+  box-shadow: var(--glow);
 }

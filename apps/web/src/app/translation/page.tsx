@@ -36,10 +36,10 @@ export default async function TranslationPage({
                 key={option}
                 href={`/translation?direction=${encodeURIComponent(option)}`}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300 ${
+                className={`rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   active
-                    ? "border-court-300 bg-court-300/20 text-white"
-                    : "border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"
+                    ? "border-accent bg-accent/20 text-fg"
+                    : "border-edge-strong bg-surface text-fg-muted hover:bg-surface-strong"
                 }`}
               >
                 {directionLabel(option)}
@@ -67,7 +67,7 @@ export default async function TranslationPage({
               rows={result.data.map((row) => [
                 <Link
                   key={row.personId}
-                  className="text-court-300 underline"
+                  className="text-accent underline"
                   href={`/players/${row.personId}`}
                 >
                   {row.displayName ?? row.personId}
@@ -82,7 +82,7 @@ export default async function TranslationPage({
           </Card>
 
           <Card title="How to read this">
-            <ul className="flex flex-col gap-2 text-sm text-slate-300">
+            <ul className="flex flex-col gap-2 text-sm text-fg-muted">
               <li>
                 <strong>The interval is the result</strong>, not a caveat on it. It spans roughly a
                 third of the NBA usage distribution, which is useful for ranking a cohort and
