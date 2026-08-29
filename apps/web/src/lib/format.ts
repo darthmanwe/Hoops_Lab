@@ -27,6 +27,18 @@ export function integer(value: number | null | undefined): string {
   return Math.round(value).toLocaleString("en-GB");
 }
 
+/**
+ * A year, which is not a count.
+ *
+ * `integer()` groups thousands, which is right for "5,347 rows" and wrong for a
+ * birth year: the player page read "BIRTH YEAR 1,998". Same nullability rule as
+ * everything else here — a missing year is an em dash, never a zero.
+ */
+export function year(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isInteger(value)) return MISSING;
+  return String(value);
+}
+
 /** A prediction and its interval, always together. */
 export function withInterval(
   point: number | null | undefined,

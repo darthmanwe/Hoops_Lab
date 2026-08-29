@@ -40,7 +40,12 @@ export function Metric({
     <div className="rounded-lg border border-white/10 bg-white/5 p-3">
       <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
       <p
-        className={`mt-1 text-xl font-semibold ${missing ? "text-slate-500" : "text-white"}`}
+        // slate-400 rather than slate-500. Measured on the deployed site,
+        // slate-500 on this surface is 4.12:1 against the 4.5:1 AA floor — and
+        // of everything on the page it is the em dash, which exists so that a
+        // missing value cannot be read as a zero. Styling it in the one colour
+        // a reader with low vision cannot resolve defeats the point of it.
+        className={`mt-1 text-xl font-semibold ${missing ? "text-slate-400" : "text-white"}`}
         title={missing ? "Not recorded for this season" : undefined}
       >
         {value}
@@ -127,7 +132,20 @@ export function Table({
   return (
     // Wide tables scroll inside their own container so the page body never
     // scrolls horizontally.
-    <div className="overflow-x-auto">
+    //
+    // `tabIndex` and `role` are what make that scrolling reachable without a
+    // mouse. Every table here is `min-w-[36rem]`, so on a phone all of them
+    // overflow, and a container that only scrolls by dragging leaves the
+    // right-hand columns unreachable by keyboard. On the pages whose rows
+    // contain links — projections, translation — tabbing to a link scrolls the
+    // region incidentally, which is why axe reported this on the archetype,
+    // model and career tables only: exactly the three that are pure data.
+    <div
+      className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-300"
+      tabIndex={0}
+      role="region"
+      {...(caption ? { "aria-label": caption } : {})}
+    >
       <table className="w-full min-w-[36rem] text-sm">
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         <thead>

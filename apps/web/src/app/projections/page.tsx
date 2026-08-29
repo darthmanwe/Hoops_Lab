@@ -136,7 +136,11 @@ export default async function ProjectionsPage({
                 "Source usage",
                 "vs league",
                 "Projected (80% interval)",
-                "",
+                // Named rather than left blank. The column carries the
+                // `extrapolated` flag, which the prose above calls the most
+                // important signal on the page, and an empty `th` leaves a
+                // screen reader announcing those cells against nothing.
+                "Support",
               ]}
               rows={result.data.map((row) => [
                 <Link

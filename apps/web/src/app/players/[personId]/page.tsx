@@ -10,7 +10,7 @@ import type {
   TranslationPrediction,
 } from "../../../lib/api";
 import { apiGetOptional, isProblem } from "../../../lib/api";
-import { decimal, directionLabel, integer, percent, withInterval } from "../../../lib/format";
+import { decimal, directionLabel, integer, percent, withInterval, year } from "../../../lib/format";
 
 /**
  * Rendered per request rather than prerendered at build time: the content is
@@ -47,7 +47,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ personI
       <Card title={person.displayName ?? personId} subtitle={`Appears in: ${person.leagues}`}>
         <div className="grid gap-3 sm:grid-cols-3">
           <Metric label="Seasons recorded" value={integer(seasons.length)} />
-          <Metric label="Birth year" value={integer(person.birthYear)} />
+          <Metric label="Birth year" value={year(person.birthYear)} />
           <Metric label="Identity links" value={integer(identities.length)} />
         </div>
 

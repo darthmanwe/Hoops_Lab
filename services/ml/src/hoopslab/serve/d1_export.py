@@ -300,7 +300,13 @@ def build_export(paths: DataPaths, *, demo: bool = False) -> ExportResult:
     out_dir = paths.data / "d1"
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / ("load-demo.sql" if demo else "load.sql")
-    path.write_text(sql.transaction(statements), encoding="utf-8")
+    # The newline argument is not decoration. Path.write_text translates "\n" to
+    # "\r\n" on Windows, so this artefact was written with CRLF here and LF on a
+    # Linux runner. That is the exact divergence .gitattributes was added to
+    # prevent, in the one place it cannot reach: it normalises what git stores,
+    # not what a generator emits, so the two agreed only by coincidence of which
+    # machine last ran the command.
+    path.write_text(sql.transaction(statements), encoding="utf-8", newline="\n")
 
     return ExportResult(snapshot_id=snapshot, path=path, row_counts=counts, dropped=dropped)
 
@@ -719,7 +725,7 @@ def build_fixture(paths: DataPaths, out_path: Path, *, n_persons: int = 60) -> d
     )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(sql.transaction(statements), encoding="utf-8")
+    out_path.write_text(sql.transaction(statements), encoding="utf-8", newline="\n")
     return counts
 
 

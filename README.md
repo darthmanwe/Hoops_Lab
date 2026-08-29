@@ -11,7 +11,7 @@ footnote.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
-![Tests](https://img.shields.io/badge/tests-406%20offline-199e70)
+![Tests](https://img.shields.io/badge/tests-408%20offline-199e70)
 [![Live demo](https://img.shields.io/badge/demo-live-d95926)](https://hoopslab-web.kutlumizrak.workers.dev)
 
 **[hoopslab-web.kutlumizrak.workers.dev](https://hoopslab-web.kutlumizrak.workers.dev)** —
@@ -620,7 +620,7 @@ cd Hoops_Lab && npm ci
 
 ```bash
 npm run test                     # 141 Worker tests, inside workerd, real D1 + KV
-npm run ml:test                  # 265 Python tests, offline, no credentials
+npm run ml:test                  # 267 Python tests, offline, no credentials
 
 npm run ml -- verify             # re-derives every data checksum
 npm run ml -- train --verify     # refits the models; fails if a reported metric moved

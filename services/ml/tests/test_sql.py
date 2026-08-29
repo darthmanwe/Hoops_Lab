@@ -7,7 +7,10 @@ and it can still be impossible to execute. These tests are about executability.
 
 from __future__ import annotations
 
-from hoopslab.serve import sql
+import re
+from pathlib import Path
+
+from hoopslab.serve import d1_export, sql
 
 
 def test_rows_are_chunked_by_count() -> None:
@@ -62,3 +65,51 @@ def test_every_row_survives_chunking() -> None:
     rows = [[i] for i in range(997)]
     statements = sql.insert_many("t", ["a"], rows, chunk=100)
     assert sum(s.count("(") - 1 for s in statements) == 997
+
+
+def test_the_load_carries_no_transaction_wrapper() -> None:
+    """D1 rejects the file outright if it does.
+
+    Remote D1 runs statements through Durable Object storage, which coalesces
+    writes atomically on its own and refuses to be told how:
+
+        To execute a transaction, please use the state.storage.transaction()
+        API instead of the SQL BEGIN TRANSACTION or SAVEPOINT statements.
+
+    The local miniflare executor has no such objection, so the wrapper worked in
+    every test and every local load and failed the first time it met production.
+    Atomicity is not lost — `wrangler d1 execute --file` provides it and says so
+    before it starts — but the next person to notice this file has no
+    transaction and helpfully restore one would break the seed and pass CI.
+    """
+    artefact = sql.transaction(["INSERT INTO t VALUES (1);"])
+
+    assert "BEGIN TRANSACTION" not in artefact
+    assert "COMMIT" not in artefact
+    assert "SAVEPOINT" not in artefact
+
+
+def test_every_sql_artefact_pins_its_line_endings() -> None:
+    """Otherwise the artefact differs by the platform that generated it.
+
+    ``Path.write_text`` translates newlines on Windows, so the same command
+    produced CRLF here and LF on a Linux runner. The committed fixture is loaded
+    by the Worker suite and the export is content-hashed, which makes this a
+    reproducibility bug rather than a cosmetic one — and ``.gitattributes``
+    cannot reach it, because it normalises what git stores rather than what a
+    generator emits.
+
+    Asserted against the source rather than by writing a file and reading it
+    back: the thing that must not regress is the argument, and a round-trip
+    check would pass on Linux whether or not it was there.
+    """
+    source = Path(d1_export.__file__).read_text(encoding="utf-8")
+    # To end of line rather than to the closing paren: the argument itself
+    # contains parentheses, and a non-greedy match stops inside them.
+    writes = re.findall(r"^\s*\w*\.write_text\(.*$", source, flags=re.MULTILINE)
+
+    assert writes, "no write_text call found, so this test is checking nothing"
+    for call in writes:
+        assert "newline=" in call, (
+            f"writes an artefact without pinning the line ending: {call.strip()}"
+        )

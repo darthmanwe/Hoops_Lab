@@ -123,7 +123,9 @@ function ClaimList({
 
 function FactIds({ ids }: { ids: string[] }) {
   return (
-    <p className="mt-1 font-mono text-[11px] text-slate-500">
+    // slate-400, not slate-500: at 11px on this surface the latter measures
+    // 4.12:1 against a 4.5:1 floor.
+    <p className="mt-1 font-mono text-[11px] text-slate-400">
       <span className="sr-only">Supported by evidence </span>
       {ids.join(" ")}
     </p>

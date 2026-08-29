@@ -68,15 +68,29 @@ type ServiceBinding = { fetch: (input: string, init?: RequestInit) => Promise<Re
  * reach" explanation, which is the same thing it did before this existed.
  */
 async function transport(): Promise<ServiceBinding["fetch"]> {
-  try {
-    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
-    const { env } = await getCloudflareContext({ async: true });
-    const api = (env as unknown as Record<string, unknown>).API as ServiceBinding | undefined;
-    if (api?.fetch) {
-      return (input, init) => api.fetch(input, init);
+  // `next dev` is excluded deliberately, and this is not a shortcut.
+  //
+  // OpenNext's dev context reads `wrangler.jsonc` and materialises the bindings
+  // declared there, so `env.API` exists locally too — bound to a Worker that is
+  // not running, which answers every request 503. Every page then rendered its
+  // "could not reach the API" card while the real dev Worker sat on 8710
+  // answering curl, and the API's own log showed no requests at all. The whole
+  // local stack looked broken in a way that pointed at the backend.
+  //
+  // In development the public URL is right and reachable, so the binding buys
+  // nothing there; it exists for the deployed Worker, where the public URL is
+  // the thing that does not work.
+  if (process.env.NODE_ENV !== "development") {
+    try {
+      const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+      const { env } = await getCloudflareContext({ async: true });
+      const api = (env as unknown as Record<string, unknown>).API as ServiceBinding | undefined;
+      if (api?.fetch) {
+        return (input, init) => api.fetch(input, init);
+      }
+    } catch {
+      // Not running on Workers at all. Expected under vitest and a bare build.
     }
-  } catch {
-    // Not running on Workers. Expected in dev and under vitest.
   }
   return (input, init) => fetch(input, init);
 }

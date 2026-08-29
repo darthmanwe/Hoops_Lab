@@ -26,11 +26,11 @@ const testEnv = env as unknown as Env & { TEST_MIGRATIONS: D1Migration[] };
 beforeAll(async () => {
   await applyD1Migrations(testEnv.DB, testEnv.TEST_MIGRATIONS);
 
-  // The artefact is one transaction; workerd's D1 binding takes statements
-  // individually, so the wrapper is stripped and the body replayed.
+  // The D1 binding takes statements one at a time, so the file is split rather
+  // than executed whole. It no longer carries a BEGIN TRANSACTION to strip:
+  // remote D1 rejects the file outright if it does, since it runs statements
+  // through Durable Object storage and coalesces writes atomically itself.
   const statements = seedSql
-    .replace(/^BEGIN TRANSACTION;/m, "")
-    .replace(/^COMMIT;/m, "")
     .split(/;\s*$/m)
     .map((statement: string) => statement.trim())
     .filter((statement: string) => statement.length > 0 && !statement.startsWith("--"));
