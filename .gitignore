@@ -50,3 +50,7 @@ data/d1/
 # a diff every time anyone starts the dev server.
 apps/web/AGENTS.md
 apps/web/CLAUDE.md
+
+# Personal marketing material. Copy for posts, and images sized for them.
+# Not part of the project, and not something a clone should carry.
+linkedin/
