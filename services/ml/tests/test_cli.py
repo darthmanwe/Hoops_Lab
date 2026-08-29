@@ -67,7 +67,15 @@ def test_cli_advertises_only_commands_that_do_something() -> None:
         if command.callback is not None
     }
 
-    assert {"ingest", "build", "train", "export", "fixture", "verify"} <= registered
+    assert {
+        "ingest",
+        "build",
+        "train",
+        "export",
+        "fixture",
+        "snapshot",
+        "verify",
+    } <= registered
 
     # Nothing behind these is built. Advertising them would be the same
     # overclaim as an API returning hand-written constants.

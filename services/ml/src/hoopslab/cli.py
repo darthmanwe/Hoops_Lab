@@ -307,6 +307,27 @@ def fixture() -> None:
 
 
 @app.command()
+def snapshot() -> None:
+    """Print the id of the committed data, and nothing else.
+
+    Derived from the contract hashes, so it is a property of the data rather
+    than of the clock: rebuilding unchanged gold yields the same id and every
+    cache key stays valid.
+
+    Bare stdout because the consumer is a shell. ``DATA_SNAPSHOT`` prefixes
+    every cache key the Worker writes, so deploying with a stale value serves
+    the previous snapshot's rows out of KV until the TTL expires — and until
+    now the only thing keeping it correct was whoever remembered to edit
+    wrangler.toml by hand.
+    """
+    from hoopslab.serve.d1_export import snapshot_id
+
+    # print, not console.print: rich wraps and styles, and this is meant to be
+    # captured into a variable.
+    print(snapshot_id(DataPaths.discover()))
+
+
+@app.command()
 def report(
     person_id: str = typer.Argument(..., help="Person id of a player who changed league."),
     season: str = typer.Option(

@@ -46,20 +46,14 @@ database_id = "00000000-0000-0000-0000-000000000000"
 binding = "CACHE"
 id = "00000000000000000000000000000000"
 
-# --------------------------------------------------------------------------
-# staging — what pull-request previews bind to. Never production.
-# --------------------------------------------------------------------------
-[env.staging]
-vars = { APP_ENV = "staging", DATA_SNAPSHOT = "" }
-
-[[env.staging.d1_databases]]
-binding = "DB"
-database_name = "hoopslab-staging"
-database_id = "00000000-0000-0000-0000-000000000000"
-
-[[env.staging.kv_namespaces]]
-binding = "CACHE"
-id = "00000000000000000000000000000000"
+# There is no staging environment, and this file used to imply one.
+#
+# `[env.staging]` sat here with an all-zero D1 id and an all-zero KV id, so
+# `--env staging` did not fail because staging was unconfigured — it failed
+# while looking configured, which is worse. Nothing deployed to it and no
+# workflow referenced it. A second environment is worth having when there are
+# pull-request previews to point at it; until then the honest shape of this
+# project is one deployment, and saying so costs nothing.
 
 # --------------------------------------------------------------------------
 # production

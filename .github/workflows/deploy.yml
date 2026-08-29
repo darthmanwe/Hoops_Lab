@@ -1,0 +1,107 @@
+name: Deploy
+
+# Only after CI has passed on main. A workflow that deploys on push races the
+# tests it is supposed to depend on, and the first thing it would have shipped
+# is whatever broke them.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: ["main"]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: The deployed site serves the committed snapshot
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      API_URL: https://hoopslab-api-production.kutlumizrak.workers.dev
+      WEB_URL: https://hoopslab-web.kutlumizrak.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: services/ml/uv.lock
+      - run: npm ci
+      - run: uv sync --frozen --extra dev
+        working-directory: services/ml
+
+      # Derived from the committed contract hashes, so it is a property of the
+      # data rather than of whoever last edited wrangler.toml. A test already
+      # asserts the two agree; this reads it rather than trusting the file,
+      # because the value decides whether the step below runs at all.
+      - name: Work out which snapshot this commit carries
+        id: snapshot
+        working-directory: services/ml
+        run: echo "id=$(uv run hoopslab snapshot)" >> "$GITHUB_OUTPUT"
+
+      - name: Ask production which snapshot it is serving
+        id: live
+        run: |
+          serving=$(curl -sf "$API_URL/health" | jq -r '.data_snapshot // ""' || echo "")
+          echo "id=$serving" >> "$GITHUB_OUTPUT"
+          echo "production serves '${serving}', this commit carries '${{ steps.snapshot.outputs.id }}'"
+
+      # Conditional, and this is the load-bearing part of the workflow.
+      #
+      # The seed inserts 48,423 rows, which D1 bills as roughly 159,000 once
+      # index writes are counted, against a documented free-tier allowance of
+      # 100,000 a day. Re-seeding on every push would make the deploy the thing
+      # that breaks the deploy — and the data only changes when gold does, which
+      # is exactly what the snapshot id tracks.
+      - name: Re-seed D1, only when the data actually changed
+        if: steps.snapshot.outputs.id != steps.live.outputs.id
+        run: |
+          uv run --project services/ml hoopslab export --demo
+          npm run db:load:prod
+
+      - run: npm run deploy:api
+      - run: npm run deploy:web
+
+      # Not optional, and not a formality. The workers.dev loopback that broke
+      # the first web deploy returned HTTP 200 on every page — a Worker cannot
+      # reach another Worker on the same account through its workers.dev
+      # address, so every server-side fetch 404'd and every page rendered its
+      # "could not reach the API" card with a perfectly healthy status code.
+      # Only asserting on content catches that.
+      - name: Smoke-test what was actually deployed
+        run: |
+          set -euo pipefail
+
+          serving=$(curl -sf "$API_URL/health" | jq -r '.data_snapshot')
+          if [ "$serving" != "${{ steps.snapshot.outputs.id }}" ]; then
+            echo "::error::deployed API serves snapshot '$serving', expected '${{ steps.snapshot.outputs.id }}'"
+            exit 1
+          fi
+
+          curl -sf "$API_URL/openapi.json" | jq -e '.paths | length > 0' > /dev/null
+
+          # One page per shape: a landing page built from two sequential
+          # fetches, a table page, and a dynamic route.
+          for page in "/:0.0332" "/projections:Showing" "/players/nba_1629029:Dončić"; do
+            path="${page%%:*}"
+            needle="${page##*:}"
+            if ! curl -sf "$WEB_URL$path" | grep -qF "$needle"; then
+              echo "::error::$WEB_URL$path rendered without '$needle' — the page is up and the data is not"
+              exit 1
+            fi
+          done
+
+          echo "API and web both serving ${{ steps.snapshot.outputs.id }}"
