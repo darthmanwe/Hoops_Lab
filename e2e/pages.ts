@@ -61,4 +61,11 @@ export const PAGES: readonly Page[] = [
     name: "player",
     expect: "Luka Dončić",
   },
+  {
+    path: "/players?q=doncic",
+    name: "search results",
+    // Diacritic-insensitive in both directions: the query has none and the
+    // answer does.
+    expect: "Luka Dončić",
+  },
 ];

@@ -55,6 +55,38 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </Link>
               ))}
             </nav>
+
+            {/* A plain GET form, which is the whole design.
+
+                The API has had diacritic-insensitive search since phase 3 and
+                nothing on the site could reach it: there was no `input` or
+                `form` anywhere in this app, so the only route to a player page
+                was following a link out of a table. Anyone arriving to look up
+                a specific player could not.
+
+                No client JavaScript. It submits without it, it is keyboard
+                accessible by construction, and it keeps every page in this app
+                a server component — which is what makes the whole thing
+                testable without waiting on hydration. */}
+            <form action="/players" method="get" className="mt-3 flex gap-2" role="search">
+              <label htmlFor="player-search" className="sr-only">
+                Search players by name
+              </label>
+              <input
+                id="player-search"
+                type="search"
+                name="q"
+                placeholder="Find a player…"
+                autoComplete="off"
+                className="w-full max-w-xs rounded-lg border border-edge-strong bg-surface px-3 py-2 text-sm text-fg placeholder:text-fg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              />
+              <button
+                type="submit"
+                className="rounded-lg border border-edge-strong bg-surface px-3 py-2 text-sm text-fg transition hover:bg-surface-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                Search
+              </button>
+            </form>
           </header>
 
           <main id="main">{children}</main>
