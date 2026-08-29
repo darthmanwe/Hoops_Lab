@@ -15,9 +15,10 @@ footnote.
 [![Live demo](https://img.shields.io/badge/demo-live-d95926)](https://hoopslab-web.kutlumizrak.workers.dev)
 
 **[hoopslab-web.kutlumizrak.workers.dev](https://hoopslab-web.kutlumizrak.workers.dev)** —
-serving the curated slice described under _What this is not_. The API is at
-[`/health`](https://hoopslab-api-production.kutlumizrak.workers.dev/health),
-which reports the snapshot id every response is keyed on.
+serving the curated slice described under _What this is not_. The API documents
+itself at [`/docs`](https://hoopslab-api-production.kutlumizrak.workers.dev/docs),
+and [`/health`](https://hoopslab-api-production.kutlumizrak.workers.dev/health)
+reports the snapshot id every response is keyed on.
 
 ![Every observed EuroLeague to NBA transfer, with its projected usage rate, an 80% prediction interval, and what actually happened](docs/screenshots/hero-translation.png)
 
@@ -158,13 +159,16 @@ _The model's own report card. It leads with the metric it fails at._
 | ---------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Modelling  | Python 3.12, polars, statsmodels, scikit-learn, pandera | 61 transfers in the flagship direction — a small-sample inference problem, so OLS with a cluster bootstrap over players rather than gradient boosting with no usable uncertainty |
 | Serving    | Cloudflare Workers, Hono, D1, Drizzle                   | 10 ms of CPU per request, so the Worker does **no arithmetic** — every served number is a column computed offline, which also removes train/serve skew by construction           |
-| Interface  | Next.js 16, TypeScript                                  | The previous version rendered missing data as `0.00`; the rewrite has no path that coerces a null to a number                                                                    |
+| Interface  | Next.js 16, TypeScript, all server components           | The previous version rendered missing data as `0.00`; the rewrite has no path that coerces a null to a number. Zero client-side JavaScript, including the search box             |
 | LLM layer  | Anthropic SDK, Pydantic structured outputs              | Groundedness has to be checkable, so retrieval is a fixed `SELECT` and citations are enforced by the schema rather than requested in a prompt                                    |
-| Evaluation | pytest, hypothesis, vitest inside workerd               | Leakage assertions run **inside** the CV loop at runtime, not in a test that could pass while the splitter changed                                                               |
+| Evaluation | pytest, hypothesis, vitest inside workerd, Playwright   | Leakage assertions run **inside** the CV loop at runtime, not in a test that could pass while the splitter changed                                                               |
 
-333 tests, all offline and credential-free. CI runs Ubuntu and Windows across
-Node 22/24 and Python 3.11–3.13, and refits every model on each push to prove
-the numbers here still hold.
+411 tests, all offline and credential-free, plus 64 browser tests that scan
+every page with axe and measure the contrast of every rendered text style in
+both colour schemes. CI runs Ubuntu and Windows across Node 22/24 and Python
+3.11–3.13, refits every model on each push to prove the numbers here still
+hold, and regenerates the serving contract to prove the documentation has not
+drifted from the code that produces it.
 
 ## Why this project exists
 
@@ -625,6 +629,20 @@ npm run ml:test                  # 270 Python tests, offline, no credentials
 npm run ml -- verify             # re-derives every data checksum
 npm run ml -- train --verify     # refits the models; fails if a reported metric moved
 npm run demo:llm                 # re-scores 30 scouting reports; $0, no key needed
+npm run gen                      # regenerates the API contract, client and docs
+```
+
+`npm run gen && git diff --exit-code` is the drift gate: the OpenAPI document,
+the TypeScript client, the error catalogue and the data dictionary are all
+derived from source elsewhere in the repository, so a route added without a
+schema or an error code added without an explanation turns CI red rather than
+leaving four documents describing an API that has moved on.
+
+The browser suite needs a seeded local database, and takes about thirty seconds:
+
+```bash
+npm run db:migrate && npm run db:load:fixture
+npm run e2e                      # 64 tests: axe, contrast, both themes
 ```
 
 `train --verify` is the one worth running. It refits from committed parquet
@@ -666,13 +684,18 @@ Note that Next inlines `NEXT_PUBLIC_*` at compile time, so change it _and_ clear
 
 ```bash
 curl http://127.0.0.1:8710/                        # every endpoint and its state
+curl http://127.0.0.1:8710/openapi.json            # generated from the route definitions
 curl http://127.0.0.1:8710/health                  # actually probes D1 and KV
+curl 'http://127.0.0.1:8710/players/search?q=doncic'    # finds Dončić; diacritics either way
 curl http://127.0.0.1:8710/players/nba_1629029/report   # a checked scouting report
 curl 'http://127.0.0.1:8710/projections?direction=EL-%3ENBA&limit=10'  # players who have not moved
 curl http://127.0.0.1:8710/leaderboards/gravity    # 410, and explains why it cannot exist
 ```
 
 ### Deploy it
+
+`.github/workflows/deploy.yml` runs on every CI-green push to `main`. The
+sequence by hand:
 
 ```bash
 npm run ml -- export --demo      # the 48,423-row slice, and it refuses to
@@ -683,25 +706,37 @@ npm run deploy:api               # Worker
 npm run deploy:web               # Next.js via @opennextjs/cloudflare
 ```
 
-The order matters in one place: `deploy:api` reads `DATA_SNAPSHOT` from
-`apps/api/wrangler.toml`, and that value must be the snapshot id the seed file
-carries. It prefixes every cache key, so deploying with the previous id serves
-the previous data from KV until the TTL runs out — the response would be stale
-and would say so in `meta.snapshot`, but only to someone reading it.
+**The seed is conditional in CI, and that is the load-bearing part.** It
+inserts 48,423 rows, which D1 bills as roughly 159,000 once index writes are
+counted, against a documented free-tier allowance of 100,000 a day. Re-seeding
+on every push would make the deploy the thing that breaks the deploy, so the
+workflow compares the committed snapshot id against the one `/health` reports
+and only seeds when they differ.
 
-`deploy:web` deletes `.next` before building, because `NEXT_PUBLIC_API_BASE` is
-inlined by the compiler rather than read at request time. A warm build ships
-whichever API URL was current when it was made, and gives no sign of having
-done so.
+`DATA_SNAPSHOT` prefixes every cache key, so deploying with a stale value serves
+the previous snapshot from KV until the TTL runs out — a response that is wrong
+and says so only in `meta.snapshot`, to whoever is reading it. `hoopslab
+snapshot` prints the id derived from the committed data, and a test asserts
+`wrangler.toml` deploys that value.
 
-### Regenerate the screenshots
+**The smoke test greps for content, not status codes.** The workers.dev loopback
+that broke the first web deploy returned HTTP 200 on every page: a Worker cannot
+reach another Worker on the same account through its `workers.dev` address, so
+every server-side fetch 404'd and every page rendered its "could not reach the
+API" card while looking perfectly healthy. Only asserting on rendered text
+catches that.
 
-```bash
-node scripts/screenshots.mjs docs/screenshots      # requires both servers running
-```
+One thing about `npm run shots`, which is documented here because it produced a
+wrong image that looked like a right one. It photographs whatever is in the
+local database, and `db:load` and `db:load:fixture` write to the same place —
+run it after seeding for the browser suite and the README gets pictures of the
+sixty-person test fixture. It also pins `colorScheme: "dark"`, because headless
+Chromium asks for light, which did not matter while the site was dark-only and
+silently re-rendered every image the first time it ran after the light theme
+landed.
 
 See [docs/development.md](docs/development.md) for the full task list and the
-Windows-specific notes.
+Windows-specific notes, and [CLAUDE.md](CLAUDE.md) for the deployment traps.
 
 ## Roadmap
 
@@ -840,6 +875,31 @@ Things that are load-bearing rather than decorative:
   a docstring nobody checked against the signature.** Ten requests took the
   unaged residue from 2,129 seasons to 6. A repaired number is still a number
   that was missing, and the repair is not the place to stop looking.
+- **An anti-drift check that only looked one way, and had drifted.** The
+  endpoint registry's own comment said drift was "not expressible" because the
+  router, the `/` listing and the withdrawn handlers all derive from one array.
+  Two live routes were absent from it, so `/` advertised thirteen endpoints
+  while fifteen answered. The test walked the registry and asked whether the
+  router responded; every declared path did, so it was green and had always
+  been green. Nothing walked the router and asked whether the registry declared
+  it, and a route could only ever go missing in the direction nobody looked.
+- **A library's re-exported `zod` silently returns `any`.**
+  `@hono/zod-openapi` re-exports `z` with an `.openapi()` method attached, and
+  its `safeParse` loses the parsed type — assigning a declared-number field to
+  a `string` typechecks through it and errors through zod itself. Building a
+  request validator from it hands back untyped data, which is the
+  `Record<string, unknown>` hole this rebuild closed, reopened by an import
+  that looks like a tidy-up. The route files import both, and a test pins the
+  split.
+- **Accessibility was clean at desktop width and not at phone width.** Axe
+  found nothing across six pages at 1280px. At 375px it fails
+  `scrollable-region-focusable` on three of them — every table is
+  `min-w-[36rem]`, so all of them overflow on a phone, and a container that
+  scrolls only by dragging leaves its right-hand columns unreachable by
+  keyboard. It fired on the archetype, model and career tables and not on the
+  other two, because those have links in every row and tabbing to one scrolls
+  the region incidentally. Restricting the scan to the WCAG tags had also
+  hidden an empty `<th>` above the column carrying the `extrapolated` flag.
 - **`stats.nba.com` ingestion cannot run in CI** — it refuses datacenter IP
   ranges, and Actions runners are on Azure. That is why gold is committed and
   why the nightly cron was deleted rather than repaired.
