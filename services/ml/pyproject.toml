@@ -124,6 +124,19 @@ branch = true
 [tool.coverage.report]
 skip_empty = true
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "raise NotImplementedError"]
+# The measured value on the day this was added, not a target.
+#
+# A threshold set above where the suite actually sits is a number that gets
+# lowered the first time it blocks something, and then means nothing. Set at the
+# measurement it is a ratchet: coverage may not fall without someone deciding
+# that it should, and editing this line to say so.
+#
+# It is deliberately not higher. Most of the uncovered third is `ingest/`, which
+# cannot run in CI at all — stats.nba.com refuses datacenter IPs — and the
+# billed LLM paths, which are gated behind a flag precisely so that tests cannot
+# reach them. Covering those would mean mocking the two boundaries this project
+# has the most reason not to trust.
+fail_under = 67
 
 [tool.ruff]
 line-length = 100
