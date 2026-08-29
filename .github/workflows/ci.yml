@@ -198,6 +198,41 @@ jobs:
             exit 1
           fi
 
+  e2e:
+    name: Every page renders real data and passes axe
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # Seeded from the committed fixture, not from data/ and not from the
+      # deployment. The same slice the Worker suite loads, so a green run here
+      # says the same thing on a runner as on a laptop, and a bad deploy cannot
+      # turn this red.
+      - run: npm run db:migrate
+      - run: npm run db:load:fixture
+      # Playwright starts both dev servers. Both are needed: every page is a
+      # server component that fetches during render, and `apiGetOptional` turns
+      # a failed fetch into a rendered explanation card — so a suite pointed at
+      # a dead API gets HTTP 200 and a complete-looking page on every route and
+      # passes while proving nothing. Each spec asserts on content only a real
+      # response produces.
+      #
+      # Ubuntu only. The Windows matrix exists for the path bugs it has actually
+      # caught in Node and Python code; a browser rendering the same HTML is not
+      # where those live, and it would double the slowest job in the workflow.
+      - run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   no-fabricated-data:
     name: No endpoint serves fabricated data
     runs-on: ubuntu-latest
