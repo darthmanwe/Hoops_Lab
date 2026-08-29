@@ -171,3 +171,42 @@ def test_the_selection_gaps_match(run: dict[str, Any], prose: dict[str, str]) ->
             f"README does not quote the {row['direction']} selection gap {gap:+.2f} sd"
         )
         assert str(row["n_movers"]) in readme
+
+
+#: A roadmap row marked done, and a file that must exist for that to be true.
+#:
+#: Only phases whose deliverable is a checkable artifact appear here. The rest
+#: are judgement calls and a test asserting them would be theatre.
+PHASE_ARTIFACTS = {
+    "3": ("contracts/openapi.json", "the generated OpenAPI document"),
+    "5": ("playwright.config.ts", "the browser suite that checks the pages"),
+    "6": ("data/llm_cache", "the committed responses that make the demo free"),
+}
+
+
+def test_a_phase_is_only_done_if_its_artifact_exists(repo: Path, prose: dict[str, str]) -> None:
+    """The check that would have caught three overclaims at once.
+
+    Phase 3 was marked done with "OpenAPI" in its deliverables while
+    `/openapi.json` returned 404 and the package that would have produced it
+    was installed and imported nowhere. Phase 5 was marked done against the
+    exit criterion "axe clean at serious/critical on every page", and nothing
+    had ever run axe — there was no Playwright dependency.
+
+    Neither was a lie anyone told. Both were rows that stopped being true after
+    they were written, in a table nothing checked. Marking a phase done now
+    requires the thing it delivered to be on disk.
+    """
+    readme = prose["README.md"]
+
+    for phase, (artifact, description) in PHASE_ARTIFACTS.items():
+        row = re.search(rf"^\| \*\*{phase}\*\* \|(.+)$", readme, re.MULTILINE)
+        assert row, f"README roadmap has no row for phase {phase}"
+
+        if "done" not in row.group(1):
+            continue
+
+        assert (repo / artifact).exists(), (
+            f"phase {phase} is marked done, but {artifact} does not exist — "
+            f"that row claims {description}"
+        )

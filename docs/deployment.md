@@ -1,8 +1,14 @@
 # Deployment
 
-> **Phase 0 status.** The API deploys and answers `/` and `/health`. Every
-> analytics endpoint returns `501` or `410`. There is no data load step,
-> because there is no data — the previous one uploaded hand-written constants.
+> Live at **<https://hoopslab-web.kutlumizrak.workers.dev>**, served by
+> `hoopslab-api-production` over a D1 database holding a curated slice of the
+> committed snapshot. `.github/workflows/deploy.yml` runs the sequence below
+> after CI passes on `main`; the manual path and the traps in it are in
+> [CLAUDE.md](../CLAUDE.md#deploying).
+>
+> Endpoints still marked `501` or `410` are the ones with no data or no honest
+> metric behind them, which is a smaller set than it was: `/` lists every path
+> and its state.
 
 ## Environments
 

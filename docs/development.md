@@ -84,7 +84,10 @@ environment, so clearing only one of the two is not enough.
 
 ## What is not here yet
 
-Phase 0 has removed the fabricated data and built the foundations. There is no
-ingestion, no model and no data. Every analytics endpoint returns `501` (coming
-back) or `410` (permanently withdrawn), each with an explanation of what it
-previously did. See the [roadmap](../README.md#roadmap).
+Ingestion, the models and the committed snapshot all exist; this section
+claimed otherwise for several phases after they landed. What remains withdrawn
+is listed by the API itself — `GET /` reports every path with its state, `501`
+for the ones waiting on data this project does not ingest and `410` for the
+metrics no public data supports. See the [roadmap](../README.md#roadmap) and
+[docs/errors.md](errors.md), which is generated from the error catalogue rather
+than maintained beside it.

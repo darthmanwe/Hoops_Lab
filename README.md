@@ -11,7 +11,7 @@ footnote.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
-![Tests](https://img.shields.io/badge/tests-410%20offline-199e70)
+![Tests](https://img.shields.io/badge/tests-411%20offline-199e70)
 [![Live demo](https://img.shields.io/badge/demo-live-d95926)](https://hoopslab-web.kutlumizrak.workers.dev)
 
 **[hoopslab-web.kutlumizrak.workers.dev](https://hoopslab-web.kutlumizrak.workers.dev)** —
@@ -620,7 +620,7 @@ cd Hoops_Lab && npm ci
 
 ```bash
 npm run test                     # 141 Worker tests, inside workerd, real D1 + KV
-npm run ml:test                  # 269 Python tests, offline, no credentials
+npm run ml:test                  # 270 Python tests, offline, no credentials
 
 npm run ml -- verify             # re-derives every data checksum
 npm run ml -- train --verify     # refits the models; fails if a reported metric moved
@@ -705,17 +705,17 @@ Windows-specific notes.
 
 ## Roadmap
 
-| Phase | Deliverable                                                                                                                     | State   |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| **0** | Remove fabricated data; workspace, tooling, CI, honest API surface                                                              | ✅ done |
-| **1** | Real ingestion (NBA 2000-25, EuroLeague 2007-25, G League 2015-25), identity crosswalk, data contracts, committed gold          | ✅ done |
-| **2** | **Translation model** — two-stage hierarchical fit, four baselines, cluster-bootstrap intervals, selection analysis, model card | ✅ done |
-| **3** | Serving contract — Drizzle schema, real migrations, typed routes, OpenAPI, provenance envelope                                  | ✅ done |
-| **4** | Archetypes (CLR → GMM with published per-cluster stability), empirical-Bayes shooting, precomputed comparables                  | ✅ done |
-| **5** | Frontend — TypeScript, translation explorer, model report card, null-safe rendering                                             | ✅ done |
-| **6** | Grounded Claude scouting reports with a groundedness harness and a $0 cached demo                                               | ✅ done |
-| **7** | Presentation — measured results, ADRs, architecture, model cards                                                                | ✅ done |
-| **8** | _Stretch:_ shot charts, play-by-play, stint reconstruction, RAPM with standard errors                                           | open    |
+| Phase | Deliverable                                                                                                                                                                         | State   |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| **0** | Remove fabricated data; workspace, tooling, CI, honest API surface                                                                                                                  | ✅ done |
+| **1** | Real ingestion (NBA 2000-25, EuroLeague 2007-25, G League 2015-25), identity crosswalk, data contracts, committed gold                                                              | ✅ done |
+| **2** | **Translation model** — two-stage hierarchical fit, four baselines, cluster-bootstrap intervals, selection analysis, model card                                                     | ✅ done |
+| **3** | Serving contract — Drizzle schema, real migrations, typed routes, generated OpenAPI at [`/docs`](https://hoopslab-api-production.kutlumizrak.workers.dev/docs), provenance envelope | ✅ done |
+| **4** | Archetypes (CLR → GMM with published per-cluster stability), empirical-Bayes shooting, precomputed comparables                                                                      | ✅ done |
+| **5** | Frontend — TypeScript, translation explorer, model report card, null-safe rendering, light and dark themes, axe-clean at both viewports                                             | ✅ done |
+| **6** | Grounded Claude scouting reports with a groundedness harness and a $0 cached demo                                                                                                   | ✅ done |
+| **7** | Presentation — measured results, ADRs, architecture, model cards                                                                                                                    | ✅ done |
+| **8** | _Stretch:_ shot charts, play-by-play, stint reconstruction, RAPM with standard errors                                                                                               | open    |
 
 Phase 8 is deliberately out of scope: it needs possession-level data this
 project does not ingest, and the roadmap says so rather than shipping a

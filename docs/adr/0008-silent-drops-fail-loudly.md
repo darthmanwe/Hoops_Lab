@@ -1,6 +1,6 @@
 # 8. Rows dropped by a filter must be counted, not discovered
 
-Proposed.
+Accepted.
 
 ## Context
 

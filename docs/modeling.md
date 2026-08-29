@@ -1,10 +1,16 @@
 # Modelling
 
-> **Status: nothing here is fitted yet.** This document describes what will be
-> built and how it will be evaluated. It deliberately contains no results,
-> because there are none. The previous version of this file listed six modules
-> under the heading "Implemented API coverage" when what existed was a set of
-> routes that `SELECT`ed hand-written constants.
+> This document describes what is built and how it is evaluated. Results live
+> with the thing that produced them — the measured numbers are in the
+> [README](../README.md#results) and the
+> [model card](../services/ml/src/hoopslab/configs/model_cards/translation.md),
+> and both are checked against the committed run log on every push.
+>
+> It opened with "nothing here is fitted yet" for several phases after the
+> models were fitted. That was the same defect as the version before it, which
+> listed six modules under "Implemented API coverage" when what existed was a
+> set of routes that `SELECT`ed hand-written constants — a document describing
+> a state the repository was not in.
 
 ## What was removed, and why
 
