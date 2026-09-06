@@ -57,9 +57,10 @@ curl http://127.0.0.1:8710/health    # probes D1 and KV for real
 ## Environments
 
 `wrangler.toml` declares **no bindings at the top level**. Every binding lives
-under `[env.dev]`, `[env.staging]` or `[env.production]`, so a bare
-`wrangler deploy` fails loudly rather than silently writing to the production
-database — which is what the previous single-binding configuration did.
+under `[env.dev]` or `[env.production]`, so a bare `wrangler deploy` fails
+loudly rather than silently writing to the production database — which is what
+the previous single-binding configuration did. There is no staging environment;
+[deployment.md](deployment.md#environments) says why.
 
 Always pass `--env`:
 

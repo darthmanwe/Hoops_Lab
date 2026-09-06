@@ -16,45 +16,84 @@ Bindings are declared per environment in `apps/api/wrangler.toml`, with none at
 the top level. `wrangler deploy` without `--env` therefore fails rather than
 targeting production, which is what the previous configuration did silently.
 
-| Environment  | D1                 | Purpose               |
-| ------------ | ------------------ | --------------------- |
-| `dev`        | local miniflare    | `wrangler dev`, tests |
-| `staging`    | `hoopslab-staging` | Pull-request previews |
-| `production` | `hoopslab-db`      | Live                  |
+| Environment  | D1              | Purpose               |
+| ------------ | --------------- | --------------------- |
+| `dev`        | local miniflare | `wrangler dev`, tests |
+| `production` | `hoopslab-prod` | Live                  |
 
-`hoopslab-dev` and `hoopslab-staging` are created in phase 3 alongside the
-first real migrations; their ids are placeholders until then.
+There are two rows because there are two environments. `[env.staging]` used to
+sit between them carrying an all-zero D1 id and an all-zero KV id, so
+`--env staging` failed while _looking_ configured — which is worse than not
+existing. Nothing deployed to it and no workflow referenced it. It was deleted
+rather than provisioned; a second environment is worth having when there are
+pull-request previews to point at it.
+
+`hoopslab-db` is **not** production and must not be deployed to. It is the
+February database, still holding `nba_gravity`, `game_momentum`,
+`team_fatigue_effect` and four hardcoded players. Migrations would apply
+cleanly alongside them — the table names do not collide — which is exactly the
+hazard: the result would be a production database containing tables named after
+the fabrications this rebuild exists to have removed.
 
 ## Deploy the API
 
 ```bash
 npm ci
-npx wrangler deploy --env production --config apps/api/wrangler.toml
+npm run deploy:api    # wrangler deploy --config apps/api/wrangler.toml --env production
 ```
 
 ## Migrations
 
-Phase 3 replaces `data/schema/schema.sql` with numbered migrations applied by
-`wrangler d1 migrations apply`, which tracks what has been applied.
+Numbered migrations under `apps/api/migrations/`, applied by
+`wrangler d1 migrations apply`, which tracks what it has already run:
 
-The current file is a single `CREATE TABLE IF NOT EXISTS` script. That is not a
-migration system: re-running it after a schema change is a **silent no-op**, so
-adding a column or a constraint to an existing table does nothing and reports
-success. Do not add to it.
+```bash
+npm run db:migrate         # local miniflare
+npm run db:migrate:prod    # remote hoopslab-prod
+```
+
+They replaced a single `CREATE TABLE IF NOT EXISTS` script, which was not a
+migration system: re-running it after a schema change was a **silent no-op**, so
+adding a column or a constraint to an existing table did nothing and reported
+success.
 
 ## Deploy the web app
 
-> The committed Pages configuration does not work. `apps/web/wrangler.toml`
-> points at `.vercel/output/static`, which is `@cloudflare/next-on-pages`
-> output, but that package is not a dependency of this project and never was.
-> Phase 5 migrates to `@opennextjs/cloudflare`; Cloudflare Pages is in
-> maintenance mode and `next-on-pages` is the deprecated path.
-
-Environment variable once the Worker is deployed:
-
+```bash
+npm run deploy:web
 ```
-NEXT_PUBLIC_API_BASE=https://hoopslab-api.<subdomain>.workers.dev
-```
+
+The web app is a Worker, built by `@opennextjs/cloudflare`. Three things about
+that script are load-bearing, and each of them replaces something that failed:
+
+- It clears `.next` and `.open-next` first, because `NEXT_PUBLIC_*` is inlined
+  by the compiler rather than read at request time, so a warm build ships
+  whichever API URL was current when it was made and gives no sign of it.
+- It runs `build:cf` between the clean and the deploy, because
+  `opennextjs-cloudflare deploy` does **not** build — it ships whatever is in
+  `.open-next`, so a script that cleans and then deploys deploys nothing.
+- The deployed pages do not reach the API over the public URL. `apps/web` uses
+  the `API` **service binding** declared in `wrangler.jsonc`, because a Worker
+  cannot call another Worker on the same account through its `workers.dev`
+  address: the subrequest loops back into the caller, which answers 404, while
+  `curl` against that same URL returns a clean 200.
+
+`NEXT_PUBLIC_API_BASE` is still set, in the committed `apps/web/.env.production`
+— it is the transport under `next dev` and the fallback anywhere the binding is
+absent, and omitting it would ship a build pointing at `127.0.0.1`. It lives in
+that file rather than in `wrangler.jsonc` under `vars` because the compiler
+inlines it at build time; declared as a Worker variable it would look
+authoritative and do nothing.
+
+**There is one deploy path, and it is `deploy.yml`.** Two Cloudflare git
+integrations left over from February were also attached to this repository — a
+Pages project and a Workers Build, both named `hoops-lab` — building on every
+push alongside it. The Pages project could not succeed, because nothing here
+emits a static site any more, and its last _successful_ build therefore stayed
+live at `hoops-lab.pages.dev` serving the fabricated February interface. Both
+were deleted on 2026-09-06. If a Cloudflare check ever reappears on a commit
+here, something has been reconnected in the dashboard and should be removed
+rather than fixed.
 
 ## GitHub Actions secrets
 

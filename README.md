@@ -726,6 +726,16 @@ every server-side fetch 404'd and every page rendered its "could not reach the
 API" card while looking perfectly healthy. Only asserting on rendered text
 catches that.
 
+**That workflow is now the only thing that deploys this repository**, which it
+was not until recently. Two Cloudflare git integrations left over from February
+were still attached — a Pages project and a Workers Build, both named
+`hoops-lab` — building on every push beside it. The Pages build could not
+succeed, since nothing here emits a static site any more, and a build that never
+succeeds never replaces the last one that did: `hoops-lab.pages.dev` went on
+serving the fabricated February interface, gravity leaderboards and all, for as
+long as it kept failing. A red check was the only visible symptom of a live
+public page that contradicted everything below. Both were deleted on 2026-09-06.
+
 One thing about `npm run shots`, which is documented here because it produced a
 wrong image that looked like a right one. It photographs whatever is in the
 local database, and `db:load` and `db:load:fixture` write to the same place —
