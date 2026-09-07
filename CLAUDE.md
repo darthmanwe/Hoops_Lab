@@ -130,8 +130,23 @@ test after that failed on missing page content, so the report described
 sixty-four broken pages and nothing described the one dead process behind them.
 `e2e/global-teardown.ts` now says so in one line, the job prints the Worker's
 own log on failure and uploads it as `wrangler-logs`, and the job runs with
-`WRANGLER_LOG=debug` so that log has something in it. The cause is still
-unknown; the next occurrence should be diagnosable rather than inferred.
+`WRANGLER_LOG=debug` so that log has something in it.
+
+It has since happened a third time, on Dependabot PR #1 — a bump to
+`astral-sh/setup-uv`, which the e2e job does not use at all, so the failure
+could not have come from the change under test. That is the shape to watch for:
+without the teardown line the obvious reading is "this PR broke the browser
+tests", and a valid dependency bump gets closed.
+
+What the captured log shows is mostly what it does not. On every occurrence the
+last entry is a routine inspector heartbeat two or three seconds before the
+process exits; wrangler logged nothing about its own death. That points away
+from an error wrangler raised and towards the process being killed, and the
+likeliest killer is memory — workerd, `next dev` compiling routes on demand,
+and Chromium, on a 7 GB runner. The job now prints `free -m` and greps `dmesg`
+for an OOM kill on failure, which will confirm or rule that out. If it is
+memory, serving the web app from `next build && next start` rather than
+`next dev` would remove the on-demand compilation spike.
 
 Two things deliberately not done about it. There are **no retries** — Playwright
 does not restart a `webServer` that died, so a retry would fail against the same

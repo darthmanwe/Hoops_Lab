@@ -239,6 +239,19 @@ jobs:
       # exiting, the browser side is all symptom - sixty-four pages missing
       # their content - and the cause is in a log file that was being thrown
       # away with the runner.
+      # The log the step below prints ends, on every occurrence so far, with a
+      # routine inspector heartbeat seconds before the process exits - wrangler
+      # logged nothing about its own death, which points away from an error it
+      # raised and towards the process being killed. The most likely killer is
+      # memory: this job runs workerd, `next dev` compiling routes on demand,
+      # and Chromium on a 7 GB runner. If that is it, the kernel will say so
+      # here and the guessing stops.
+      - name: Was it the kernel?
+        if: failure()
+        run: |
+          free -m || true
+          sudo dmesg 2>/dev/null | grep -iE "out of memory|oom-kill|killed process" | tail -20             || echo "Nothing in dmesg about memory. Not an OOM kill."
+
       - name: Show what the Worker said before it stopped
         if: failure()
         run: |
