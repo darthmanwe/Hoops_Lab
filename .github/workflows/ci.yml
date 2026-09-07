@@ -225,7 +225,43 @@ jobs:
       # Ubuntu only. The Windows matrix exists for the path bugs it has actually
       # caught in Node and Python code; a browser rendering the same HTML is not
       # where those live, and it would double the slowest job in the workflow.
+      # WRANGLER_LOG=debug so the Worker's own log has something in it when the
+      # process dies. Twice now `wrangler dev` has exited partway through this
+      # job printing an empty `✘ [ERROR]`, and at the default level its log
+      # file said no more than the job output did. Metrics off because it is one
+      # fewer network call in a step whose failures have all been unexplained.
       - run: npm run e2e
+        env:
+          WRANGLER_LOG: debug
+          WRANGLER_SEND_METRICS: "false"
+
+      # The report covers the browser side. When the failure is the API Worker
+      # exiting, the browser side is all symptom - sixty-four pages missing
+      # their content - and the cause is in a log file that was being thrown
+      # away with the runner.
+      - name: Show what the Worker said before it stopped
+        if: failure()
+        run: |
+          shopt -s nullglob
+          logs=(~/.config/.wrangler/logs/*.log)
+          if [ ${#logs[@]} -eq 0 ]; then
+            echo "No wrangler log was written. The Worker may not have started at all."
+            exit 0
+          fi
+          for log in "${logs[@]}"; do
+            echo "::group::$(basename "$log") (last 200 lines)"
+            tail -n 200 "$log"
+            echo "::endgroup::"
+          done
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wrangler-logs
+          path: ~/.config/.wrangler/logs/
+          if-no-files-found: warn
+          retention-days: 14
+
       - if: failure()
         uses: actions/upload-artifact@v4
         with:

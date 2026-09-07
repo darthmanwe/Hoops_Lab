@@ -123,6 +123,30 @@ explanation card rather than an error — so a suite pointed at a dead API gets
 HTTP 200 and a complete-looking page on every route and passes while proving
 nothing. Each spec asserts on content only a real response produces.
 
+**If the e2e job fails, check whether the API Worker was still alive.** Twice —
+4 Sep and 7 Sep 2026 — `wrangler dev` came up, passed the health check
+Playwright waits on, then exited mid-run printing an empty `✘ [ERROR]`. Every
+test after that failed on missing page content, so the report described
+sixty-four broken pages and nothing described the one dead process behind them.
+`e2e/global-teardown.ts` now says so in one line, the job prints the Worker's
+own log on failure and uploads it as `wrangler-logs`, and the job runs with
+`WRANGLER_LOG=debug` so that log has something in it. The cause is still
+unknown; the next occurrence should be diagnosable rather than inferred.
+
+Two things deliberately not done about it. There are **no retries** — Playwright
+does not restart a `webServer` that died, so a retry would fail against the same
+dead process while turning real regressions into flakes that pass on the second
+attempt. And the suite runs **one worker in CI**, where it used to run two: the
+config's own note says parallel workers against a single miniflare D1 file
+produced flaky reads, and that reason does not stop applying on a runner. The
+suite takes about forty seconds either way.
+
+`e2e/servers.ts` probes with `node:http` rather than `fetch`, and that is not a
+style choice. Called from `globalTeardown`, `fetch` leaves undici's pool alive
+into Playwright's shutdown and Node on Windows aborts with
+`Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` — sixty-four passing
+tests and then exit 127.
+
 ## House rules
 
 **Numbers are checked, not remembered.** `services/ml/tests/test_readme_numbers.py`

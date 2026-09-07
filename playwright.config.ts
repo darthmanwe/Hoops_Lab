@@ -21,13 +21,32 @@ const API = "http://127.0.0.1:8710";
 
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./e2e/global-setup.ts",
+  globalTeardown: "./e2e/global-teardown.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  // No retries, deliberately. A retry cannot help the failure this suite
+  // actually has in CI - the API Worker exiting mid-run - because Playwright
+  // does not restart a `webServer` that dies, so every retry would fail against
+  // the same dead process. What it would do is turn a real regression into a
+  // flake that passes on the second attempt.
   retries: 0,
-  // One worker locally. The two dev servers are the bottleneck, not the tests,
-  // and parallel workers against a single miniflare D1 file produced flaky
-  // reads rather than faster runs.
-  workers: process.env.CI ? 2 : 1,
+  // One worker, including in CI - and this used to say two there.
+  //
+  // The reason given for one worker locally was that parallel workers against a
+  // single miniflare D1 file produced flaky reads rather than faster runs. That
+  // reason does not stop applying on a runner: there is still one D1 file and
+  // still one `wrangler dev` serving it, on a smaller machine. CI ran two
+  // anyway, and the e2e job has since failed twice with the API Worker exiting
+  // partway through the run for no reason it was willing to print.
+  //
+  // Whether the concurrency caused those exits is not established. What is
+  // established is that the config carried a finding and then contradicted it
+  // in the one environment nobody watches interactively. The suite takes about
+  // forty seconds serially, against a job that spends minutes on `npm ci` and
+  // installing a browser, so the second worker was not buying much to begin
+  // with.
+  workers: 1,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : [["list"]],
 
   use: {
@@ -56,7 +75,10 @@ export default defineConfig({
       url: `${API}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
-      stdout: "ignore",
+      // Piped on CI, ignored locally. When this Worker exited mid-run the only
+      // trace in the job log was an empty `✘ [ERROR]` on stderr; whatever
+      // context preceded it went to stdout and was discarded by this line.
+      stdout: process.env.CI ? "pipe" : "ignore",
       stderr: "pipe",
     },
     {
