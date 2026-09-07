@@ -183,6 +183,16 @@ tests and then exit 127.
 
 ## House rules
 
+**The test counts are checked against each other, not against reality.**
+`test_the_badge_total_is_the_sum_of_its_parts` asserts the README badge equals
+the Worker + Python figures in the commands table, and it says why it stops
+there: 116 test functions expand to 255 tests through parametrisation, so
+counting `def test_` would pin the wrong number confidently. The consequence is
+that all three can be consistently wrong together, which is what happened — they
+sat at 411 for several commits' worth of new tests before anyone re-ran the
+count. After adding tests, run `pytest --collect-only -q` and `npm test` and
+update all three by hand.
+
 **Numbers are checked, not remembered.** `services/ml/tests/test_readme_numbers.py`
 parses the README, the model card and the ADRs and compares every figure to the
 committed run log. A retrain that moves a metric turns the docs red. Do not
