@@ -1,5 +1,5 @@
 /**
- * Where the two dev servers live, and a probe that says so when they do not.
+ * Where the two dev servers live, and how to ask them whether they are real.
  *
  * The addresses are duplicated from `playwright.config.ts` rather than imported
  * from it: importing the config into a file the config itself loads is a cycle,
@@ -9,45 +9,53 @@
 export const WEB = "http://127.0.0.1:3710";
 export const API = "http://127.0.0.1:8710";
 
-export type Probe = { ok: true } | { ok: false; why: string };
+/** The snapshot id `hoopslab fixture` writes. Real exports use a content hash. */
+export const FIXTURE_SNAPSHOT = "fixture01";
+
+export type Response = { status: number; text: string };
 
 /**
- * Whether the API is answering, and what went wrong if it is not.
+ * One GET, over `node:http` with keep-alive off.
  *
- * Uses `node:http` with keep-alive off rather than `fetch`. Called from
- * `global-teardown.ts`, `fetch` leaves undici's connection pool - a socket and
- * its timer - alive into Playwright's own shutdown, and Node on Windows aborts
- * with `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` in `src/win/
- * async.c`. The suite passed all sixty-four tests and then exited 127, which
- * would have turned a green run red on the platform this project is developed
- * on. One request with no pool outlives nothing.
+ * Not `fetch`, and that is not a style choice. Called from
+ * `global-teardown.ts`, `fetch` leaves undici's connection pool — a socket and
+ * its timer — alive into Playwright's own shutdown, and Node on Windows aborts
+ * with `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)` in
+ * `src/win/async.c`. The suite passed all sixty-four tests and then exited 127,
+ * which would have turned a green run red on the platform this project is
+ * developed on. One request with no pool outlives nothing.
  */
-export async function probeApi(): Promise<Probe> {
-  const { get } = await import("node:http");
+export async function get(url: string, timeoutMs = 30_000): Promise<Response | Error> {
+  const { get: httpGet } = await import("node:http");
 
-  const body = await new Promise<{ status: number; text: string } | Error>((resolve) => {
-    const req = get(`${API}/health`, { agent: false, timeout: 5_000 }, (res) => {
+  return new Promise<Response | Error>((resolve) => {
+    const req = httpGet(url, { agent: false, timeout: timeoutMs }, (res) => {
       let text = "";
       res.setEncoding("utf8");
       res.on("data", (chunk: string) => (text += chunk));
       res.on("end", () => resolve({ status: res.statusCode ?? 0, text }));
     });
-    req.on("timeout", () => {
-      req.destroy(new Error("timed out after 5s"));
-    });
+    req.on("timeout", () => req.destroy(new Error(`timed out after ${timeoutMs}ms`)));
     req.on("error", (error) => resolve(error));
   });
+}
 
-  if (body instanceof Error) {
-    return { ok: false, why: `${API}/health did not answer: ${body.message}` };
+export type Probe = { ok: true } | { ok: false; why: string };
+
+/** Whether the API is answering with a working database, and why not if not. */
+export async function probeApi(): Promise<Probe> {
+  const res = await get(`${API}/health`, 5_000);
+
+  if (res instanceof Error) {
+    return { ok: false, why: `${API}/health did not answer: ${res.message}` };
   }
-  if (body.status !== 200) {
-    return { ok: false, why: `GET ${API}/health answered ${body.status}` };
+  if (res.status !== 200) {
+    return { ok: false, why: `GET ${API}/health answered ${res.status}` };
   }
 
   let parsed: { dependencies?: { d1?: { ok?: boolean } } };
   try {
-    parsed = JSON.parse(body.text) as typeof parsed;
+    parsed = JSON.parse(res.text) as typeof parsed;
   } catch {
     return { ok: false, why: `${API}/health answered 200 with a body that is not JSON` };
   }

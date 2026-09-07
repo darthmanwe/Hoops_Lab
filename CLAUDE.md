@@ -144,9 +144,28 @@ process exits; wrangler logged nothing about its own death. That points away
 from an error wrangler raised and towards the process being killed, and the
 likeliest killer is memory — workerd, `next dev` compiling routes on demand,
 and Chromium, on a 7 GB runner. The job now prints `free -m` and greps `dmesg`
-for an OOM kill on failure, which will confirm or rule that out. If it is
-memory, serving the web app from `next build && next start` rather than
-`next dev` would remove the on-demand compilation spike.
+for an OOM kill on failure, which will confirm or rule that out.
+
+Acting on that hypothesis without waiting for it: `e2e/global-setup.ts` now
+requests every route once, sequentially, before Playwright launches a browser.
+`next dev` compiles a route the first time it is asked for, so the compiler used
+to run beside Chromium; warming moves the largest allocation in the job to a
+moment when nothing else is running, and costs a few seconds that were the first
+test's latency anyway.
+
+**Serving the web app from `next build && next start` instead would be worse,
+and the reason is worth keeping.** Next prerenders what it can at build time, so
+pages that fetch during render would have their data baked into the bundle. The
+suite would then pass against a build rather than against a running API — which
+destroys the one property this harness exists for, that a suite pointed at a
+dead API must fail. `next dev` re-renders per request, and that is why it stays.
+
+Warming also pins the suite to the fixture. Every page prints the snapshot id it
+was served, and `hoopslab fixture` writes `fixture01`, so `global-setup.ts` fails
+if no page reports it. Without that check a `NEXT_PUBLIC_API_BASE` resolving to
+the deployed Worker — the value sitting in the committed
+`apps/web/.env.production` — would have this suite quietly grade the live site
+and pass while testing nothing local.
 
 Two things deliberately not done about it. There are **no retries** — Playwright
 does not restart a `webServer` that died, so a retry would fail against the same
