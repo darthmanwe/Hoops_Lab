@@ -75,6 +75,25 @@ def quote(text: str) -> str:
 MAX_STATEMENT_BYTES = 50_000
 
 
+def row_sort_key(row: Sequence[Any]) -> tuple[tuple[int, float, str], ...]:
+    """A total order over a row of values.
+
+    Sorting the raw tuples is not enough: a nullable column raises TypeError the
+    moment a None meets a float. This sorts nulls first, numbers among
+    themselves numerically, and strings lexicographically -- so `rank` 2 still
+    precedes `rank` 10, which a stringified key would invert.
+    """
+    key: list[tuple[int, float, str]] = []
+    for value in row:
+        if value is None:
+            key.append((0, 0.0, ""))
+        elif isinstance(value, bool | int | float):
+            key.append((1, float(value), ""))
+        else:
+            key.append((2, 0.0, str(value)))
+    return tuple(key)
+
+
 def insert_many(
     table: str,
     columns: Sequence[str],
@@ -97,7 +116,17 @@ def insert_many(
     tests passed, and the artefact was only unusable at the point of loading a
     real database. A size cap on the generator is the fix; a bigger cap on the
     consumer is not available.
+
+    Rows are sorted before they are written, so the artefact is a function of
+    the data rather than of the run that produced it. Two runs of
+    `hoopslab fixture` against identical committed gold used to disagree:
+    `seasons` sorted on a non-unique key, and `player_comps` and
+    `player_shooting` inherited whatever order a polars `.unique()` or group-by
+    happened to return. Ordering here rather than in each caller is deliberate
+    — every emitted row passes through this function, and there are two `emit`
+    closures that would otherwise each have to remember.
     """
+    rows = sorted(rows, key=row_sort_key)
     statements: list[str] = []
     buffer: list[str] = []
     buffered_bytes = 0

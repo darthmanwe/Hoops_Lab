@@ -7,6 +7,7 @@ and it can still be impossible to execute. These tests are about executability.
 
 from __future__ import annotations
 
+import random
 import re
 from pathlib import Path
 
@@ -113,3 +114,45 @@ def test_every_sql_artefact_pins_its_line_endings() -> None:
         assert "newline=" in call, (
             f"writes an artefact without pinning the line ending: {call.strip()}"
         )
+
+
+def test_row_order_is_a_function_of_the_data_not_of_the_run() -> None:
+    """Two runs of the exporter must produce the same file.
+
+    They did not. `hoopslab fixture`, run twice against the same committed
+    gold, reordered `seasons`, `player_comps` and `player_shooting` — no value
+    differed, only which row came first. A committed artefact that its own
+    generator cannot reproduce is not reproducible, and the diff hides whatever
+    real change is buried in it.
+    """
+    rows = [
+        ["NBA_2015", "b", 2, 1.5],
+        ["NBA_2015", "a", 10, 0.5],
+        ["EL_2015", "a", 2, None],
+        ["NBA_2015", "a", 2, 0.5],
+    ]
+
+    # Any arrival order, one departure order. The seed only keeps the test
+    # itself reproducible; the assertion does not depend on which shuffle.
+    shuffled = random.Random(0).sample(rows, len(rows))
+
+    first = sorted(rows, key=sql.row_sort_key)
+    second = sorted(shuffled, key=sql.row_sort_key)
+
+    assert first == second
+
+
+def test_the_sort_key_orders_numbers_numerically() -> None:
+    """`rank` 2 before `rank` 10, which a stringified key would invert."""
+    rows = [["s", 10], ["s", 2], ["s", 1]]
+
+    assert [r[1] for r in sorted(rows, key=sql.row_sort_key)] == [1, 2, 10]
+
+
+def test_the_sort_key_survives_a_nullable_column() -> None:
+    """Sorting the raw tuples raises TypeError the moment None meets a float."""
+    rows = [["s", 1.0], ["s", None], ["s", 0.5]]
+
+    ordered = sorted(rows, key=sql.row_sort_key)
+
+    assert [r[1] for r in ordered] == [None, 0.5, 1.0]

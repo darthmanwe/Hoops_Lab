@@ -6,7 +6,11 @@ import numpy as np
 import polars as pl
 import pytest
 
-from hoopslab.models.archetypes import clr_transform, standardize_within_season
+from hoopslab.models.archetypes import (
+    clr_transform,
+    describe_clusters,
+    standardize_within_season,
+)
 from hoopslab.models.shooting import fit_beta_prior, shrink_three_point
 
 
@@ -206,3 +210,113 @@ class TestShrinkage:
         for column in ("fg3_pct_shrunk", "shrinkage_weight", "spacing_score"):
             values = result[column].to_numpy().astype(float)
             assert np.isfinite(values).all()
+
+
+def cluster_frame(rows: list[dict[str, object]]) -> pl.DataFrame:
+    """A feature frame shaped like `build_feature_frame` output.
+
+    Only the columns `describe_clusters` reads are varied; the rest are held
+    constant so the exemplar ordering is decided by minutes alone.
+    """
+    return pl.DataFrame(
+        [
+            {
+                "person_id": row["person_id"],
+                "season_id": row["season_id"],
+                "league": "NBA",
+                "season_order": 0,
+                "player_name": row["player_name"],
+                "minutes": row["minutes"],
+                "usg_pct": 0.2,
+                "ts_pct": 0.55,
+                "ast_pct": 0.15,
+                "tov_rate": 0.1,
+                "ast_per_75": 3.0,
+                "reb_per_75": 5.0,
+                "share_2pa": 0.5,
+                "share_3pa": 0.3,
+                "share_fta": 0.2,
+            }
+            for row in rows
+        ]
+    )
+
+
+def seasons_of(person: str, name: str, minutes: list[float]) -> list[dict[str, object]]:
+    return [
+        {
+            "person_id": person,
+            "player_name": name,
+            "season_id": f"NBA_{2000 + i}",
+            "minutes": m,
+        }
+        for i, m in enumerate(minutes)
+    ]
+
+
+class TestClusterExemplars:
+    """The frame is player-seasons, and an exemplar list is people.
+
+    Taking the top five rows by minutes took the top five *seasons*, and a
+    player who anchors a cluster tends to anchor it several years running.
+    Cluster 2 shipped as "Dwight Howard, Ben Wallace, Dwight Howard, Ben
+    Wallace" — five slots holding two people, which looks like a list of five.
+    """
+
+    def test_names_a_person_once_however_many_seasons_they_contribute(self) -> None:
+        rows = seasons_of("howard", "Dwight Howard", [3000.0, 2900.0, 2800.0]) + seasons_of(
+            "wallace", "Ben Wallace", [2700.0, 2600.0]
+        )
+        frame = cluster_frame(rows)
+
+        described = describe_clusters(frame, np.zeros(frame.height, dtype=int), {0: 0.5})
+
+        assert described["exemplars"].to_list() == ["Dwight Howard, Ben Wallace"]
+
+    def test_lists_only_as_many_people_as_the_cluster_has(self) -> None:
+        frame = cluster_frame(seasons_of("solo", "Solo Player", [3000.0, 2000.0, 1000.0]))
+
+        described = describe_clusters(frame, np.zeros(frame.height, dtype=int), {0: 0.5})
+
+        assert described["exemplars"].to_list() == ["Solo Player"]
+
+    def test_still_stops_at_five_when_more_people_qualify(self) -> None:
+        rows = [
+            season
+            for i in range(8)
+            for season in seasons_of(f"p{i}", f"Player {i}", [3000.0 - i * 100])
+        ]
+        frame = cluster_frame(rows)
+
+        described = describe_clusters(frame, np.zeros(frame.height, dtype=int), {0: 0.5})
+        exemplars = described["exemplars"][0].split(", ")
+
+        assert len(exemplars) == 5
+        assert len(set(exemplars)) == 5
+
+    def test_keeps_the_minutes_ranking_after_deduplicating(self) -> None:
+        # The biggest season survives for each person, and the people stay in
+        # order of it — a naive unique() would return them in arbitrary order.
+        rows = (
+            seasons_of("second", "Second Most", [2000.0, 1900.0])
+            + seasons_of("most", "Most Minutes", [3000.0, 100.0])
+            + seasons_of("third", "Third Most", [1500.0])
+        )
+        frame = cluster_frame(rows)
+
+        described = describe_clusters(frame, np.zeros(frame.height, dtype=int), {0: 0.5})
+
+        assert described["exemplars"].to_list() == ["Most Minutes, Second Most, Third Most"]
+
+    def test_two_people_sharing_a_name_are_two_exemplars(self) -> None:
+        # Deduplicating by name rather than person_id would collapse these into
+        # one, and the cohort spans twenty-five years of NBA and EuroLeague
+        # rosters, where a repeated name is ordinary.
+        rows = seasons_of("elder", "Glen Rice", [3000.0]) + seasons_of(
+            "younger", "Glen Rice", [2000.0]
+        )
+        frame = cluster_frame(rows)
+
+        described = describe_clusters(frame, np.zeros(frame.height, dtype=int), {0: 0.5})
+
+        assert described["exemplars"].to_list() == ["Glen Rice, Glen Rice"]

@@ -255,9 +255,23 @@ def describe_clusters(
         deviation = design[mask].mean(axis=0) - overall
         order = np.argsort(-np.abs(deviation))[:4]
 
+        # One row per person, not per player-season.
+        #
+        # The frame is player-seasons, so taking the top five by minutes took
+        # the top five *seasons* — and a player who anchors a cluster usually
+        # anchors it repeatedly. Cluster 2 rendered as "Dwight Howard, Ben
+        # Wallace, Dwight Howard, Ben Wallace": two players wearing five slots,
+        # which reads as a list of five and is not one.
+        #
+        # Deduplicating by `person_id` rather than by name follows ADR 2 and is
+        # not pedantry here: two different people sharing a name would collapse
+        # into one exemplar, and the cohort spans twenty-five years of it.
+        # `maintain_order` keeps the minutes ranking, so the survivor of each
+        # person is their biggest season.
         exemplars = (
             labelled.filter(pl.col("cluster") == cluster)
             .sort("minutes", descending=True)
+            .unique(subset=["person_id"], keep="first", maintain_order=True)
             .head(5)["player_name"]
             .to_list()
         )

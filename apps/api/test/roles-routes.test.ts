@@ -25,6 +25,32 @@ describe("GET /archetypes", () => {
   });
 
   /**
+   * The exemplar list is people, and the frame behind it is player-seasons.
+   *
+   * Taking the top five rows by minutes took the top five *seasons*, and a
+   * player who anchors a cluster tends to anchor it for years. Cluster 2
+   * shipped to production as "Dwight Howard, Ben Wallace, Dwight Howard,
+   * Dwight Howard, Ben Wallace" - five slots holding two people, rendered as a
+   * list of five in the interface.
+   *
+   * Asserted here, at the serving boundary, as well as in the Python unit
+   * test. The unit test proves the function no longer repeats; this proves the
+   * data that reached the database does not, which is a different claim and
+   * the one a reader of the page depends on.
+   */
+  it("never names the same player twice in one cluster", async () => {
+    const { body } = await get("/archetypes");
+    const rows = (body as never as { data: { cluster: number; exemplars: string }[] }).data;
+
+    for (const row of rows) {
+      const names = row.exemplars.split(", ").filter(Boolean);
+      expect(new Set(names).size, `cluster ${row.cluster} repeats a name: ${row.exemplars}`).toBe(
+        names.length
+      );
+    }
+  });
+
+  /**
    * Stability travels with the label. A clustering presented as five named
    * types, without saying that one of them barely survives resampling, claims
    * a crispness the method does not have.
