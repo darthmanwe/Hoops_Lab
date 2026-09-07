@@ -713,11 +713,24 @@ on every push would make the deploy the thing that breaks the deploy, so the
 workflow compares the committed snapshot id against the one `/health` reports
 and only seeds when they differ.
 
-`DATA_SNAPSHOT` prefixes every cache key, so deploying with a stale value serves
-the previous snapshot from KV until the TTL runs out — a response that is wrong
-and says so only in `meta.snapshot`, to whoever is reading it. `hoopslab
-snapshot` prints the id derived from the committed data, and a test asserts
+`DATA_SNAPSHOT` is the value `/health` reports, and the workflow reads it back
+from there to decide whether the data moved. A stale one is wrong in both
+directions: too old and the deploy re-seeds when it need not, spending the
+~159,000 billed writes described above; advanced without a matching seed and it
+skips a re-seed it needed, leaving new code on old data. `hoopslab snapshot`
+prints the id derived from the committed data, and a test asserts
 `wrangler.toml` deploys that value.
+
+Responses do not depend on it. `meta.snapshot` is read from the database, so it
+reports what was actually loaded — which means `/health` and `meta.snapshot`
+disagreeing is precisely how a mismatch announces itself.
+
+_This paragraph used to say the variable prefixed every cache key, and that a
+stale value served the previous snapshot out of KV until its TTL expired. There
+is no such cache. The KV namespace is bound and probed by `/health`, and nothing
+in the Worker has ever written to it. It is recorded here rather than quietly
+deleted, because a README that catalogues four claims the repository did not
+honour should not silently retire a fifth._
 
 **The smoke test greps for content, not status codes.** The workers.dev loopback
 that broke the first web deploy returned HTTP 200 on every page: a Worker cannot

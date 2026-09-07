@@ -126,7 +126,7 @@
               "string",
               "null"
             ],
-            "description": "The snapshot this deployment serves. Every cache key is prefixed with it."
+            "description": "The snapshot this deployment is configured to serve. Compare it with `meta.snapshot` on any other response, which is read from the database: the two disagreeing means a deploy shipped an id its data does not match."
           },
           "environment": {
             "type": "string"
@@ -292,7 +292,7 @@
               "string",
               "null"
             ],
-            "description": "The data snapshot every number in this response came from. Also prefixes the cache key, so a stale response identifies itself.",
+            "description": "The data snapshot every number in this response came from, read from the database rather than from configuration — so it reports what was loaded, not what someone set.",
             "example": "ee6b530f0aa0"
           },
           "generated_at": {

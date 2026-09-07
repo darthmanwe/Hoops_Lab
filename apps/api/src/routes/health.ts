@@ -25,9 +25,15 @@ const HealthSchema = z
   .object({
     status: z.enum(["ok", "degraded"]),
     service: z.literal("hoopslab-api"),
-    data_snapshot: z.string().nullable().openapi({
-      description: "The snapshot this deployment serves. Every cache key is prefixed with it.",
-    }),
+    data_snapshot: z
+      .string()
+      .nullable()
+      .openapi({
+        description:
+          "The snapshot this deployment is configured to serve. Compare it with " +
+          "`meta.snapshot` on any other response, which is read from the database: " +
+          "the two disagreeing means a deploy shipped an id its data does not match.",
+      }),
     environment: z.string(),
     dependencies: z.object({ d1: DependencySchema, kv: DependencySchema }),
     checked_at: z.iso.datetime(),

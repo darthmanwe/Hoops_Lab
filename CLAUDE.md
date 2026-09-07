@@ -57,11 +57,22 @@ without it a fresh clone's deploy silently ships a site pointing at 127.0.0.1.
 `.open-next`, so a script that cleans and then deploys deploys nothing. The
 root `deploy:web` runs `build:cf` between the two.
 
-**`DATA_SNAPSHOT` must match the seed that was actually loaded.** It prefixes
-every cache key, so a stale value serves the previous snapshot's rows out of KV
-until the TTL expires. The response says which snapshot it came from, in
-`meta.snapshot` — but only to someone reading it. It lives in
-`apps/api/wrangler.toml` under `[env.production]`.
+**`DATA_SNAPSHOT` must match the seed that was actually loaded.** It is what
+`/health` reports, and `deploy.yml` reads it back from there to decide whether
+to re-seed. Stale, and the deploy re-seeds needlessly — ~159,000 billed row
+writes against a 100,000/day allowance. Advanced without a matching seed, and it
+skips a re-seed that was needed. It lives in `apps/api/wrangler.toml` under
+`[env.production]`, and `hoopslab snapshot` prints the value it should hold.
+
+`meta.snapshot` on a response is read from the `data_snapshots` table, not from
+this variable, so the two disagreeing is how a mismatch shows itself.
+
+**There is no response cache, whatever the older comments said.** `apps/api`
+binds a KV namespace, `/health` probes it with a key nothing writes, and that is
+the entire use. Anything claiming a snapshot-prefixed cache key, a TTL, or KV
+staleness is describing something that was never built — corrected in the
+README, `wrangler.toml` and `lib/snapshot.ts`, but worth knowing before you go
+looking for a purge step that does not exist.
 
 ### Databases
 

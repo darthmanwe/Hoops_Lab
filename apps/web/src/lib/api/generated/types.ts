@@ -1476,7 +1476,7 @@ export interface components {
             status: "ok" | "degraded";
             /** @enum {string} */
             service: "hoopslab-api";
-            /** @description The snapshot this deployment serves. Every cache key is prefixed with it. */
+            /** @description The snapshot this deployment is configured to serve. Compare it with `meta.snapshot` on any other response, which is read from the database: the two disagreeing means a deploy shipped an id its data does not match. */
             data_snapshot: string | null;
             environment: string;
             dependencies: {
@@ -1519,7 +1519,7 @@ export interface components {
             /** @example a3236f384d2ddfdb */
             request_id: string;
             /**
-             * @description The data snapshot every number in this response came from. Also prefixes the cache key, so a stale response identifies itself.
+             * @description The data snapshot every number in this response came from, read from the database rather than from configuration — so it reports what was loaded, not what someone set.
              * @example ee6b530f0aa0
              */
             snapshot: string | null;

@@ -24,8 +24,9 @@ export const MetaSchema = z
       .nullable()
       .openapi({
         description:
-          "The data snapshot every number in this response came from. Also " +
-          "prefixes the cache key, so a stale response identifies itself.",
+          "The data snapshot every number in this response came from, read " +
+          "from the database rather than from configuration — so it reports " +
+          "what was loaded, not what someone set.",
         example: "ee6b530f0aa0",
       }),
     generated_at: z.iso.datetime(),
