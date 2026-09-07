@@ -12,9 +12,22 @@ updates:
       cloudflare:
         patterns: ["wrangler", "@cloudflare/*", "hono"]
       tooling:
-        patterns: ["eslint*", "@eslint/*", "typescript-eslint", "prettier", "vitest", "typescript"]
+        patterns: ["eslint*", "@eslint/*", "typescript-eslint", "prettier", "vitest"]
       web:
         patterns: ["next", "react", "react-dom", "@types/react*", "tailwindcss", "@tailwindcss/*"]
+    ignore:
+      # TypeScript is deliberately outside the `tooling` group above. Grouped
+      # with it, a compiler major drags three unrelated safe bumps into a pull
+      # request that cannot merge - which is what happened: eslint,
+      # typescript-eslint and vitest sat behind TypeScript 7 for weeks.
+      #
+      # And TypeScript 7 does not work here yet. `tsc --noEmit` is clean under
+      # it and the Worker suite passes, but typescript-eslint refuses to load
+      # at all - "typescript-eslint does not support TS 7.0" - so `npm run lint`
+      # cannot run. Tracking: typescript-eslint#10940. Drop this entry once
+      # that lands; the bump itself is otherwise ready.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: uv
     directory: /services/ml
@@ -24,6 +37,15 @@ updates:
     groups:
       python-tooling:
         patterns: ["ruff", "mypy", "pytest*", "types-*"]
+    ignore:
+      # pandas is used only at the ingest boundary, and ingestion cannot run in
+      # CI: stats.nba.com refuses datacenter IP ranges and GitHub's runners are
+      # hosted on Azure. A major bump there would be an unverifiable change to
+      # the one code path no gate can exercise, so it is declined until someone
+      # runs ingestion locally against it and says otherwise. The `<3` bound in
+      # pyproject.toml says the same thing.
+      - dependency-name: pandas
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /

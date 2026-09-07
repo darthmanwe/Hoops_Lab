@@ -200,6 +200,16 @@ picks the wrong config and fails on `cloudflare:test` — use `npm test`. `mypy`
 with an explicit path bypasses `[tool.mypy]` — use `npm run ml:type`, or
 `cd services/ml && uv run mypy`.
 
+**Two dependency bumps are declined on purpose**, both recorded in
+`.github/dependabot.yml` next to the `ignore` entry that blocks them.
+_TypeScript 7_ passes `tsc --noEmit` and the Worker suite, but typescript-eslint
+refuses to load under it — "typescript-eslint does not support TS 7.0" — so
+`npm run lint` cannot run at all; drop the ignore once typescript-eslint#10940
+lands. _pandas 3_ is declined because pandas is used only at the ingest
+boundary, and ingestion cannot run in CI, so a major there is an unverifiable
+change to the one path no gate exercises. Don't re-run either experiment
+without reading those comments first.
+
 **Heredocs mangle backslashes here.** Git Bash on this machine strips one level
 inside `<<'PY'`, so `"\\n"` arrives as a real newline. Avoid backslashes in
 heredoc'd Python, or use the Edit tool.
