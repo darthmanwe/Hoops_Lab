@@ -60,7 +60,7 @@ dependencies = [
     # would be billed are gated, and those are gated by a flag, not by an
     # import. Bounded below 1.0 because the SDK is pre-1.0 and
     # `messages.parse` is a beta-adjacent surface that has moved before.
-    "anthropic>=0.69,<1",
+    "anthropic>=0.69,<2",
 ]
 
 [project.optional-dependencies]
