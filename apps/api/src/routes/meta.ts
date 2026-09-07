@@ -55,8 +55,17 @@ metaRoute.openapi(
       },
     },
   }),
-  (c) =>
-    c.json({
+  (c) => {
+    // `satisfies` rather than a bare object literal, and it is load-bearing
+    // under @hono/zod-openapi 1.6. The schema declares `service` and `status`
+    // as literals and `endpoints` as one shape with optional fields; an
+    // unannotated literal widens `"hoopslab-api"` to `string` and infers the
+    // three branches below as a union of three distinct shapes, neither of
+    // which is assignable to what the route promises. `satisfies` supplies the
+    // contextual type that stops the widening while still checking the value
+    // against the schema, so a field added here without being added to
+    // `ListingSchema` is still an error.
+    const body = {
       service: "hoopslab-api",
       status: "live",
       summary:
@@ -96,5 +105,8 @@ metaRoute.openapi(
         }
       }),
       roadmap: "https://github.com/darthmanwe/Hoops_Lab#roadmap",
-    })
+    } satisfies z.infer<typeof ListingSchema>;
+
+    return c.json(body);
+  }
 );

@@ -29,7 +29,7 @@ dependencies = [
     # Bounded below 1.0 because typer is still pre-1.0 and has changed its
     # annotation handling across minors.
     "typer>=0.15,<1",
-    "rich>=13,<15",
+    "rich>=13,<16",
     # v1 and v2 are different libraries; everything here uses the v2 API.
     "pydantic>=2.7,<3",
     "pydantic-settings>=2.2,<3",
@@ -43,9 +43,6 @@ dependencies = [
     # Only at the ingest boundary: nba_api and euroleague-api both hand back
     # pandas, and converting at the edge is cheaper than fighting them.
     "pandas>=2.1,<3",
-    # Data contracts. Still pre-1.0 and the DataFrameModel API moves between
-    # minors, so the range is deliberately narrow.
-    "pandera>=0.20,<0.30",
     "httpx>=0.27,<1",
     "tenacity>=8.2,<10",
     # numpy 2 changed the C ABI that scipy, statsmodels and pyarrow compile
