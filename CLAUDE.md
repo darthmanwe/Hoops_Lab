@@ -123,57 +123,37 @@ explanation card rather than an error — so a suite pointed at a dead API gets
 HTTP 200 and a complete-looking page on every route and passes while proving
 nothing. Each spec asserts on content only a real response produces.
 
-**If the e2e job fails, check whether the API Worker was still alive.** Twice —
-4 Sep and 7 Sep 2026 — `wrangler dev` came up, passed the health check
-Playwright waits on, then exited mid-run printing an empty `✘ [ERROR]`. Every
-test after that failed on missing page content, so the report described
-sixty-four broken pages and nothing described the one dead process behind them.
-`e2e/global-teardown.ts` now says so in one line, the job prints the Worker's
-own log on failure and uploads it as `wrangler-logs`, and the job runs with
-`WRANGLER_LOG=debug` so that log has something in it.
+**The e2e flake is fixed, and the cause is worth knowing.** Three times — 4 Sep,
+and twice on 7 Sep — `wrangler dev` came up, passed the health check Playwright
+waits on, then exited mid-run printing an empty `✘ [ERROR]`. Every test after
+that failed on missing page content, so the report described sixty-four broken
+pages and nothing described the one dead process behind them.
 
-It has since happened a third time, on Dependabot PR #1 — a bump to
-`astral-sh/setup-uv`, which the e2e job does not use at all, so the failure
-could not have come from the change under test. That is the shape to watch for:
-without the teardown line the obvious reading is "this PR broke the browser
-tests", and a valid dependency bump gets closed.
+It is [workers-sdk#15317](https://github.com/cloudflare/workers-sdk/issues/15317),
+fixed in **wrangler 4.129.1**. Two defects: `ProxyWorker` serialises an error as
+a plain object because an `Error` cannot cross the worker boundary, and
+`castErrorCause` then rebuilds it as an `Error` with an empty message — which is
+the blank line in the log. Separately, `DevEnv.handleErrorEvent` exempts some
+transient ProxyController errors from being fatal, and "Error inside ProxyWorker"
+was not on that list, so one dropped connection killed the server. The changelog
+describes the trigger as "a request arriving just as an idle internal connection
+was closed, after roughly five seconds without traffic" — which is exactly the
+gap while `next dev` boots. 4.129.1 retries safe requests and keeps serving.
 
-What the captured log shows is mostly what it does not. On every occurrence the
-last entry is a routine inspector heartbeat two or three seconds before the
-process exits; wrangler logged nothing about its own death. That points away
-from an error wrangler raised and towards the process being killed, and the
-likeliest killer is memory — workerd, `next dev` compiling routes on demand,
-and Chromium, on a 7 GB runner. The job now prints `free -m` and greps `dmesg`
-for an OOM kill on failure, which will confirm or rule that out.
+**So do not let wrangler fall below 4.129.1.** `apps/api/test/wrangler-floor.test.ts`
+asserts it, because the symptom is a suite that fails everywhere except where the
+problem is.
 
-Acting on that hypothesis without waiting for it: `e2e/global-setup.ts` now
-requests every route once, sequentially, before Playwright launches a browser.
-`next dev` compiles a route the first time it is asked for, so the compiler used
-to run beside Chromium; warming moves the largest allocation in the job to a
-moment when nothing else is running, and costs a few seconds that were the first
-test's latency anyway.
+Two things kept from before the cause was known, both still worth having.
+`e2e/global-setup.ts` warms every route before the browser starts — it moves
+`next dev`'s compile off the critical path and keeps the API from idling during
+boot. And there are **no retries**: a retry could not have helped a dead server,
+and now that the server survives, a retry would only hide a real regression.
 
-**Serving the web app from `next build && next start` instead would be worse,
-and the reason is worth keeping.** Next prerenders what it can at build time, so
-pages that fetch during render would have their data baked into the bundle. The
-suite would then pass against a build rather than against a running API — which
-destroys the one property this harness exists for, that a suite pointed at a
-dead API must fail. `next dev` re-renders per request, and that is why it stays.
-
-Warming also pins the suite to the fixture. Every page prints the snapshot id it
-was served, and `hoopslab fixture` writes `fixture01`, so `global-setup.ts` fails
-if no page reports it. Without that check a `NEXT_PUBLIC_API_BASE` resolving to
-the deployed Worker — the value sitting in the committed
-`apps/web/.env.production` — would have this suite quietly grade the live site
-and pass while testing nothing local.
-
-Two things deliberately not done about it. There are **no retries** — Playwright
-does not restart a `webServer` that died, so a retry would fail against the same
-dead process while turning real regressions into flakes that pass on the second
-attempt. And the suite runs **one worker in CI**, where it used to run two: the
-config's own note says parallel workers against a single miniflare D1 file
-produced flaky reads, and that reason does not stop applying on a runner. The
-suite takes about forty seconds either way.
+The suite also runs **one worker in CI**, where it used to run two. That is
+unrelated to the crash — the third occurrence had one worker — and it stands on
+the config's own note that parallel workers against a single miniflare D1 file
+produced flaky reads rather than faster runs.
 
 `e2e/servers.ts` probes with `node:http` rather than `fetch`, and that is not a
 style choice. Called from `globalTeardown`, `fetch` leaves undici's pool alive
@@ -210,15 +190,26 @@ picks the wrong config and fails on `cloudflare:test` — use `npm test`. `mypy`
 with an explicit path bypasses `[tool.mypy]` — use `npm run ml:type`, or
 `cd services/ml && uv run mypy`.
 
-**Two dependency bumps are declined on purpose**, both recorded in
+**Three dependency bumps are declined on purpose**, both recorded in
 `.github/dependabot.yml` next to the `ignore` entry that blocks them.
 _TypeScript 7_ passes `tsc --noEmit` and the Worker suite, but typescript-eslint
 refuses to load under it — "typescript-eslint does not support TS 7.0" — so
 `npm run lint` cannot run at all; drop the ignore once typescript-eslint#10940
 lands. _pandas 3_ is declined because pandas is used only at the ingest
 boundary, and ingestion cannot run in CI, so a major there is an unverifiable
-change to the one path no gate exercises. Don't re-run either experiment
-without reading those comments first.
+change to the one path no gate exercises. _vitest 5_ cannot be installed at
+all: `@cloudflare/vitest-pool-workers@0.22.0` — the latest — declares
+`vitest: ^4.1.0` as a peer, and that package is how the Worker suite runs inside
+workerd. Don't re-run any of the three experiments without reading those
+comments first.
+
+**Root scripts use the root's wrangler, and that used to be nobody's wrangler.**
+`deploy:api`, `db:migrate`, `db:load` and their `:prod` pairs all invoke a bare
+`wrangler` from the repository root, which resolved to a copy hoisted from
+`@cloudflare/vitest-pool-workers` — a test-only dependency that pins an exact,
+older version. Production deploys were running a wrangler nothing declared.
+It is now a root devDependency as well as an app one, and
+`test_wrangler_floor.py` checks all three manifests.
 
 **Heredocs mangle backslashes here.** Git Bash on this machine strips one level
 inside `<<'PY'`, so `"\\n"` arrives as a real newline. Avoid backslashes in

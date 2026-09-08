@@ -113,8 +113,9 @@ class ExportResult:
 def snapshot_id(paths: DataPaths) -> str:
     """Identifier derived from the committed contract hashes.
 
-    Deterministic on the data rather than on the clock, so rebuilding
-    unchanged data yields the same id and every cache key stays valid.
+    Deterministic on the data rather than on the clock, so rebuilding unchanged
+    data yields the same id — which is what lets `deploy.yml` compare it against
+    what production reports and skip a re-seed that would change nothing.
     """
     digest = hashlib.sha256()
     for sidecar in sorted(paths.contracts.glob("*.json")):

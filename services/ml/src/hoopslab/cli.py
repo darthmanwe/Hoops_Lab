@@ -311,13 +311,12 @@ def snapshot() -> None:
     """Print the id of the committed data, and nothing else.
 
     Derived from the contract hashes, so it is a property of the data rather
-    than of the clock: rebuilding unchanged gold yields the same id and every
-    cache key stays valid.
+    than of the clock: rebuilding unchanged gold yields the same id.
 
-    Bare stdout because the consumer is a shell. ``DATA_SNAPSHOT`` prefixes
-    every cache key the Worker writes, so deploying with a stale value serves
-    the previous snapshot's rows out of KV until the TTL expires — and until
-    now the only thing keeping it correct was whoever remembered to edit
+    Bare stdout because the consumer is a shell — ``deploy.yml`` captures this
+    into a variable and compares it against what ``/health`` reports, which is
+    how it decides whether D1 needs re-seeding at all. Until this existed, the
+    only thing keeping that value correct was whoever remembered to edit
     wrangler.toml by hand.
     """
     from hoopslab.serve.d1_export import snapshot_id

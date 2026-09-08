@@ -28,6 +28,12 @@ updates:
       # that lands; the bump itself is otherwise ready.
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
+      # vitest majors are gated by @cloudflare/vitest-pool-workers, which is how
+      # the Worker suite runs inside workerd at all. 0.22.0 - the latest - declares
+      # `vitest: ^4.1.0` as a peer, so vitest 5 cannot be installed alongside it.
+      # Drop this when pool-workers ships a release that accepts 5.
+      - dependency-name: vitest
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: uv
     directory: /services/ml

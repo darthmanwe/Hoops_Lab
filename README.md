@@ -11,7 +11,7 @@ footnote.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
-![Tests](https://img.shields.io/badge/tests-420%20offline-199e70)
+![Tests](https://img.shields.io/badge/tests-423%20offline-199e70)
 [![Live demo](https://img.shields.io/badge/demo-live-d95926)](https://hoopslab-web.kutlumizrak.workers.dev)
 
 **[hoopslab-web.kutlumizrak.workers.dev](https://hoopslab-web.kutlumizrak.workers.dev)** —
@@ -163,7 +163,7 @@ _The model's own report card. It leads with the metric it fails at._
 | LLM layer  | Anthropic SDK, Pydantic structured outputs              | Groundedness has to be checkable, so retrieval is a fixed `SELECT` and citations are enforced by the schema rather than requested in a prompt                                    |
 | Evaluation | pytest, hypothesis, vitest inside workerd, Playwright   | Leakage assertions run **inside** the CV loop at runtime, not in a test that could pass while the splitter changed                                                               |
 
-420 tests, all offline and credential-free, plus 64 browser tests that scan
+423 tests, all offline and credential-free, plus 64 browser tests that scan
 every page with axe and measure the contrast of every rendered text style in
 both colour schemes. CI runs Ubuntu and Windows across Node 22/24 and Python
 3.11–3.13, refits every model on each push to prove the numbers here still
@@ -624,7 +624,7 @@ cd Hoops_Lab && npm ci
 
 ```bash
 npm run test                     # 142 Worker tests, inside workerd, real D1 + KV
-npm run ml:test                  # 278 Python tests, offline, no credentials
+npm run ml:test                  # 281 Python tests, offline, no credentials
 
 npm run ml -- verify             # re-derives every data checksum
 npm run ml -- train --verify     # refits the models; fails if a reported metric moved

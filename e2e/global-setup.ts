@@ -22,11 +22,16 @@ import { API, FIXTURE_SNAPSHOT, WEB, get, probeApi } from "./servers";
  *
  * **The routes are compiled.** `next dev` compiles a route the first time it is
  * requested, so under the old arrangement the compiler ran while Chromium was
- * already up. The API Worker has died mid-run three times on CI, killed with no
- * error of its own on a 7 GB runner, and a compile spike beside a browser is
- * the largest thing in that box. Warming here moves the spike to a moment when
- * nothing else is running, and costs a few seconds of what would have been the
- * first test's latency anyway.
+ * already up. Warming moves that to a moment when nothing else is running, and
+ * costs a few seconds of what would have been the first test's latency anyway.
+ *
+ * It also keeps the API busy while the web server boots, which turns out to
+ * matter for a reason discovered later. `wrangler dev` before 4.129.1 would
+ * take the whole server down with an empty error when a request arrived just
+ * as an idle internal connection was closed — roughly five seconds without
+ * traffic was enough — and the thirty seconds the web app spends starting up
+ * is exactly such a gap. The wrangler fix is the real one; this shrinks the
+ * window as well.
  */
 export default async function globalSetup(): Promise<void> {
   const probe = await probeApi();

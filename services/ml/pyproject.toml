@@ -59,8 +59,11 @@ dependencies = [
     # cache are all part of the package's tested surface; only the calls that
     # would be billed are gated, and those are gated by a flag, not by an
     # import. Bounded below 1.0 because the SDK is pre-1.0 and
-    # `messages.parse` is a beta-adjacent surface that has moved before.
-    "anthropic>=0.69,<1",
+    # `messages.parse` is a beta-adjacent surface that has moved before. The SDK
+    # reached 1.0, so the floor moves with it: 1.x is the stability promise the
+    # old bound was waiting for, and pinning below it now would hold the package
+    # at a pre-release line.
+    "anthropic>=1,<2",
 ]
 
 [project.optional-dependencies]

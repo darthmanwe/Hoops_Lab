@@ -1,11 +1,15 @@
 """The deployed snapshot id must be the committed data's snapshot id.
 
-``DATA_SNAPSHOT`` prefixes every cache key the Worker writes. That is what makes
-a re-seed safe without a purge API — new data means a new id, which means the
-old keys are never asked for again — and it is also what makes a wrong value
-quietly harmful: the Worker keeps serving the previous snapshot's rows out of KV
-until the TTL expires, and says so only in ``meta.snapshot``, to whoever is
-reading it.
+``DATA_SNAPSHOT`` is what ``/health`` reports, and ``deploy.yml`` reads it back
+from there to decide whether the data moved and D1 needs re-seeding. A wrong
+value is harmful in both directions: too old and the deploy spends ~159,000
+billed row writes it did not need, advanced without a matching seed and it skips
+one it did. Responses do not depend on it — ``meta.snapshot`` is read from the
+``data_snapshots`` table — so the two disagreeing is how a mismatch shows itself.
+
+This docstring used to say the value "prefixes every cache key the Worker
+writes". It does not; there is no such cache. That claim lived in six other
+places and was corrected in dcc6b2a, and this file was missed.
 
 The value lives in ``apps/api/wrangler.toml`` and was maintained by hand. It
 started as the empty string, which namespaced the entire cache under a prefix
