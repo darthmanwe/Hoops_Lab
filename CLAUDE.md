@@ -190,6 +190,14 @@ picks the wrong config and fails on `cloudflare:test` — use `npm test`. `mypy`
 with an explicit path bypasses `[tool.mypy]` — use `npm run ml:type`, or
 `cd services/ml && uv run mypy`.
 
+mypy finds `[tool.mypy]` from the working directory, not from `--project`, and
+that block is the only place the package to check is named. `ml:type` therefore
+runs `uv run --directory services/ml`, not `--project`: with `--project` it
+resolved no config, found no target, printed a usage message and exited 0, so
+the command documented in `CONTRIBUTING.md` and the PR template type-checked
+nothing while appearing to pass. CI never noticed because its step sets
+`working-directory: services/ml` and does not go through the npm script.
+
 **Three dependency bumps are declined on purpose**, both recorded in
 `.github/dependabot.yml` next to the `ignore` entry that blocks them.
 _TypeScript 7_ passes `tsc --noEmit` and the Worker suite, but typescript-eslint
