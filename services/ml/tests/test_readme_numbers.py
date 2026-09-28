@@ -210,3 +210,74 @@ def test_a_phase_is_only_done_if_its_artifact_exists(repo: Path, prose: dict[str
             f"phase {phase} is marked done, but {artifact} does not exist — "
             f"that row claims {description}"
         )
+
+
+#: Spelled out because the README spells it out. A count written as a word is
+#: the kind of figure nothing greps for, which is why it goes stale quietly.
+COUNT_WORDS = {
+    1: "one",
+    2: "two",
+    3: "three",
+    4: "four",
+    5: "five",
+    6: "six",
+    7: "seven",
+    8: "eight",
+    9: "nine",
+    10: "ten",
+    11: "eleven",
+    12: "twelve",
+    13: "thirteen",
+    14: "fourteen",
+    15: "fifteen",
+    16: "sixteen",
+    17: "seventeen",
+    18: "eighteen",
+    19: "nineteen",
+    20: "twenty",
+}
+
+
+def test_the_decision_record_table_and_the_directory_agree(
+    repo: Path, prose: dict[str, str]
+) -> None:
+    """Both directions, for the reason ADR 9 exists.
+
+    The registry drift check stayed green for months while asserting only that
+    every declared endpoint had a handler, never that every handler was
+    declared — and the drift that existed was in the direction nobody looked.
+    The same shape applies here. A README that links eight ADRs while ten are
+    on disk is a front page that has quietly stopped describing the project,
+    and a table row pointing at a file that was renamed is a dead link on the
+    document most readers start from.
+
+    ADR 9 and 10 were written months after the decisions they record shipped.
+    That gap is what this test is here to stop happening again.
+    """
+    readme = prose["README.md"]
+
+    linked = set(re.findall(r"\(docs/adr/(\d{4}-[a-z0-9-]+\.md)\)", readme))
+    on_disk = {path.name for path in (repo / "docs" / "adr").glob("[0-9]*.md")}
+
+    assert linked - on_disk == set(), (
+        f"the README links decision records that are not on disk: {sorted(linked - on_disk)}"
+    )
+    assert on_disk - linked == set(), (
+        "these decision records exist but the README's table does not list them — "
+        f"the direction nobody looks: {sorted(on_disk - linked)}"
+    )
+
+
+def test_the_decision_count_matches_the_table(repo: Path, prose: dict[str, str]) -> None:
+    """The prose count, which is written as a word and so is never grepped."""
+    readme = prose["README.md"]
+    total = len(list((repo / "docs" / "adr").glob("[0-9]*.md")))
+
+    claimed = re.search(r"^The ([a-z]+) decisions that shaped the rest", readme, re.MULTILINE)
+    assert claimed, "the README no longer introduces its decision records with a count"
+
+    expected = COUNT_WORDS.get(total)
+    assert expected is not None, f"{total} decision records, beyond what this test spells"
+    assert claimed.group(1) == expected, (
+        f"the README claims {claimed.group(1)} decision records; docs/adr holds {total}"
+    )

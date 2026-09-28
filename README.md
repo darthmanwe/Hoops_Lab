@@ -11,7 +11,7 @@ footnote.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.11--3.13-3987e5)
 ![TypeScript](https://img.shields.io/badge/typescript-5.9-3987e5)
-![Tests](https://img.shields.io/badge/tests-423%20offline-199e70)
+![Tests](https://img.shields.io/badge/tests-425%20offline-199e70)
 [![Live demo](https://img.shields.io/badge/demo-live-d95926)](https://hoopslab-web.kutlumizrak.workers.dev)
 
 **[hoopslab-web.kutlumizrak.workers.dev](https://hoopslab-web.kutlumizrak.workers.dev)** —
@@ -163,7 +163,7 @@ _The model's own report card. It leads with the metric it fails at._
 | LLM layer  | Anthropic SDK, Pydantic structured outputs              | Groundedness has to be checkable, so retrieval is a fixed `SELECT` and citations are enforced by the schema rather than requested in a prompt                                    |
 | Evaluation | pytest, hypothesis, vitest inside workerd, Playwright   | Leakage assertions run **inside** the CV loop at runtime, not in a test that could pass while the splitter changed                                                               |
 
-423 tests, all offline and credential-free, plus 64 browser tests that scan
+425 tests, all offline and credential-free, plus 64 browser tests that scan
 every page with axe and measure the contrast of every rendered text style in
 both colour schemes. CI runs Ubuntu and Windows across Node 22/24 and Python
 3.11–3.13, refits every model on each push to prove the numbers here still
@@ -624,7 +624,7 @@ cd Hoops_Lab && npm ci
 
 ```bash
 npm run test                     # 142 Worker tests, inside workerd, real D1 + KV
-npm run ml:test                  # 281 Python tests, offline, no credentials
+npm run ml:test                  # 283 Python tests, offline, no credentials
 
 npm run ml -- verify             # re-derives every data checksum
 npm run ml -- train --verify     # refits the models; fails if a reported metric moved
@@ -839,19 +839,21 @@ Filled in with measured numbers as each phase lands. What can be said already:
 
 ## Decision records
 
-The eight decisions that shaped the rest, each with the constraint that forced
+The ten decisions that shaped the rest, each with the constraint that forced
 it:
 
-| ADR                                             | Decision                                                                            |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------- |
-| [1](docs/adr/0001-serve-precomputed-columns.md) | The Worker serves precomputed columns and does no arithmetic                        |
-| [2](docs/adr/0002-person-centric-identity.md)   | Identity is person-centric, not league-scoped                                       |
-| [3](docs/adr/0003-commit-gold-parquet.md)       | Gold parquet is committed to the repository                                         |
-| [4](docs/adr/0004-two-stage-translation.md)     | The translation model is fitted in two stages, and estimates a conditional quantity |
-| [5](docs/adr/0005-report-what-does-not-work.md) | Metrics that fail are served, not removed                                           |
-| [6](docs/adr/0006-grounded-not-agentic.md)      | The scouting report is single-turn and grounded, not an agent                       |
-| [7](docs/adr/0007-two-detectors.md)             | Groundedness is measured by two detectors, and neither is reported alone            |
-| [8](docs/adr/0008-silent-drops-fail-loudly.md)  | Rows dropped by a filter must be counted, not discovered                            |
+| ADR                                                  | Decision                                                                            |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [1](docs/adr/0001-serve-precomputed-columns.md)      | The Worker serves precomputed columns and does no arithmetic                        |
+| [2](docs/adr/0002-person-centric-identity.md)        | Identity is person-centric, not league-scoped                                       |
+| [3](docs/adr/0003-commit-gold-parquet.md)            | Gold parquet is committed to the repository                                         |
+| [4](docs/adr/0004-two-stage-translation.md)          | The translation model is fitted in two stages, and estimates a conditional quantity |
+| [5](docs/adr/0005-report-what-does-not-work.md)      | Metrics that fail are served, not removed                                           |
+| [6](docs/adr/0006-grounded-not-agentic.md)           | The scouting report is single-turn and grounded, not an agent                       |
+| [7](docs/adr/0007-two-detectors.md)                  | Groundedness is measured by two detectors, and neither is reported alone            |
+| [8](docs/adr/0008-silent-drops-fail-loudly.md)       | Rows dropped by a filter must be counted, not discovered                            |
+| [9](docs/adr/0009-generated-serving-contract.md)     | The serving contract is generated from the app, not written alongside it            |
+| [10](docs/adr/0010-contrast-measured-not-sampled.md) | The interface is checked in both themes, by measurement rather than by sampling     |
 
 ## Engineering notes
 
